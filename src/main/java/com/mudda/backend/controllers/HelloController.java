@@ -1,4 +1,4 @@
-package com.mudda.backend.controller;
+package com.mudda.backend.controllers;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
