@@ -22,17 +22,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUserById(Long id) {
+    public Optional<User> findUserById(Long id) {
         return userRepository.findById(id);
     }
 
     @Override
-    public List<User> getAllUsers() {
+    public List<User> findAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public Optional<User> findByPhoneNumber(String phoneNumber) {
+        return userRepository.findByPhoneNumber(phoneNumber);
     }
 }

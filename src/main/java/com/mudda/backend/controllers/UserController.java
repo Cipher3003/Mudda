@@ -22,14 +22,14 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getById(@PathVariable Long id) {
-        return userService.getUserById(id)
+        return userService.findUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
     public ResponseEntity<List<User>> getAll() {
-        return ResponseEntity.ok(userService.getAllUsers());
+        return ResponseEntity.ok(userService.findAllUsers());
     }
 
     @DeleteMapping("/{id}")
