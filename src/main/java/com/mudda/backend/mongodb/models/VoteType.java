@@ -1,6 +1,6 @@
-//package com.mudda.backend.models;
-//
-//public enum VoteType {
-//    UP,
-//    DOWN
-//}
+package com.mudda.backend.mongodb.models;
+
+public enum VoteType {
+    UP,
+    DOWN
+}
