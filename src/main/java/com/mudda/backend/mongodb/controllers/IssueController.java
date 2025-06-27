@@ -1,0 +1,70 @@
+package com.mudda.backend.mongodb.controllers;
+
+import com.mudda.backend.mongodb.models.Issue;
+import com.mudda.backend.mongodb.models.IssueStatus;
+import com.mudda.backend.mongodb.services.IssueService;
+
+import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
+import org.springframework.data.geo.Point;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/issues")
+@RequiredArgsConstructor
+public class IssueController {
+
+    private final IssueService issueService;
+
+    @PostMapping
+    public ResponseEntity<Issue> createIssue(@RequestBody Issue issue) {
+        Issue created = issueService.createIssue(issue);
+        return ResponseEntity.ok(created);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Issue>> getAllIssues() {
+        return ResponseEntity.ok(issueService.findAllIssues());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Issue> getIssueById(@PathVariable String id) {
+        return issueService.findIssueById(new ObjectId(id))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteIssue(@PathVariable String id) {
+        issueService.deleteIssue(new ObjectId(id));
+        return ResponseEntity.noContent().build();
+    }
+
+//    @GetMapping("/status/{status}")
+//    public ResponseEntity<List<Issue>> getIssuesByStatus(@PathVariable IssueStatus status) {
+//        return ResponseEntity.ok(issueService.findByStatus(status));
+//    }
+//
+//    @GetMapping("/user/{userId}")
+//    public ResponseEntity<List<Issue>> getIssuesByUserId(@PathVariable Long userId) {
+//        return ResponseEntity.ok(issueService.findIssueByUserId(userId));
+//    }
+//
+//    @GetMapping("/category/{categoryId}")
+//    public ResponseEntity<List<Issue>> getIssuesByCategoryId(@PathVariable Long categoryId) {
+//        return ResponseEntity.ok(issueService.findIssueByCategoryId(categoryId));
+//    }
+//
+//    @GetMapping("/nearby")
+//    public ResponseEntity<List<Issue>> getNearbyIssues(
+//            @RequestParam double lat,
+//            @RequestParam double lon,
+//            @RequestParam int radiusInKm) {
+//
+//        Point point = new Point(lon, lat); // longitude first!
+//        return ResponseEntity.ok(issueService.findByLocation_CoordinatesNear(point, radiusInKm));
+//    }
+}
