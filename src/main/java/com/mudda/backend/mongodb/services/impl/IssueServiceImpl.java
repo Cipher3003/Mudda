@@ -6,6 +6,7 @@ import com.mudda.backend.mongodb.repositories.IssueRepository;
 import com.mudda.backend.mongodb.services.IssueService;
 
 import org.bson.types.ObjectId;
+import org.hibernate.sql.ast.tree.expression.Over;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
@@ -39,18 +40,22 @@ public class IssueServiceImpl implements IssueService {
         issueRepository.deleteById(id);
     }
 
+    @Override
     public List<Issue> findByStatus(IssueStatus status) {
         return issueRepository.findByStatus(status);
     }
 
+    @Override
     public List<Issue> findIssueByUserId(Long user_id) {
         return issueRepository.findIssueByUserId(user_id);
     }
 
+    @Override
     public List<Issue> findIssueByCategoryId(Long category_id){
         return issueRepository.findIssueByCategoryId(category_id);
     }
 
+    @Override
     public List<Issue> findByLocation_CoordinatesNear(Point point, int distanceInKm) {
         return issueRepository.findByLocation_CoordinatesNear(point, distanceInKm);
     }
