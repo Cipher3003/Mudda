@@ -15,6 +15,7 @@ public class RoleServiceImpl implements RoleService {
     private RoleRepository roleRepository;
 
 
+    @Override
     public Role createRole(Role role) { 
         return roleRepository.save(role);
     }
@@ -24,13 +25,17 @@ public class RoleServiceImpl implements RoleService {
         return roleRepository.findById(roleId);
     }
 
+    @Override
     public List<Role> findAllRoles() {
         return roleRepository.findAll();
     }
 
+    @Override
     public void deleteRole(Long id) {
         roleRepository.deleteById(id);
     }
+
+    @Override
     public Optional<Role> findByName(String name) {
         return roleRepository.findByName(name);
     }

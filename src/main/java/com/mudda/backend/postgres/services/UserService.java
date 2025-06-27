@@ -12,5 +12,8 @@ public interface UserService {
     Optional<User> findUserById(Long id);
     List<User> findAllUsers();
     void deleteUser(Long id);
+    Optional<User> findByEmail(String email);
+    Optional<User> findByPhoneNumber(String phoneNumber);
+
 }
 

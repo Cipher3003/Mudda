@@ -10,4 +10,5 @@ public interface RoleService {
     Optional<Role> findRoleById(Long RoleId);
     List<Role> findAllRoles();
     void deleteRole(Long id);
+    Optional<Role> findByName(String name);
 }
