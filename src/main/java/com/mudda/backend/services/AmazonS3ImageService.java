@@ -20,6 +20,8 @@ import com.mudda.backend.repositories.AmazonImageRepository;
 import com.mudda.backend.utils.FileUtils;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -44,6 +46,13 @@ public class AmazonS3ImageService extends AmazonClientService {
             throw new InvalidImageExtensionException(validExtensions);
         } else {
             String url = uploadMultiPartFile(image);
+
+        //  Confirm the file is in S3
+            String fileName = url.substring(url.lastIndexOf("/") + 1);
+            if (!confirmUpload(fileName)) {
+                log.error("File was not confirmed in S3: {}", fileName);
+                throw new RuntimeException("Failed to confirm upload to S3.");
+        }
 
             AmazonImage amazonImage = new AmazonImage();
             amazonImage.setImageUrl(url);
@@ -85,4 +94,23 @@ public class AmazonS3ImageService extends AmazonClientService {
         getAmazonS3().putObject(new PutObjectRequest(getBucketName(), fileName, file)
                 .withCannedAcl(CannedAccessControlList.PublicRead));
     }
+
+    public List<String> listBucketContents() {
+    List<String> objectKeys = new ArrayList<>();
+    try {
+        ObjectListing objectListing = getAmazonS3().listObjects(getBucketName());
+
+        do {
+            for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
+                objectKeys.add(summary.getKey());
+            }
+            objectListing = getAmazonS3().listNextBatchOfObjects(objectListing);
+        } while (objectListing.isTruncated());
+
+    } catch (Exception e) {
+        log.error("Failed to list objects in S3 bucket: {}", getBucketName(), e);
+    }
+
+    return objectKeys;
+}
 }

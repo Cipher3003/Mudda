@@ -16,8 +16,11 @@ public class AmazonClientService {
 
     private AmazonS3 amazonS3;
 
-    @Value("${amazon.s3.endpoint}")
-    private String url;
+    // @Value("${amazon.s3.endpoint}")
+    // private String url;
+
+    @Value("${amazon.s3.region}")
+    private String region;
 
     @Value("${amazon.s3.bucket-name}")
     private String bucketName;
@@ -32,12 +35,13 @@ public class AmazonClientService {
         return amazonS3;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
     public String getBucketName() {
         return bucketName;
+    }
+
+    public String getUrl() {
+        // Construct S3 public URL
+        return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
     }
 
     @PostConstruct
@@ -46,8 +50,7 @@ public class AmazonClientService {
 
         this.amazonS3 = AmazonS3ClientBuilder
                 .standard()
-                // TODO: Fill correct region
-                .withRegion(Regions.AP_SOUTHEAST_1)
+                .withRegion(Regions.fromName(region))
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .build();
     }
