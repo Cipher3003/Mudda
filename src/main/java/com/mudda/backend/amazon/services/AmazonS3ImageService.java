@@ -1,4 +1,4 @@
-package com.mudda.backend.services;
+package com.mudda.backend.amazon.services;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,10 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.mudda.backend.amazon.models.AmazonImage;
+import com.mudda.backend.amazon.repositories.AmazonImageRepository;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
-import com.mudda.backend.models.AmazonImage;
-import com.mudda.backend.repositories.AmazonImageRepository;
 import com.mudda.backend.utils.FileUtils;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
