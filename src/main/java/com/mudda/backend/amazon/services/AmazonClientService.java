@@ -1,4 +1,4 @@
-package com.mudda.backend.services;
+package com.mudda.backend.amazon.services;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

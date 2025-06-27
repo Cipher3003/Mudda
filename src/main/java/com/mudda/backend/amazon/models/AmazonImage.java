@@ -1,4 +1,4 @@
-package com.mudda.backend.models;
+package com.mudda.backend.amazon.models;
 
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
