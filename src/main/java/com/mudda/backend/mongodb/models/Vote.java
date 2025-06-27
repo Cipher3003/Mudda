@@ -1,18 +1,13 @@
 //package com.mudda.backend.mongodb.models;
 //
-//import java.sql.Timestamp;
+//import java.time.Instant;
 //
-//import jakarta.persistence.Column;
-//import jakarta.persistence.Entity;
-//import jakarta.persistence.EnumType;
-//import jakarta.persistence.Enumerated;
-//import jakarta.persistence.GeneratedValue;
-//import jakarta.persistence.GenerationType;
-//import jakarta.persistence.Id;
-//import jakarta.persistence.JoinColumn;
-//import jakarta.persistence.ManyToOne;
-//import jakarta.persistence.Table;
-//import jakarta.persistence.UniqueConstraint;
+//import org.springframework.data.annotation.Id;
+//import org.springframework.data.mongodb.core.mapping.DBRef;
+//import org.springframework.data.mongodb.core.mapping.Document;
+//import org.springframework.data.mongodb.core.index.CompoundIndex;
+//import org.springframework.data.mongodb.core.index.CompoundIndexes;
+//
 //import lombok.AllArgsConstructor;
 //import lombok.Getter;
 //import lombok.NoArgsConstructor;
@@ -22,27 +17,22 @@
 //@AllArgsConstructor
 //@Getter
 //@Setter
-//@Entity
-//@Table(name = "votes", uniqueConstraints = {
-//    @UniqueConstraint(columnNames = {"issue_id", "user_id"})
+//@Document(collection = "votes")
+//@CompoundIndexes({
+//        @CompoundIndex(name = "unique_vote_per_user_per_issue", def = "{'issue.$id': 1, 'userId': 1}", unique = true)
 //})
 //public class Vote {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long voteId;
 //
-//    @ManyToOne
-//    @JoinColumn(name = "issue_id", nullable = false)
+//    @Id
+//    private String voteId;
+//    // MongoDB reference to Issue document
+//    @DBRef
 //    private Issue issue;
 //
-//    @ManyToOne
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
+//    // Store the userId (PostgreSQL user)
+//    private Long userId;
 //
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
 //    private VoteType voteType;
 //
-//    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-//    private Timestamp createdAt;
+//    private Instant createdAt = Instant.now();
 //}

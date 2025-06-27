@@ -1,56 +1,41 @@
-//package com.mudda.backend.models;
-//
-//
-//import java.sql.Timestamp;
-//import jakarta.persistence.Column;
-//import jakarta.persistence.Entity;
-//import jakarta.persistence.GeneratedValue;
-//import jakarta.persistence.GenerationType;
-//import jakarta.persistence.Id;
-//import jakarta.persistence.JoinColumn;
-//import jakarta.persistence.ManyToOne;
-//import jakarta.persistence.Table;
-//import lombok.AllArgsConstructor;
-//import lombok.Getter;
-//import lombok.NoArgsConstructor;
-//import lombok.Setter;
-//
-//@NoArgsConstructor
-//@AllArgsConstructor
-//@Getter
-//@Setter
-//@Entity
-//@Table(name = "issues")
-//public class Issue {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long issueId;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "category_id", nullable = false)
-//    private Category category;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "location_id", nullable = false)
-//    private Location location;
-//
-//    @Column(nullable = false)
-//    private String title;
-//
-//    @Column(columnDefinition = "TEXT")
-//    private String description;
-//
-//    private String status = "OPEN";
-//
-//    private String imageUrl;
-//
-//    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-//    private Timestamp createdAt;
-//
-//    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-//    private Timestamp updatedAt;
-//}
+package com.mudda.backend.mongodb.models;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Document(collection = "issues")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Issue {
+
+    @Id
+    private ObjectId issueId; // MongoDB _id as String
+
+    private Long userId;     // Reference to User in PostgreSQL
+    private Long categoryId; // Reference to Category in PostgreSQL
+
+    private String title;
+    private String description;
+
+    private IssueStatus status;
+
+    private List<String> mediaUrls;
+
+    private Location location;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+}

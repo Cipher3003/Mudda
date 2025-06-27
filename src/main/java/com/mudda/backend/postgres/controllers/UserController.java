@@ -37,4 +37,9 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+//    @GetMapping
+//    public ResponseEntity<User> findByEmail(String email){
+//        return UserService.find
+//    }
 }
