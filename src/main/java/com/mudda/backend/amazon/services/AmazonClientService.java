@@ -16,9 +16,6 @@ public class AmazonClientService {
 
     private AmazonS3 amazonS3;
 
-    // @Value("${amazon.s3.endpoint}")
-    // private String url;
-
     @Value("${amazon.s3.region}")
     private String region;
 
