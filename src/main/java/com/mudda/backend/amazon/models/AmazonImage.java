@@ -10,7 +10,7 @@ import lombok.Data;
 public class AmazonImage {
 
     @Id
-    private String amazonUserIdString;
+    private String imageKey;
 
     @NotNull
     private String imageUrl;
