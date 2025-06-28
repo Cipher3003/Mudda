@@ -47,12 +47,14 @@ public class AmazonS3ImageService extends AmazonClientService {
         } else {
             String url = uploadMultiPartFile(image);
 
-        //  Confirm the file is in S3
+            // Confirm the file is in S3
             String fileName = url.substring(url.lastIndexOf("/") + 1);
             if (!confirmUpload(fileName)) {
                 log.error("File was not confirmed in S3: {}", fileName);
                 throw new RuntimeException("Failed to confirm upload to S3.");
-        }
+            } else {
+                log.info("File with name: " + fileName + " Uploaded successfully to S3.");
+            }
 
             AmazonImage amazonImage = new AmazonImage();
             amazonImage.setImageUrl(url);
@@ -96,21 +98,30 @@ public class AmazonS3ImageService extends AmazonClientService {
     }
 
     public List<String> listBucketContents() {
-    List<String> objectKeys = new ArrayList<>();
-    try {
-        ObjectListing objectListing = getAmazonS3().listObjects(getBucketName());
+        List<String> objectKeys = new ArrayList<>();
+        try {
+            ObjectListing objectListing = getAmazonS3().listObjects(getBucketName());
 
-        do {
-            for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
-                objectKeys.add(summary.getKey());
-            }
-            objectListing = getAmazonS3().listNextBatchOfObjects(objectListing);
-        } while (objectListing.isTruncated());
+            do {
+                for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
+                    objectKeys.add(summary.getKey());
+                }
+                objectListing = getAmazonS3().listNextBatchOfObjects(objectListing);
+            } while (objectListing.isTruncated());
 
-    } catch (Exception e) {
-        log.error("Failed to list objects in S3 bucket: {}", getBucketName(), e);
+        } catch (Exception e) {
+            log.error("Failed to list objects in S3 bucket: {}", getBucketName(), e);
+        }
+
+        return objectKeys;
     }
 
-    return objectKeys;
-}
+    public boolean confirmUpload(String fileName) {
+        try {
+            return getAmazonS3().doesObjectExist(getBucketName(), fileName);
+        } catch (Exception e) {
+            log.error("Error checking if file exists in S3: {}", fileName, e);
+            return false;
+        }
+    }
 }

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
@@ -47,7 +46,7 @@ public class AmazonClientService {
 
         this.amazonS3 = AmazonS3ClientBuilder
                 .standard()
-                .withRegion(Regions.fromName(region))
+                .withRegion(region)
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .build();
     }
