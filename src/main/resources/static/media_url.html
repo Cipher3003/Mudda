@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Image Upload to S3</title>
+</head>
+
+<body>
+    <h1>Test Image Upload to S3</h1>
+    <form action="/api/amazon/images/upload" method="post" enctype="multipart/form-data">
+        <label for="file">Select an image to upload:</label>
+        <input type="file" id="file" name="file" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <form action="/api/amazon/images/check-image-exists" method="post" enctype="application/x-www-form-urlencoded">
+        <label for="fileName">File name to check:</label>
+        <input type="text" id="fileName" name="fileName" required>
+        <button type="submit">Check</button>
+    </form>
+
+    <h2>Uploaded Image</h2>
+    <img id="uploadedImage" src="" alt="Uploaded Image will appear here after upload."
+        style="max-width: 100%; height: auto;">
+</body>
+
+</html>

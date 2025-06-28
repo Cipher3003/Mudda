@@ -1,0 +1,43 @@
+package com.mudda.backend.amazon.controllers;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.mudda.backend.amazon.models.AmazonImage;
+import com.mudda.backend.amazon.services.AmazonS3ImageService;
+
+@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/api/amazon/images")
+public class AmazonS3ImageController {
+
+    private final AmazonS3ImageService amazonS3ImageService;
+
+    public AmazonS3ImageController(AmazonS3ImageService amazonS3ImageService) {
+        this.amazonS3ImageService = amazonS3ImageService;
+    }
+
+    /**
+     * Uploads an image to Amazon S3.
+     *
+     * @param image the image file to upload
+     * @return ResponseEntity containing the uploaded AmazonImage object
+     */
+    @PostMapping("/upload")
+    public ResponseEntity<AmazonImage> uploadImage(@RequestParam("file") MultipartFile image) {
+        AmazonImage uploadedImage = amazonS3ImageService.uploadImageToAmazon(image);
+        return ResponseEntity.ok(uploadedImage);
+    }
+
+    @PostMapping("/check-image-exists")
+    public ResponseEntity<Boolean> checkImageExists(@RequestParam("fileName") String fileName) {
+        boolean exists = amazonS3ImageService.confirmUpload(fileName);
+        return ResponseEntity.ok(exists);
+    }
+
+}
