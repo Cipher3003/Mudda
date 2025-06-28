@@ -29,6 +29,10 @@ public class AmazonS3ImageService extends AmazonClientService {
 
     private AmazonImageRepository amazonImageRepository;
 
+    public AmazonS3ImageService(AmazonImageRepository repository) {
+        amazonImageRepository = repository;
+    }
+
     public List<AmazonImage> insertImages(List<MultipartFile> images) {
         List<AmazonImage> amazonImages = new ArrayList<>();
         images.forEach(image -> amazonImages.add(uploadImageToAmazon(image)));
@@ -55,6 +59,7 @@ public class AmazonS3ImageService extends AmazonClientService {
             }
 
             AmazonImage amazonImage = new AmazonImage();
+            amazonImage.setImageKey(fileName);
             amazonImage.setImageUrl(url);
 
             return amazonImageRepository.save(amazonImage);
