@@ -9,8 +9,6 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.mudda.backend.amazon.models.AmazonImage;
@@ -93,8 +91,7 @@ public class AmazonS3ImageService extends AmazonClientService {
     }
 
     private void uploadPublicFile(String fileName, File file) {
-        getAmazonS3().putObject(new PutObjectRequest(getBucketName(), fileName, file)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
+        getAmazonS3().putObject(new PutObjectRequest(getBucketName(), fileName, file));
     }
 
     public List<String> listBucketContents() {
