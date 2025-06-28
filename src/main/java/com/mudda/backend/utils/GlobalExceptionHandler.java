@@ -1,10 +1,12 @@
 package com.mudda.backend.utils;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
 
@@ -29,4 +31,13 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(e.getMessage());
     }
+
+    @ExceptionHandler(AmazonS3Exception.class)
+    public ResponseEntity<?> handleAmazonS3Failure(AmazonS3Exception e) {
+        log.warn("AmazonS3Exception: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(e.getMessage());
+    }
+
 }
