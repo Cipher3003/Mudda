@@ -41,7 +41,7 @@ public class AmazonS3ImageService extends AmazonClientService {
 
     public AmazonImage uploadImageToAmazon(MultipartFile image) {
 
-        List<String> validExtensions = Arrays.asList(".jpeg", "jpg", "png");
+        List<String> validExtensions = Arrays.asList("jpeg", "jpg", "png");
 
         String extension = FilenameUtils.getExtension(image.getOriginalFilename());
         if (!validExtensions.contains(extension)) {
