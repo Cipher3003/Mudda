@@ -1,5 +1,0 @@
-1. Interconnect cross database linking from postgresql to mongodb
-    e.g.,   a. Issue by status (using status_type)
-            b. Issue by User (using user_email)
-
-2. Implement MVC layers for Votes and Comments
