@@ -7,8 +7,14 @@
     "status": "OPEN",
     "mediaUrls": ["https://example.com/pothole1.jpg"],
     "location": {
-      "latitude": 28.6139,
-      "longitude": 77.2090
+      "addressLine": "Main Street, Connaught Place",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110001",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [77.2090, 28.6139]
+      }
     },
     "createdAt": { "$date": "2025-06-01T10:15:00Z" },
     "updatedAt": { "$date": "2025-06-01T10:15:00Z" }
@@ -21,8 +27,14 @@
     "status": "OPEN",
     "mediaUrls": ["https://example.com/streetlight.jpg"],
     "location": {
-      "latitude": 28.7041,
-      "longitude": 77.65
+      "addressLine": "House #42, Sector 15",
+      "city": "Noida",
+      "state": "Uttar Pradesh",
+      "pincode": "201301",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [77.65, 28.7041]
+      }
     },
     "createdAt": { "$date": "2025-06-02T11:30:00Z" },
     "updatedAt": { "$date": "2025-06-02T11:30:00Z" }
@@ -35,8 +47,14 @@
     "status": "RESOLVED",
     "mediaUrls": ["https://example.com/garbage.jpg"],
     "location": {
-      "latitude": 19.0760,
-      "longitude": 72.8777
+      "addressLine": "Near Andheri Station",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "pincode": "400053",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [72.8777, 19.0760]
+      }
     },
     "createdAt": { "$date": "2025-06-03T08:45:00Z" },
     "updatedAt": { "$date": "2025-06-05T09:00:00Z" }
@@ -49,8 +67,14 @@
     "status": "OPEN",
     "mediaUrls": [],
     "location": {
-      "latitude": 13.0827,
-      "longitude": 80.2707
+      "addressLine": "T. Nagar Market",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "pincode": "600017",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [80.2707, 13.0827]
+      }
     },
     "createdAt": { "$date": "2025-06-04T14:20:00Z" },
     "updatedAt": { "$date": "2025-06-04T14:20:00Z" }
@@ -63,8 +87,14 @@
     "status": "CLOSED",
     "mediaUrls": ["https://example.com/manhole.jpg"],
     "location": {
-      "latitude": 22.5726,
-      "longitude": 88.3639
+      "addressLine": "Park Street",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "pincode": "700016",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [88.3639, 22.5726]
+      }
     },
     "createdAt": { "$date": "2025-06-05T12:00:00Z" },
     "updatedAt": { "$date": "2025-06-06T13:00:00Z" }
@@ -77,8 +107,14 @@
     "status": "OPEN",
     "mediaUrls": [],
     "location": {
-      "latitude": 26.9124,
-      "longitude": 75.7873
+      "addressLine": "Malviya Nagar",
+      "city": "Jaipur",
+      "state": "Rajasthan",
+      "pincode": "302017",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [75.7873, 26.9124]
+      }
     },
     "createdAt": { "$date": "2025-06-06T07:30:00Z" },
     "updatedAt": { "$date": "2025-06-06T07:30:00Z" }
@@ -91,8 +127,14 @@
     "status": "RESOLVED",
     "mediaUrls": ["https://example.com/parking.jpg"],
     "location": {
-      "latitude": 23.2599,
-      "longitude": 77.4126
+      "addressLine": "MP Nagar",
+      "city": "Bhopal",
+      "state": "Madhya Pradesh",
+      "pincode": "462011",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [77.4126, 23.2599]
+      }
     },
     "createdAt": { "$date": "2025-06-07T10:00:00Z" },
     "updatedAt": { "$date": "2025-06-08T10:00:00Z" }
@@ -105,8 +147,14 @@
     "status": "CLOSED",
     "mediaUrls": ["https://example.com/treebranch.jpg"],
     "location": {
-      "latitude": 12.9716,
-      "longitude": 77.5946
+      "addressLine": "MG Road",
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "pincode": "560001",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [77.5946, 12.9716]
+      }
     },
     "createdAt": { "$date": "2025-06-08T08:00:00Z" },
     "updatedAt": { "$date": "2025-06-08T12:00:00Z" }
@@ -119,8 +167,14 @@
     "status": "OPEN",
     "mediaUrls": ["https://example.com/debris.jpg"],
     "location": {
-      "latitude": 11.0168,
-      "longitude": 76.9558
+      "addressLine": "Gandhipuram",
+      "city": "Coimbatore",
+      "state": "Tamil Nadu",
+      "pincode": "641012",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [76.9558, 11.0168]
+      }
     },
     "createdAt": { "$date": "2025-06-09T09:30:00Z" },
     "updatedAt": { "$date": "2025-06-09T09:30:00Z" }
@@ -133,8 +187,14 @@
     "status": "RESOLVED",
     "mediaUrls": ["https://example.com/drain.jpg"],
     "location": {
-      "latitude": 15.2993,
-      "longitude": 74.1240
+      "addressLine": "Panaji Market",
+      "city": "Panaji",
+      "state": "Goa",
+      "pincode": "403001",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [74.1240, 15.2993]
+      }
     },
     "createdAt": { "$date": "2025-06-10T15:00:00Z" },
     "updatedAt": { "$date": "2025-06-11T10:00:00Z" }
