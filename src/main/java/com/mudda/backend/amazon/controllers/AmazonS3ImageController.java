@@ -1,5 +1,7 @@
 package com.mudda.backend.amazon.controllers;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.services.AmazonS3ImageService;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -38,6 +41,12 @@ public class AmazonS3ImageController {
     public ResponseEntity<Boolean> checkImageExists(@RequestParam String fileName) {
         boolean exists = amazonS3ImageService.confirmUpload(fileName);
         return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<String>> getBucketContents() {
+        List<String> bucketContentList = amazonS3ImageService.listBucketContents();
+        return ResponseEntity.ok(bucketContentList);
     }
 
 }
