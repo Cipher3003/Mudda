@@ -1,0 +1,142 @@
+[
+  {
+    "userId": 5,
+    "categoryId": 1,
+    "title": "Pothole on Main Street",
+    "description": "A large pothole near the intersection causing traffic delays.",
+    "status": "OPEN",
+    "mediaUrls": ["https://example.com/pothole1.jpg"],
+    "location": {
+      "latitude": 28.6139,
+      "longitude": 77.2090
+    },
+    "createdAt": { "$date": "2025-06-01T10:15:00Z" },
+    "updatedAt": { "$date": "2025-06-01T10:15:00Z" }
+  },
+  {
+    "userId": 6,
+    "categoryId": 2,
+    "title": "Streetlight not working",
+    "description": "The streetlight in front of House #42 is out.",
+    "status": "OPEN",
+    "mediaUrls": ["https://example.com/streetlight.jpg"],
+    "location": {
+      "latitude": 28.7041,
+      "longitude": 77.65
+    },
+    "createdAt": { "$date": "2025-06-02T11:30:00Z" },
+    "updatedAt": { "$date": "2025-06-02T11:30:00Z" }
+  },
+  {
+    "userId": 7,
+    "categoryId": 3,
+    "title": "Overflowing Garbage",
+    "description": "Trash not collected for a week now.",
+    "status": "RESOLVED",
+    "mediaUrls": ["https://example.com/garbage.jpg"],
+    "location": {
+      "latitude": 19.0760,
+      "longitude": 72.8777
+    },
+    "createdAt": { "$date": "2025-06-03T08:45:00Z" },
+    "updatedAt": { "$date": "2025-06-05T09:00:00Z" }
+  },
+  {
+    "userId": 9,
+    "categoryId": 1,
+    "title": "Broken footpath",
+    "description": "Footpath tiles are broken and dangerous.",
+    "status": "OPEN",
+    "mediaUrls": [],
+    "location": {
+      "latitude": 13.0827,
+      "longitude": 80.2707
+    },
+    "createdAt": { "$date": "2025-06-04T14:20:00Z" },
+    "updatedAt": { "$date": "2025-06-04T14:20:00Z" }
+  },
+  {
+    "userId": 8,
+    "categoryId": 2,
+    "title": "Open manhole",
+    "description": "No cover on the manhole. Risk of accident.",
+    "status": "CLOSED",
+    "mediaUrls": ["https://example.com/manhole.jpg"],
+    "location": {
+      "latitude": 22.5726,
+      "longitude": 88.3639
+    },
+    "createdAt": { "$date": "2025-06-05T12:00:00Z" },
+    "updatedAt": { "$date": "2025-06-06T13:00:00Z" }
+  },
+  {
+    "userId": 7,
+    "categoryId": 3,
+    "title": "Water leakage",
+    "description": "Pipe leaking for 3 days.",
+    "status": "OPEN",
+    "mediaUrls": [],
+    "location": {
+      "latitude": 26.9124,
+      "longitude": 75.7873
+    },
+    "createdAt": { "$date": "2025-06-06T07:30:00Z" },
+    "updatedAt": { "$date": "2025-06-06T07:30:00Z" }
+  },
+  {
+    "userId": 5,
+    "categoryId": 2,
+    "title": "Illegal parking",
+    "description": "Cars are blocking footpath every evening.",
+    "status": "RESOLVED",
+    "mediaUrls": ["https://example.com/parking.jpg"],
+    "location": {
+      "latitude": 23.2599,
+      "longitude": 77.4126
+    },
+    "createdAt": { "$date": "2025-06-07T10:00:00Z" },
+    "updatedAt": { "$date": "2025-06-08T10:00:00Z" }
+  },
+  {
+    "userId": 8,
+    "categoryId": 1,
+    "title": "Fallen tree branch",
+    "description": "Tree branch has blocked one lane of traffic.",
+    "status": "CLOSED",
+    "mediaUrls": ["https://example.com/treebranch.jpg"],
+    "location": {
+      "latitude": 12.9716,
+      "longitude": 77.5946
+    },
+    "createdAt": { "$date": "2025-06-08T08:00:00Z" },
+    "updatedAt": { "$date": "2025-06-08T12:00:00Z" }
+  },
+  {
+    "userId": 6,
+    "categoryId": 3,
+    "title": "Construction debris",
+    "description": "Debris left on the road for 2 weeks.",
+    "status": "OPEN",
+    "mediaUrls": ["https://example.com/debris.jpg"],
+    "location": {
+      "latitude": 11.0168,
+      "longitude": 76.9558
+    },
+    "createdAt": { "$date": "2025-06-09T09:30:00Z" },
+    "updatedAt": { "$date": "2025-06-09T09:30:00Z" }
+  },
+  {
+    "userId": 7,
+    "categoryId": 1,
+    "title": "Blocked drain",
+    "description": "Drain blocked causing waterlogging.",
+    "status": "RESOLVED",
+    "mediaUrls": ["https://example.com/drain.jpg"],
+    "location": {
+      "latitude": 15.2993,
+      "longitude": 74.1240
+    },
+    "createdAt": { "$date": "2025-06-10T15:00:00Z" },
+    "updatedAt": { "$date": "2025-06-11T10:00:00Z" }
+  }
+]
