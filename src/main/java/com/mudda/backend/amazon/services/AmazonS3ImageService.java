@@ -7,13 +7,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.repositories.AmazonImageRepository;
-import com.mudda.backend.common.config.AmazonConfig;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
 import com.mudda.backend.utils.FileUtils;
@@ -26,12 +28,25 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @Service
-public class AmazonS3ImageService extends AmazonConfig {
+public class AmazonS3ImageService {
 
+    private AmazonS3 amazonS3;
     private AmazonImageRepository amazonImageRepository;
 
-    public AmazonS3ImageService(AmazonImageRepository repository) {
+    @Value("${amazon.s3.bucket-name}")
+    private String bucketName;
+
+    @Value("${amazon.s3.region}")
+    private String region;
+
+    public AmazonS3ImageService(AmazonS3 amazonS3, AmazonImageRepository repository) {
+        this.amazonS3 = amazonS3;
         amazonImageRepository = repository;
+    }
+
+    public String getUrl() {
+        // Construct S3 public URL
+        return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
     }
 
     public List<AmazonImage> insertImages(List<MultipartFile> images) {
@@ -67,12 +82,9 @@ public class AmazonS3ImageService extends AmazonConfig {
         }
     }
 
-    public void removeImageFromAmazon(AmazonImage amazonImage) {
-        String fileName = amazonImage
-                .getImageUrl()
-                .substring(amazonImage.getImageUrl().lastIndexOf("/") + 1);
-        getAmazonS3().deleteObject(new DeleteObjectRequest(getBucketName(), fileName));
-        amazonImageRepository.delete(amazonImage);
+    public void removeImageFromAmazon(String fileName) {
+        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
+        amazonImageRepository.deleteById(fileName);
     }
 
     private String uploadMultiPartFile(MultipartFile multipartFile) {
@@ -97,23 +109,23 @@ public class AmazonS3ImageService extends AmazonConfig {
     }
 
     private void uploadPublicFile(String fileName, File file) {
-        getAmazonS3().putObject(new PutObjectRequest(getBucketName(), fileName, file));
+        amazonS3.putObject(new PutObjectRequest(bucketName, fileName, file));
     }
 
     public List<String> listBucketContents() {
         List<String> objectKeys = new ArrayList<>();
         try {
-            ObjectListing objectListing = getAmazonS3().listObjects(getBucketName());
+            ObjectListing objectListing = amazonS3.listObjects(bucketName);
 
             do {
                 for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
                     objectKeys.add(summary.getKey());
                 }
-                objectListing = getAmazonS3().listNextBatchOfObjects(objectListing);
+                objectListing = amazonS3.listNextBatchOfObjects(objectListing);
             } while (objectListing.isTruncated());
 
         } catch (Exception e) {
-            log.error("Failed to list objects in S3 bucket: {}", getBucketName(), e);
+            log.error("Failed to list objects in S3 bucket: {}", bucketName, e);
         }
 
         return objectKeys;
@@ -125,7 +137,7 @@ public class AmazonS3ImageService extends AmazonConfig {
 
     public boolean checkImageUpload(String imageKey) {
         try {
-            return getAmazonS3().doesObjectExist(getBucketName(), imageKey);
+            return amazonS3.doesObjectExist(bucketName, imageKey);
         } catch (Exception e) {
             log.error("Error checking if file exists in S3: {}", imageKey, e);
             return false;

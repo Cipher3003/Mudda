@@ -16,9 +16,6 @@ public class AmazonConfig {
     @Value("${amazon.s3.region}")
     private String region;
 
-    @Value("${amazon.s3.bucket-name}")
-    private String bucketName;
-
     @Value("${amazon.s3.access-key}")
     private String accessKey;
 
@@ -27,15 +24,6 @@ public class AmazonConfig {
 
     public AmazonS3 getAmazonS3() {
         return amazonS3;
-    }
-
-    public String getBucketName() {
-        return bucketName;
-    }
-
-    public String getUrl() {
-        // Construct S3 public URL
-        return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
     }
 
     @Bean
