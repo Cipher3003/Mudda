@@ -29,6 +29,12 @@
         <button type="submit">Check</button>
     </form>
 
+    <form id="imageDeleteForm">
+        <label for="deleteFileName">File name to delete:</label>
+        <input type="text" id="deleteFileName" name="fileName" required>
+        <button type="submit">Delete</button>
+    </form>
+
     <h2>Uploaded Image</h2>
     <img id="uploadedImage" src="" alt="Uploaded Image will appear here after upload."
         style="max-width: 100%; height: auto;">
@@ -53,12 +59,32 @@
 
         const bucket_list = document.getElementById("bucket_list")
 
+        bucket_list.innerHTML = ""
+
         bucket_items.forEach(item => {
             const list_item = document.createElement("li")
             list_item.innerText = item
             bucket_list.appendChild(list_item)
         });
     }
+
+    document.getElementById("imageDeleteForm").addEventListener("submit", function (event) {
+        event.preventDefault()
+
+        const fileName = document.getElementById("deleteFileName").value
+        const url = `/api/amazon/images/${encodeURIComponent(fileName)}`
+
+        fetch(url, { method: "DELETE" }).then((response) => {
+            if (response.ok) {
+                alert(`File: ${fileName} Deleted successfully`)
+            } else {
+                alert("File deletion failed")
+            }
+        }).catch((error) => {
+            console.error(error);
+            alert(`An error occurred ${error}`)
+        })
+    })
 </script>
 
 </html>

@@ -2,8 +2,10 @@ package com.mudda.backend.amazon.controllers;
 
 import java.util.List;
 
+import org.apache.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.services.AmazonS3ImageService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -53,6 +56,16 @@ public class AmazonS3ImageController {
     public ResponseEntity<List<String>> getBucketContents() {
         List<String> bucketContentList = amazonS3ImageService.listBucketContents();
         return ResponseEntity.ok(bucketContentList);
+    }
+
+    @DeleteMapping("/{fileName}")
+    public ResponseEntity<String> deleteImage(@PathVariable String fileName) {
+        try {
+            amazonS3ImageService.removeImageFromAmazon(fileName);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
 }
