@@ -1,7 +1,11 @@
 package com.mudda.backend.amazon.controllers;
 
+import java.util.List;
+
+import org.apache.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.services.AmazonS3ImageService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -25,19 +31,41 @@ public class AmazonS3ImageController {
     /**
      * Uploads an image to Amazon S3.
      *
-     * @param image the image file to upload
+     * @param file the image file to upload
      * @return ResponseEntity containing the uploaded AmazonImage object
      */
     @PostMapping("/upload")
-    public ResponseEntity<AmazonImage> uploadImage(@RequestParam("file") MultipartFile image) {
-        AmazonImage uploadedImage = amazonS3ImageService.uploadImageToAmazon(image);
+    public ResponseEntity<AmazonImage> uploadImage(@RequestParam MultipartFile file) {
+        AmazonImage uploadedImage = amazonS3ImageService.uploadImageToAmazon(file);
         return ResponseEntity.ok(uploadedImage);
     }
 
-    @PostMapping("/check-image-exists")
-    public ResponseEntity<Boolean> checkImageExists(@RequestParam("fileName") String fileName) {
-        boolean exists = amazonS3ImageService.confirmUpload(fileName);
+    @PostMapping("/check-image-exists-in-database")
+    public ResponseEntity<Boolean> checkImageExistsInDatabase(@RequestParam String fileName) {
+        boolean exists = amazonS3ImageService.checkImageExists(fileName);
         return ResponseEntity.ok(exists);
+    }
+
+    @PostMapping("/check-image-exists-in-cloud")
+    public ResponseEntity<Boolean> checkImageExistsInCloud(@RequestParam String fileName) {
+        boolean exists = amazonS3ImageService.checkImageUpload(fileName);
+        return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<String>> getBucketContents() {
+        List<String> bucketContentList = amazonS3ImageService.listBucketContents();
+        return ResponseEntity.ok(bucketContentList);
+    }
+
+    @DeleteMapping("/{fileName}")
+    public ResponseEntity<String> deleteImage(@PathVariable String fileName) {
+        try {
+            amazonS3ImageService.removeImageFromAmazon(fileName);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
 }

@@ -15,15 +15,76 @@
         <button type="submit">Upload</button>
     </form>
 
-    <form action="/api/amazon/images/check-image-exists" method="post" enctype="application/x-www-form-urlencoded">
-        <label for="fileName">File name to check:</label>
+    <form action="/api/amazon/images/check-image-exists-in-database" method="post"
+        enctype="application/x-www-form-urlencoded">
+        <label for="fileName">File name to check in Database:</label>
         <input type="text" id="fileName" name="fileName" required>
         <button type="submit">Check</button>
+    </form>
+
+    <form action="/api/amazon/images/check-image-exists-in-cloud" method="post"
+        enctype="application/x-www-form-urlencoded">
+        <label for="fileName">File name to check in Cloud:</label>
+        <input type="text" id="fileName" name="fileName" required>
+        <button type="submit">Check</button>
+    </form>
+
+    <form id="imageDeleteForm">
+        <label for="deleteFileName">File name to delete:</label>
+        <input type="text" id="deleteFileName" name="fileName" required>
+        <button type="submit">Delete</button>
     </form>
 
     <h2>Uploaded Image</h2>
     <img id="uploadedImage" src="" alt="Uploaded Image will appear here after upload."
         style="max-width: 100%; height: auto;">
+
+    <br>
+    <br>
+
+    <button id="bucket_list_btn" onclick="listBucketContents()">List Bucket Contents</button>
+    <ul id="bucket_list"></ul>
 </body>
+
+<script>
+    async function listBucketContents() {
+        const AMAZON_IMAGE_URL = "/api/amazon/images"
+        const response = await fetch(AMAZON_IMAGE_URL)
+        if (!response.ok) {
+            throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
+        }
+
+        const bucket_items = await response.json();
+        console.log(bucket_items)
+
+        const bucket_list = document.getElementById("bucket_list")
+
+        bucket_list.innerHTML = ""
+
+        bucket_items.forEach(item => {
+            const list_item = document.createElement("li")
+            list_item.innerText = item
+            bucket_list.appendChild(list_item)
+        });
+    }
+
+    document.getElementById("imageDeleteForm").addEventListener("submit", function (event) {
+        event.preventDefault()
+
+        const fileName = document.getElementById("deleteFileName").value
+        const url = `/api/amazon/images/${encodeURIComponent(fileName)}`
+
+        fetch(url, { method: "DELETE" }).then((response) => {
+            if (response.ok) {
+                alert(`File: ${fileName} Deleted successfully`)
+            } else {
+                alert("File deletion failed")
+            }
+        }).catch((error) => {
+            console.error(error);
+            alert(`An error occurred ${error}`)
+        })
+    })
+</script>
 
 </html>
