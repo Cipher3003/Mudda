@@ -48,10 +48,10 @@ public class IssueController {
         return ResponseEntity.noContent().build();
     }
 
-//    @GetMapping("/status/{status}")
-//    public ResponseEntity<List<Issue>> getIssuesByStatus(@PathVariable IssueStatus status) {
-//        return ResponseEntity.ok(issueService.findByStatus(status));
-//    }
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<Issue>> getIssuesByStatus(@PathVariable IssueStatus status) {
+        return ResponseEntity.ok(issueService.findByStatus(status));
+    }
 //
 //    @GetMapping("/user/{userId}")
 //    public ResponseEntity<List<Issue>> getIssuesByUserId(@PathVariable Long userId) {
