@@ -119,11 +119,15 @@ public class AmazonS3ImageService extends AmazonConfig {
         return objectKeys;
     }
 
-    public boolean confirmUpload(String fileName) {
+    public boolean checkImageExists(String imageKey) {
+        return amazonImageRepository.existsById(imageKey);
+    }
+
+    public boolean checkImageUpload(String imageKey) {
         try {
-            return getAmazonS3().doesObjectExist(getBucketName(), fileName);
+            return getAmazonS3().doesObjectExist(getBucketName(), imageKey);
         } catch (Exception e) {
-            log.error("Error checking if file exists in S3: {}", fileName, e);
+            log.error("Error checking if file exists in S3: {}", imageKey, e);
             return false;
         }
     }

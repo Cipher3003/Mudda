@@ -15,8 +15,16 @@
         <button type="submit">Upload</button>
     </form>
 
-    <form action="/api/amazon/images/check-image-exists" method="post" enctype="application/x-www-form-urlencoded">
-        <label for="fileName">File name to check:</label>
+    <form action="/api/amazon/images/check-image-exists-in-database" method="post"
+        enctype="application/x-www-form-urlencoded">
+        <label for="fileName">File name to check in Database:</label>
+        <input type="text" id="fileName" name="fileName" required>
+        <button type="submit">Check</button>
+    </form>
+
+    <form action="/api/amazon/images/check-image-exists-in-cloud" method="post"
+        enctype="application/x-www-form-urlencoded">
+        <label for="fileName">File name to check in Cloud:</label>
         <input type="text" id="fileName" name="fileName" required>
         <button type="submit">Check</button>
     </form>

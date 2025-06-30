@@ -37,9 +37,15 @@ public class AmazonS3ImageController {
         return ResponseEntity.ok(uploadedImage);
     }
 
-    @PostMapping("/check-image-exists")
-    public ResponseEntity<Boolean> checkImageExists(@RequestParam String fileName) {
-        boolean exists = amazonS3ImageService.confirmUpload(fileName);
+    @PostMapping("/check-image-exists-in-database")
+    public ResponseEntity<Boolean> checkImageExistsInDatabase(@RequestParam String fileName) {
+        boolean exists = amazonS3ImageService.checkImageExists(fileName);
+        return ResponseEntity.ok(exists);
+    }
+
+    @PostMapping("/check-image-exists-in-cloud")
+    public ResponseEntity<Boolean> checkImageExistsInCloud(@RequestParam String fileName) {
+        boolean exists = amazonS3ImageService.checkImageUpload(fileName);
         return ResponseEntity.ok(exists);
     }
 
