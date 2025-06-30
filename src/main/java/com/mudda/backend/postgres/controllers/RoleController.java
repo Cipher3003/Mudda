@@ -2,7 +2,6 @@ package com.mudda.backend.postgres.controllers;
 
 import com.mudda.backend.postgres.models.Role;
 import com.mudda.backend.postgres.services.RoleService;
-import com.mudda.backend.postgres.services.impl.RoleServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
