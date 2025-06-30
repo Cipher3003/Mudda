@@ -29,7 +29,7 @@ public class Issue {
     private String title;
     private String description;
 
-    private IssueStatus status;
+    private IssueStatus status = IssueStatus.OPEN;
 
     private List<String> mediaUrls;
 

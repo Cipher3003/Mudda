@@ -6,7 +6,6 @@ import com.mudda.backend.mongodb.repositories.IssueRepository;
 import com.mudda.backend.mongodb.services.IssueService;
 
 import org.bson.types.ObjectId;
-import org.hibernate.sql.ast.tree.expression.Over;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
