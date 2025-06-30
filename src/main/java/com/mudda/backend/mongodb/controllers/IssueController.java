@@ -52,16 +52,16 @@ public class IssueController {
     public ResponseEntity<List<Issue>> getIssuesByStatus(@PathVariable IssueStatus status) {
         return ResponseEntity.ok(issueService.findByStatus(status));
     }
-//
-//    @GetMapping("/user/{userId}")
-//    public ResponseEntity<List<Issue>> getIssuesByUserId(@PathVariable Long userId) {
-//        return ResponseEntity.ok(issueService.findIssueByUserId(userId));
-//    }
-//
-//    @GetMapping("/category/{categoryId}")
-//    public ResponseEntity<List<Issue>> getIssuesByCategoryId(@PathVariable Long categoryId) {
-//        return ResponseEntity.ok(issueService.findIssueByCategoryId(categoryId));
-//    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Issue>> getIssuesByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(issueService.findIssueByUserId(userId));
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<Issue>> getIssuesByCategoryId(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(issueService.findIssueByCategoryId(categoryId));
+    }
 //
 //    @GetMapping("/nearby")
 //    public ResponseEntity<List<Issue>> getNearbyIssues(
