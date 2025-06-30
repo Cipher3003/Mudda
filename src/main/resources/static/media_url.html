@@ -24,6 +24,33 @@
     <h2>Uploaded Image</h2>
     <img id="uploadedImage" src="" alt="Uploaded Image will appear here after upload."
         style="max-width: 100%; height: auto;">
+
+    <br>
+    <br>
+
+    <button id="bucket_list_btn" onclick="listBucketContents()">List Bucket Contents</button>
+    <ul id="bucket_list"></ul>
 </body>
+
+<script>
+    async function listBucketContents() {
+        const AMAZON_IMAGE_URL = "/api/amazon/images"
+        const response = await fetch(AMAZON_IMAGE_URL)
+        if (!response.ok) {
+            throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
+        }
+
+        const bucket_items = await response.json();
+        console.log(bucket_items)
+
+        const bucket_list = document.getElementById("bucket_list")
+
+        bucket_items.forEach(item => {
+            const list_item = document.createElement("li")
+            list_item.innerText = item
+            bucket_list.appendChild(list_item)
+        });
+    }
+</script>
 
 </html>
