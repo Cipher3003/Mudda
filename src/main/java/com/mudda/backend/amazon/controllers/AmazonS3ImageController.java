@@ -25,17 +25,17 @@ public class AmazonS3ImageController {
     /**
      * Uploads an image to Amazon S3.
      *
-     * @param image the image file to upload
+     * @param file the image file to upload
      * @return ResponseEntity containing the uploaded AmazonImage object
      */
     @PostMapping("/upload")
-    public ResponseEntity<AmazonImage> uploadImage(@RequestParam("file") MultipartFile image) {
-        AmazonImage uploadedImage = amazonS3ImageService.uploadImageToAmazon(image);
+    public ResponseEntity<AmazonImage> uploadImage(@RequestParam MultipartFile file) {
+        AmazonImage uploadedImage = amazonS3ImageService.uploadImageToAmazon(file);
         return ResponseEntity.ok(uploadedImage);
     }
 
     @PostMapping("/check-image-exists")
-    public ResponseEntity<Boolean> checkImageExists(@RequestParam("fileName") String fileName) {
+    public ResponseEntity<Boolean> checkImageExists(@RequestParam String fileName) {
         boolean exists = amazonS3ImageService.confirmUpload(fileName);
         return ResponseEntity.ok(exists);
     }
