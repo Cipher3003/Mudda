@@ -13,6 +13,7 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.repositories.AmazonImageRepository;
+import com.mudda.backend.common.config.AmazonConfig;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
 import com.mudda.backend.utils.FileUtils;
@@ -25,7 +26,7 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @Service
-public class AmazonS3ImageService extends AmazonClientService {
+public class AmazonS3ImageService extends AmazonConfig {
 
     private AmazonImageRepository amazonImageRepository;
 
@@ -51,7 +52,7 @@ public class AmazonS3ImageService extends AmazonClientService {
 
             // Confirm the file is in S3
             String fileName = url.substring(url.lastIndexOf("/") + 1);
-            if (!confirmUpload(fileName)) {
+            if (!checkImageUpload(fileName)) {
                 log.error("File was not confirmed in S3: {}", fileName);
                 throw new RuntimeException("Failed to confirm upload to S3.");
             } else {

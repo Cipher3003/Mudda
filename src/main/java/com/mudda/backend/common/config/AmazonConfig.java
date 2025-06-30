@@ -1,17 +1,15 @@
-package com.mudda.backend.amazon.services;
+package com.mudda.backend.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
-import jakarta.annotation.PostConstruct;
-
-@Service
-public class AmazonClientService {
+@Configuration
+public class AmazonConfig {
 
     private AmazonS3 amazonS3;
 
@@ -40,11 +38,11 @@ public class AmazonClientService {
         return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
     }
 
-    @PostConstruct
-    private void init() {
+    @Bean
+    AmazonS3 s3() {
         BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
 
-        this.amazonS3 = AmazonS3ClientBuilder
+        return AmazonS3ClientBuilder
                 .standard()
                 .withRegion(region)
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
