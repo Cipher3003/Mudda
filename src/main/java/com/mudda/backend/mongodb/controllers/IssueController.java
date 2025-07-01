@@ -62,6 +62,7 @@ public class IssueController {
     public ResponseEntity<List<Issue>> getIssuesByCategoryId(@PathVariable Long categoryId) {
         return ResponseEntity.ok(issueService.findIssueByCategoryId(categoryId));
     }
+// TODO: fix nearby Issues via GeoJSONPoint
 //
 //    @GetMapping("/nearby")
 //    public ResponseEntity<List<Issue>> getNearbyIssues(

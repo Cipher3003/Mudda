@@ -37,5 +37,4 @@ public class Issue {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
 }
