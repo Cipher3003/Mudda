@@ -4,9 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.mudda.backend.exceptions.DatabaseSaveException;
 import com.mudda.backend.exceptions.FileConversionException;
+import com.mudda.backend.exceptions.FileSizeLimitExceedException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
 
 import lombok.extern.log4j.Log4j2;
@@ -36,6 +39,30 @@ public class GlobalExceptionHandler {
         log.warn("AmazonS3Exception: {}", e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(e.getMessage());
+    }
+
+    @ExceptionHandler(DatabaseSaveException.class)
+    public ResponseEntity<?> handleDatabaseSaveFailure(DatabaseSaveException e) {
+        log.warn("DatabaseSaveException: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(e.getMessage());
+    }
+
+    @ExceptionHandler(FileSizeLimitExceedException.class)
+    public ResponseEntity<?> handleTooLargeFile(FileSizeLimitExceedException e) {
+        log.warn("FileSizeLimitExceededException: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(e.getMessage());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<?> handleTooLargeFile(MaxUploadSizeExceededException e) {
+        log.warn("MaxUploadSizeExceededException: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(e.getMessage());
     }
 
