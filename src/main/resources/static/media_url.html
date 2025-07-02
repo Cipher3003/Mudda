@@ -9,7 +9,7 @@
 
 <body>
     <h1>Test Image Upload to S3</h1>
-    <form action="/api/v1/amazon/images" method="post" enctype="multipart/form-data">
+    <form action="http:127.0.0.1:8080/api/v1/amazon/images" method="post" enctype="multipart/form-data">
         <label for="file">Select an image to upload:</label>
         <input type="file" id="file" name="file" accept="image/*" required>
         <button type="submit">Upload</button>
@@ -47,6 +47,24 @@
             bucket_list.appendChild(list_item)
         });
     }
+
+    document.getElementById("imageDeleteForm").addEventListener("submit", function (event) {
+        event.preventDefault()
+
+        const fileName = document.getElementById("deleteFileName").value
+        const url = `/api/amazon/images/${encodeURIComponent(fileName)}`
+
+        fetch(url, { method: "DELETE" }).then((response) => {
+            if (response.ok) {
+                alert(`File: ${fileName} Deleted successfully`)
+            } else {
+                alert("File deletion failed")
+            }
+        }).catch((error) => {
+            console.error(error);
+            alert(`An error occurred ${error}`)
+        })
+    })
 </script>
 
 </html>
