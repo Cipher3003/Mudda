@@ -7,8 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
-
 
 @RestController
 @RequestMapping("/api/users")
@@ -21,7 +19,7 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(user));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<User> getById(@PathVariable Long id) {
         return userService.findUserById(id)
                 .map(ResponseEntity::ok)
@@ -33,16 +31,16 @@ public class UserController {
         return ResponseEntity.ok(userService.findAllUsers());
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<?> findByEmail(@PathVariable String email) {
+    public ResponseEntity<User> findByEmail(@PathVariable String email) {
         return userService.findByEmail(email)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

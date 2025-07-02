@@ -20,7 +20,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.createCategory(category));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<Category> getById(@PathVariable Long id) {
         return categoryService.findCategoryById(id)
                 .map(ResponseEntity::ok)
@@ -32,7 +32,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.findAllCategories());
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();

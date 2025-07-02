@@ -41,6 +41,6 @@ public class User {
     @Column(nullable = false)
     private int roleId;
 
-    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false)
     private Instant createdAt = Instant.now();
 }

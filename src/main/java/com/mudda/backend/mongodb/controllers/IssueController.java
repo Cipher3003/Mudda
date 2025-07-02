@@ -35,14 +35,14 @@ public class IssueController {
         return ResponseEntity.ok(issueService.findAllIssues());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<Issue> getIssueById(@PathVariable String id) {
         return issueService.findIssueById(new ObjectId(id))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<Void> deleteIssue(@PathVariable String id) {
         issueService.deleteIssue(new ObjectId(id));
         return ResponseEntity.noContent().build();
