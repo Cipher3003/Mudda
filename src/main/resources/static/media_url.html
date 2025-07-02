@@ -9,23 +9,23 @@
 
 <body>
     <h1>Test Image Upload to S3</h1>
-    <form action="/api/amazon/images/upload" method="post" enctype="multipart/form-data">
+    <form action="http:127.0.0.1:8080/api/amazon/images/upload" method="post" enctype="multipart/form-data">
         <label for="file">Select an image to upload:</label>
         <input type="file" id="file" name="file" accept="image/*" required>
         <button type="submit">Upload</button>
     </form>
 
-    <form action="/api/amazon/images/check-image-exists-in-database" method="post"
+    <form action="http:127.0.0.1:8080/api/amazon/images/check-image-exists-in-database" method="post"
         enctype="application/x-www-form-urlencoded">
-        <label for="fileName">File name to check in Database:</label>
-        <input type="text" id="fileName" name="fileName" required>
+        <label for="fileName-1">File name to check in Database:</label>
+        <input type="text" id="fileName-1" name="fileName" required>
         <button type="submit">Check</button>
     </form>
 
-    <form action="/api/amazon/images/check-image-exists-in-cloud" method="post"
+    <form action="http:127.0.0.1:8080/api/amazon/images/check-image-exists-in-cloud" method="post"
         enctype="application/x-www-form-urlencoded">
-        <label for="fileName">File name to check in Cloud:</label>
-        <input type="text" id="fileName" name="fileName" required>
+        <label for="fileName-2">File name to check in Cloud:</label>
+        <input type="text" id="fileName-2" name="fileName" required>
         <button type="submit">Check</button>
     </form>
 
@@ -72,7 +72,7 @@
         event.preventDefault()
 
         const fileName = document.getElementById("deleteFileName").value
-        const url = `/api/amazon/images/${encodeURIComponent(fileName)}`
+        const url = `http:127.0.0.1:8080/api/amazon/images/${encodeURIComponent(fileName)}`
 
         fetch(url, { method: "DELETE" }).then((response) => {
             if (response.ok) {
