@@ -41,6 +41,9 @@ public class IssueController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+    // ResponseEntity::ok is a method reference to ResponseEntity.ok()
+    // The ok() method takes the Issue object (which is the value inside the Optional) as an argument
+    // and creates a ResponseEntity with an HTTP status code of 200 OK and the Issue object as its body.
 
     @DeleteMapping("/id/{id}")
     public ResponseEntity<Void> deleteIssue(@PathVariable String id) {
