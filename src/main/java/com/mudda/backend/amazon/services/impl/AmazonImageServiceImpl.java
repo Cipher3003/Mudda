@@ -32,13 +32,13 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class AmazonImageServiceImpl implements AmazonImageService {
 
-    @Value("${amazon.s3.bucket-name}")
     private String bucketName;
-
     private AmazonS3 amazonS3;
     private AmazonImageRepository amazonImageRepository;
 
-    public AmazonImageServiceImpl(AmazonS3 amazonS3, AmazonImageRepository amazonImageRepository) {
+    public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName, AmazonS3 amazonS3,
+            AmazonImageRepository amazonImageRepository) {
+        this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
         this.amazonImageRepository = amazonImageRepository;
     }
