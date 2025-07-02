@@ -1,6 +1,6 @@
 package com.mudda.backend.postgres.models;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -42,5 +42,5 @@ public class User {
     private int roleId;
 
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Timestamp createdAt;
+    private Instant createdAt = Instant.now();
 }

@@ -9,7 +9,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Document(collection = "issues")
@@ -35,6 +35,6 @@ public class Issue {
 
     private Location location;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt = Instant.now();
+    private Instant updatedAt;
 }
