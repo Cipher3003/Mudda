@@ -24,7 +24,7 @@ public class AmazonImageController {
         this.amazonImageService = amazonImageService;
     }
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<List<String>> getBucketContents() {
         List<String> bucketContetList = amazonImageService.getBucketContents();
         return ResponseEntity.ok(bucketContetList);
