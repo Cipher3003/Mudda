@@ -1,10 +1,22 @@
 package com.mudda.backend.exceptions;
 
-import com.mudda.backend.utils.MessageCodes;
-import com.mudda.backend.utils.MessageUtil;
-
 public class EmptyFileException extends RuntimeException {
-    public EmptyFileException() {
-        super(MessageUtil.getMessage(MessageCodes.EMPTY_FILE));
+
+    private final String errorMessageCode;
+    private final Object[] args;
+
+    public EmptyFileException(String errorMessageCode, Object... args) {
+        super(errorMessageCode);
+        this.errorMessageCode = errorMessageCode;
+        this.args = args;
     }
+
+    public String getErrorMessageCode() {
+        return errorMessageCode;
+    }
+
+    public Object[] getArgs() {
+        return args;
+    }
+
 }

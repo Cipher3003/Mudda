@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class MessageUtil {
 
-    private static MessageSource messageSource;
+    private MessageSource messageSource;
 
     public MessageUtil(MessageSource messageSource) {
-        MessageUtil.messageSource = messageSource;
+        this.messageSource = messageSource;
     }
 
     // TODO: Message needs to return soruce message
@@ -21,7 +21,7 @@ public class MessageUtil {
      * @param args - optional arguments to replace {0}, {1}, etc.
      * @return Resolved message string
      */
-    public static String getMessage(String code, Object... args) {
+    public String getMessage(String code, Object... args) {
         return messageSource.getMessage(code, args, LocaleContextHolder.getLocale());
     }
 }

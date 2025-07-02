@@ -1,14 +1,22 @@
 package com.mudda.backend.exceptions;
 
-import com.mudda.backend.utils.MessageCodes;
-import com.mudda.backend.utils.MessageUtil;
-
 public class DatabaseSaveException extends RuntimeException {
-    public DatabaseSaveException() {
-        super(MessageUtil.getMessage(MessageCodes.DATABASE_SAVE_ERROR));
+
+    private final String errorMessageCode;
+    private final Object[] args;
+
+    public DatabaseSaveException(String errorMessageCode, Object... args) {
+        super(errorMessageCode);
+        this.errorMessageCode = errorMessageCode;
+        this.args = args;
     }
 
-    public DatabaseSaveException(Throwable cause) {
-        super(MessageUtil.getMessage(MessageCodes.DATABASE_SAVE_ERROR), cause);
+    public String getErrorMessageCode() {
+        return errorMessageCode;
     }
+
+    public Object[] getArgs() {
+        return args;
+    }
+
 }

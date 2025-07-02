@@ -24,6 +24,7 @@ import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.FileSizeLimitExceedException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
 import com.mudda.backend.utils.FileUtils;
+import com.mudda.backend.utils.MessageCodes;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -47,13 +48,16 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
         // Check if file is empty or null
         if (file.isEmpty()) {
-            throw new EmptyFileException();
+            throw new EmptyFileException(MessageCodes.EMPTY_FILE);
         }
 
         final double MB = 1e6;
         // Check if file size exceeds maximum size (1MB default)
         if (file.getSize() >= MB) {
-            throw new FileSizeLimitExceedException(file.getSize(), ((long) MB));
+            throw new FileSizeLimitExceedException(
+                    MessageCodes.FILE_SIZE_EXCEED_LIMIT,
+                    file.getSize(),
+                    ((long) MB));
         }
 
         List<String> validExtensions = List.of("jpeg", "png", "jpg");
@@ -61,7 +65,9 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
         // Check if file extensions are valid else throw InvalidImageExntesionException
         if (!validExtensions.contains(fileExtension)) {
-            throw new InvalidImageExtensionException(validExtensions);
+            throw new InvalidImageExtensionException(
+                    MessageCodes.INVALID_IMAGE_EXTENSION,
+                    String.join(", ", validExtensions));
         }
 
         try {
@@ -81,9 +87,9 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
             return amazonImage;
         } catch (IOException e) {
-            throw new FileConversionException();
+            throw new FileConversionException(MessageCodes.MULTIPART_TO_FILE_CONVERT_EXCEPT);
         } catch (IllegalArgumentException | OptimisticLockingFailureException e) {
-            throw new DatabaseSaveException(e);
+            throw new DatabaseSaveException(MessageCodes.DATABASE_SAVE_ERROR);
         }
     }
 
