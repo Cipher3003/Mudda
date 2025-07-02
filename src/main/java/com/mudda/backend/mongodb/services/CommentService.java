@@ -2,8 +2,6 @@ package com.mudda.backend.mongodb.services;
 
 import com.mudda.backend.mongodb.models.Comment;
 import org.bson.types.ObjectId;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
