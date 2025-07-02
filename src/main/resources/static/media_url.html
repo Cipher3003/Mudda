@@ -9,7 +9,7 @@
 
 <body>
     <h1>Test Image Upload to S3</h1>
-    <form action="/api/amazon/images/upload" method="post" enctype="multipart/form-data">
+    <form action="/api/v1/amazon/images" method="post" enctype="multipart/form-data">
         <label for="file">Select an image to upload:</label>
         <input type="file" id="file" name="file" accept="image/*" required>
         <button type="submit">Upload</button>
