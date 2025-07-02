@@ -48,7 +48,7 @@
 
 <script>
     async function listBucketContents() {
-        const AMAZON_IMAGE_URL = "/api/amazon/images"
+        const AMAZON_IMAGE_URL = "http:127.0.0.1:8080/api/amazon/images"
         const response = await fetch(AMAZON_IMAGE_URL)
         if (!response.ok) {
             throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
