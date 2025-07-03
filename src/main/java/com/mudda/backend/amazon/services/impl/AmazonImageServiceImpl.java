@@ -62,6 +62,19 @@ public class AmazonImageServiceImpl implements AmazonImageService {
                     1024 * 1024);
         }
 
+        List<String> validExtensions = List.of("jpeg", "png", "jpg");
+        String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
+
+        // Check if file extensions are valid else throw InvalidImageExntesionException
+        if (fileExtension == null ||
+                validExtensions
+                        .stream()
+                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))) {
+            throw new InvalidImageExtensionException(
+                    MessageCodes.INVALID_IMAGE_EXTENSION,
+                    String.join(", ", validExtensions));
+        }
+
         // Check if file is an actual image and MIME type is an image
         String fileContentType = file.getContentType();
         if (fileContentType == null || !fileContentType.startsWith("image/")) {
@@ -74,19 +87,6 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             }
         } catch (IOException e) {
             throw new FileNotImageException(MessageCodes.FILE_NOT_IMAGE);
-        }
-
-        List<String> validExtensions = List.of("jpeg", "png", "jpg");
-        String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
-
-        // Check if file extensions are valid else throw InvalidImageExntesionException
-        if (fileExtension == null ||
-                validExtensions
-                        .stream()
-                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))) {
-            throw new InvalidImageExtensionException(
-                    MessageCodes.INVALID_IMAGE_EXTENSION,
-                    String.join(", ", validExtensions));
         }
 
         try {
