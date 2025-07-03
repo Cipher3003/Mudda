@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -21,6 +23,7 @@ import com.mudda.backend.amazon.services.AmazonImageService;
 import com.mudda.backend.exceptions.DatabaseSaveException;
 import com.mudda.backend.exceptions.EmptyFileException;
 import com.mudda.backend.exceptions.FileConversionException;
+import com.mudda.backend.exceptions.FileNotImageException;
 import com.mudda.backend.exceptions.FileSizeLimitExceedException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
 import com.mudda.backend.utils.FileUtils;
@@ -51,20 +54,36 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             throw new EmptyFileException(MessageCodes.EMPTY_FILE);
         }
 
-        final double MB = 1e6;
         // Check if file size exceeds maximum size (1MB default)
-        if (file.getSize() >= MB) {
+        if (file.getSize() >= 1024 * 1024) {
             throw new FileSizeLimitExceedException(
                     MessageCodes.FILE_SIZE_EXCEED_LIMIT,
                     file.getSize(),
-                    ((long) MB));
+                    1024 * 1024);
+        }
+
+        // Check if file is an actual image and MIME type is an image
+        String fileContentType = file.getContentType();
+        if (fileContentType == null || !fileContentType.startsWith("image/")) {
+            throw new FileNotImageException(MessageCodes.FILE_NOT_IMAGE);
+        }
+
+        try {
+            if (ImageIO.read(file.getInputStream()) == null) {
+                throw new FileNotImageException(MessageCodes.FILE_NOT_IMAGE);
+            }
+        } catch (IOException e) {
+            throw new FileNotImageException(MessageCodes.FILE_NOT_IMAGE);
         }
 
         List<String> validExtensions = List.of("jpeg", "png", "jpg");
         String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
 
         // Check if file extensions are valid else throw InvalidImageExntesionException
-        if (!validExtensions.contains(fileExtension)) {
+        if (fileExtension == null ||
+                validExtensions
+                        .stream()
+                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))) {
             throw new InvalidImageExtensionException(
                     MessageCodes.INVALID_IMAGE_EXTENSION,
                     String.join(", ", validExtensions));
@@ -72,17 +91,14 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
         try {
             File imageFile = FileUtils.convertMultipartToFile(file);
-
             String fileName = FileUtils.generateFileName(file);
 
             amazonS3.putObject(new PutObjectRequest(bucketName, fileName, imageFile));
-
             imageFile.delete();
 
             String fileUrl = getFileUrl(bucketName, amazonS3.getRegionName()).concat(fileName);
 
             AmazonImage amazonImage = new AmazonImage(fileName, fileUrl);
-
             amazonImageRepository.save(amazonImage);
 
             return amazonImage;
