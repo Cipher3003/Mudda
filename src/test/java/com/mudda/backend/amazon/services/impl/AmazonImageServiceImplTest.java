@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -34,14 +37,16 @@ public class AmazonImageServiceImplTest {
     private AmazonImageServiceImpl amazonImageServiceImpl;
 
     @Test
-    void testUploadImageToAmazon() {
+        void testUploadImageToAmazon() throws IOException {
 
         String bucketName = "media-url-devbucket-2026";
         String bucketRegion = "eu-north-1";
-        String testImageName = "testImage.png";
+                String testImageName = "testImage.jpg";
         String testImageUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, bucketRegion,
                 testImageName);
+
         AmazonImage testAmazonImage = new AmazonImage(testImageName, testImageUrl);
+                ClassPathResource resource = new ClassPathResource(testImageName);
 
         // AmazonImageServiceImpl setup
         amazonImageServiceImpl = new AmazonImageServiceImpl(bucketName, amazonS3, amazonImageRepository);
@@ -52,7 +57,8 @@ public class AmazonImageServiceImplTest {
         try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
 
             mockedStatic.when(() -> FileUtils.generateFileName(any())).thenReturn(testImageName);
-            mockedStatic.when(() -> FileUtils.convertMultipartToFile(any())).thenReturn(new File(testImageName));
+                        mockedStatic.when(() -> FileUtils.convertMultipartToFile(any()))
+                                        .thenReturn(new File(testImageName));
 
             // AmazonImageRepository setup
             when(amazonImageRepository.save(
@@ -64,7 +70,7 @@ public class AmazonImageServiceImplTest {
                     "file",
                     testImageName,
                     "image/png",
-                    testImageName.getBytes());
+                                        resource.getInputStream());
 
             AmazonImage actualAmazonImage = amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
             assertEquals(testImageName, actualAmazonImage.getImageName());
