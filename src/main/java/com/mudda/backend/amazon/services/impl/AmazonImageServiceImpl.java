@@ -47,7 +47,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
     public AmazonImage uploadImageToAmazon(MultipartFile file) {
 
         // Check if file is empty or null
-        if (file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             throw new EmptyFileException(MessageCodes.EMPTY_FILE);
         }
 
