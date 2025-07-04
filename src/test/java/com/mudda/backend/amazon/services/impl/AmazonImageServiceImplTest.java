@@ -3,6 +3,7 @@ package com.mudda.backend.amazon.services.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -21,8 +22,11 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.mudda.backend.amazon.ContentType;
 import com.mudda.backend.amazon.models.AmazonImage;
+import com.mudda.backend.exceptions.AmazonClientException;
+import com.mudda.backend.exceptions.AmazonUploadException;
 import com.mudda.backend.exceptions.EmptyFileException;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.FileNotImageException;
@@ -178,5 +182,49 @@ public class AmazonImageServiceImplTest {
         }
 
         // #endregion
+
+        @Test
+        void shouldThrowWhenUnableToConnectToAmazonS3() throws IOException {
+
+                // AmazonS3 setup
+                when(amazonS3.putObject(any())).thenThrow(AmazonUploadException.class);
+
+                try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
+
+                        mockedStatic.when(() -> FileUtils.generateFileName(any()))
+                                        .thenReturn(testImageName);
+                        mockedStatic.when(() -> FileUtils.convertMultipartToFile(any()))
+                                        .thenReturn(new File(testImageName));
+
+                        MockMultipartFile mockMultipartFile = createMockFileFromResource(
+                                        testImageName, ContentType.IMAGE_JPG);
+
+                        assertThrows(AmazonUploadException.class, () -> {
+                                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
+                        });
+                }
+        }
+
+        @Test
+        void shouldThrowWhenBadPutRequest() throws IOException {
+
+                // AmazonS3 setup
+                when(amazonS3.putObject(any())).thenThrow(AmazonClientException.class);
+
+                try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
+
+                        mockedStatic.when(() -> FileUtils.generateFileName(any()))
+                                        .thenReturn(testImageName);
+                        mockedStatic.when(() -> FileUtils.convertMultipartToFile(any()))
+                                        .thenReturn(new File(testImageName));
+
+                        MockMultipartFile mockMultipartFile = createMockFileFromResource(
+                                        testImageName, ContentType.IMAGE_JPG);
+
+                        assertThrows(AmazonClientException.class, () -> {
+                                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
+                        });
+                }
+        }
 
 }
