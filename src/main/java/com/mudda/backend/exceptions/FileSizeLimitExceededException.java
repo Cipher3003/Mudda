@@ -1,10 +1,10 @@
 package com.mudda.backend.exceptions;
 
-public class FileSizeLimitExceedException extends RuntimeException {
+public class FileSizeLimitExceededException extends RuntimeException {
     private final String errorMessageCode;
     private final Object[] args;
 
-    public FileSizeLimitExceedException(String errorMessageCode, Object... args) {
+    public FileSizeLimitExceededException(String errorMessageCode, Object... args) {
         super(errorMessageCode);
         this.errorMessageCode = errorMessageCode;
         this.args = args;

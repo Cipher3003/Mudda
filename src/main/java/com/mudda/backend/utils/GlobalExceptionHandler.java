@@ -6,12 +6,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.mudda.backend.exceptions.AmazonClientException;
-import com.mudda.backend.exceptions.AmazonUploadException;
+import com.mudda.backend.exceptions.S3ClientException;
+import com.mudda.backend.exceptions.S3ServiceException;
 import com.mudda.backend.exceptions.DatabaseSaveException;
 import com.mudda.backend.exceptions.FileConversionException;
-import com.mudda.backend.exceptions.FileSizeLimitExceedException;
+import com.mudda.backend.exceptions.FileSizeLimitExceededException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
 
 import lombok.extern.log4j.Log4j2;
@@ -44,14 +43,6 @@ public class GlobalExceptionHandler {
                 .body(localizedMessage);
     }
 
-    @ExceptionHandler(AmazonS3Exception.class)
-    public ResponseEntity<?> handleAmazonS3Failure(AmazonS3Exception e) {
-        log.warn("AmazonS3Exception: {}", e.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(e.getMessage());
-    }
-
     // TODO: remove if not used
     @ExceptionHandler(DatabaseSaveException.class)
     public ResponseEntity<?> handleDatabaseSaveFailure(DatabaseSaveException e) {
@@ -62,8 +53,8 @@ public class GlobalExceptionHandler {
                 .body(localizedMessage);
     }
 
-    @ExceptionHandler(FileSizeLimitExceedException.class)
-    public ResponseEntity<?> handleTooLargeFile(FileSizeLimitExceedException e) {
+    @ExceptionHandler(FileSizeLimitExceededException.class)
+    public ResponseEntity<?> handleTooLargeFile(FileSizeLimitExceededException e) {
         String localizedMessage = messageUtil.getMessage(e.getErrorMessageCode(), e.getArgs());
         log.warn("FileSizeLimitExceededException: {}", localizedMessage);
         return ResponseEntity
@@ -79,19 +70,21 @@ public class GlobalExceptionHandler {
                 .body(e.getMessage());
     }
 
-    @ExceptionHandler(AmazonClientException.class)
-    public ResponseEntity<?> handleAmazonCloudFailure(AmazonClientException e) {
-        log.warn("AmazonClientException: {}", e.getMessage());
+    @ExceptionHandler(S3ClientException.class)
+    public ResponseEntity<?> handleS3Client(S3ClientException e) {
+        String localizedMessage = messageUtil.getMessage(e.getErrorMessageCode(), e.getArgs());
+        log.warn("S3ClientException: {}", localizedMessage);
         return ResponseEntity
-                .badRequest()
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(e.getMessage());
     }
 
-    @ExceptionHandler(AmazonUploadException.class)
-    public ResponseEntity<?> handleAmazonUploadFailure(AmazonUploadException e) {
-        log.warn("AmazonUploadException: {}", e.getMessage());
+    @ExceptionHandler(S3ServiceException.class)
+    public ResponseEntity<?> handleS3Service(S3ServiceException e) {
+        String localizedMessage = messageUtil.getMessage(e.getErrorMessageCode(), e.getArgs());
+        log.warn("S3ServiceException: {}", localizedMessage);
         return ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .status(HttpStatus.BAD_GATEWAY)
                 .body(e.getMessage());
     }
 

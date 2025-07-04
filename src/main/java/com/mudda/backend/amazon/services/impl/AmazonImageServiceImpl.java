@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -21,11 +20,12 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.services.AmazonImageService;
-import com.mudda.backend.exceptions.AmazonUploadException;
+import com.mudda.backend.exceptions.S3ServiceException;
 import com.mudda.backend.exceptions.EmptyFileException;
 import com.mudda.backend.exceptions.FileConversionException;
-import com.mudda.backend.exceptions.FileNotImageException;
-import com.mudda.backend.exceptions.FileSizeLimitExceedException;
+import com.mudda.backend.exceptions.NonImageFileException;
+import com.mudda.backend.exceptions.S3ClientException;
+import com.mudda.backend.exceptions.FileSizeLimitExceededException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
 import com.mudda.backend.utils.FileUtils;
 import com.mudda.backend.utils.MessageCodes;
@@ -55,7 +55,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
         // Check if file size exceeds maximum size (1MB default)
         if (file.getSize() >= 1024 * 1024) {
-            throw new FileSizeLimitExceedException(
+            throw new FileSizeLimitExceededException(
                     MessageCodes.FILE_SIZE_EXCEED_LIMIT,
                     file.getSize(),
                     1024 * 1024);
@@ -77,15 +77,15 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         // Check if file is an actual image and MIME type is an image
         String fileContentType = file.getContentType();
         if (fileContentType == null || !fileContentType.startsWith("image/")) {
-            throw new FileNotImageException(MessageCodes.FILE_NOT_IMAGE);
+            throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
         }
 
         try {
             if (ImageIO.read(file.getInputStream()) == null) {
-                throw new FileNotImageException(MessageCodes.FILE_NOT_IMAGE);
+                throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
             }
         } catch (IOException e) {
-            throw new FileNotImageException(MessageCodes.FILE_NOT_IMAGE);
+            throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
         }
 
         try {
@@ -102,9 +102,9 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         } catch (IOException e) {
             throw new FileConversionException(MessageCodes.MULTIPART_TO_FILE_CONVERT_EXCEPT);
         } catch (AmazonS3Exception e) {
-            throw new AmazonUploadException(MessageCodes.AMAZON_ERROR);
+            throw new S3ServiceException(MessageCodes.AMAZON_ERROR);
         } catch (SdkClientException e) {
-            throw new AmazonClientException(MessageCodes.AMAZON_CLIENT_ERROR);
+            throw new S3ClientException(MessageCodes.AMAZON_CLIENT_ERROR);
         }
     }
 
