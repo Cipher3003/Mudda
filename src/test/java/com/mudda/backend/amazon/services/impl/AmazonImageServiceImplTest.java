@@ -16,14 +16,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.mock.web.MockMultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.repositories.AmazonImageRepository;
+import com.mudda.backend.exceptions.DatabaseSaveException;
 import com.mudda.backend.exceptions.EmptyFileException;
+import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.FileNotImageException;
 import com.mudda.backend.exceptions.FileSizeLimitExceedException;
 import com.mudda.backend.exceptions.InvalidImageExtensionException;
@@ -174,6 +178,50 @@ public class AmazonImageServiceImplTest {
                 });
         }
 
-        
+        @Test
+        void testUploadImageToAmazonFileConversionError() throws IOException {
+
+                String testImageName = "testImage.jpg";
+                ClassPathResource resource = new ClassPathResource(testImageName);
+
+                MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                                "file",
+                                testImageName,
+                                "image/jpg",
+                                resource.getInputStream());
+
+                try (MockedStatic<FileUtils> mockFileUtils = Mockito.mockStatic(FileUtils.class)) {
+
+                        mockFileUtils.when(() -> {
+                                FileUtils.convertMultipartToFile(mockMultipartFile);
+                        }).thenThrow(IOException.class);
+
+                        assertThrows(FileConversionException.class, () -> {
+                                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
+                        });
+
+                }
+        }
+
+        @Test
+        void testUploadImageToAmazonDatabaseError() throws IOException {
+
+                String testImageName = "testImage.jpg";
+                ClassPathResource resource = new ClassPathResource(testImageName);
+
+                MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                                "file",
+                                testImageName,
+                                "image/jpg",
+                                resource.getInputStream());
+
+                // AmazonImageRepository setup
+                when(amazonImageRepository.save(any()))
+                                .thenThrow(OptimisticLockingFailureException.class);
+
+                assertThrows(DatabaseSaveException.class, () -> {
+                        amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
+                });
+        }
 
 }
