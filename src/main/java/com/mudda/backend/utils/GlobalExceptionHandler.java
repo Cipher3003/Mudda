@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.mudda.backend.exceptions.AmazonClientException;
+import com.mudda.backend.exceptions.AmazonUploadException;
 import com.mudda.backend.exceptions.DatabaseSaveException;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.FileSizeLimitExceedException;
@@ -74,6 +76,22 @@ public class GlobalExceptionHandler {
         log.warn("MaxUploadSizeExceededException: {}", e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(e.getMessage());
+    }
+
+    @ExceptionHandler(AmazonClientException.class)
+    public ResponseEntity<?> handleAmazonCloudFailure(AmazonClientException e) {
+        log.warn("AmazonClientException: {}", e.getMessage());
+        return ResponseEntity
+                .badRequest()
+                .body(e.getMessage());
+    }
+
+    @ExceptionHandler(AmazonUploadException.class)
+    public ResponseEntity<?> handleAmazonUploadFailure(AmazonUploadException e) {
+        log.warn("AmazonUploadException: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(e.getMessage());
     }
 

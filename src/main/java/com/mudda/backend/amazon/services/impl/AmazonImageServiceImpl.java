@@ -12,12 +12,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.services.AmazonImageService;
+import com.mudda.backend.exceptions.AmazonUploadException;
 import com.mudda.backend.exceptions.EmptyFileException;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.FileNotImageException;
@@ -97,6 +101,10 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             return amazonImage;
         } catch (IOException e) {
             throw new FileConversionException(MessageCodes.MULTIPART_TO_FILE_CONVERT_EXCEPT);
+        } catch (AmazonS3Exception e) {
+            throw new AmazonUploadException(MessageCodes.AMAZON_ERROR);
+        } catch (SdkClientException e) {
+            throw new AmazonClientException(MessageCodes.AMAZON_CLIENT_ERROR);
         }
     }
 
