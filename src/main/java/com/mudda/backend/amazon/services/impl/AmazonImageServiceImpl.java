@@ -9,7 +9,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,9 +17,7 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.mudda.backend.amazon.models.AmazonImage;
-import com.mudda.backend.amazon.repositories.AmazonImageRepository;
 import com.mudda.backend.amazon.services.AmazonImageService;
-import com.mudda.backend.exceptions.DatabaseSaveException;
 import com.mudda.backend.exceptions.EmptyFileException;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.FileNotImageException;
@@ -37,13 +34,11 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
     private String bucketName;
     private AmazonS3 amazonS3;
-    private AmazonImageRepository amazonImageRepository;
 
-    public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName, AmazonS3 amazonS3,
-            AmazonImageRepository amazonImageRepository) {
+    public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName,
+            AmazonS3 amazonS3) {
         this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
-        this.amazonImageRepository = amazonImageRepository;
     }
 
     @Override
@@ -99,13 +94,9 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             String fileUrl = getFileUrl(bucketName, amazonS3.getRegionName()).concat(fileName);
 
             AmazonImage amazonImage = new AmazonImage(fileName, fileUrl);
-            amazonImageRepository.save(amazonImage);
-
             return amazonImage;
         } catch (IOException e) {
             throw new FileConversionException(MessageCodes.MULTIPART_TO_FILE_CONVERT_EXCEPT);
-        } catch (IllegalArgumentException | OptimisticLockingFailureException e) {
-            throw new DatabaseSaveException(MessageCodes.DATABASE_SAVE_ERROR);
         }
     }
 

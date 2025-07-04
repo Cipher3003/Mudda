@@ -50,6 +50,7 @@ public class GlobalExceptionHandler {
                 .body(e.getMessage());
     }
 
+    // TODO: remove if not used
     @ExceptionHandler(DatabaseSaveException.class)
     public ResponseEntity<?> handleDatabaseSaveFailure(DatabaseSaveException e) {
         String localizedMessage = messageUtil.getMessage(e.getErrorMessageCode(), e.getArgs());

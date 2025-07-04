@@ -3,7 +3,6 @@ package com.mudda.backend.amazon.services.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -19,14 +18,11 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.mock.web.MockMultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.mudda.backend.amazon.ContentType;
 import com.mudda.backend.amazon.models.AmazonImage;
-import com.mudda.backend.amazon.repositories.AmazonImageRepository;
-import com.mudda.backend.exceptions.DatabaseSaveException;
 import com.mudda.backend.exceptions.EmptyFileException;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.FileNotImageException;
@@ -39,9 +35,6 @@ public class AmazonImageServiceImplTest {
 
         @Mock
         private AmazonS3 amazonS3;
-
-        @Mock
-        private AmazonImageRepository amazonImageRepository;
 
         private AmazonImageServiceImpl amazonImageServiceImpl;
 
@@ -62,7 +55,7 @@ public class AmazonImageServiceImplTest {
         @BeforeEach
         void setUp() {
                 // AmazonImageServiceImpl setup
-                amazonImageServiceImpl = new AmazonImageServiceImpl(bucketName, amazonS3, amazonImageRepository);
+                amazonImageServiceImpl = new AmazonImageServiceImpl(bucketName, amazonS3);
         }
 
         // #region Success Case
@@ -71,7 +64,6 @@ public class AmazonImageServiceImplTest {
 
                 String testImageUrl = String.format("https://%s.s3.%s.amazonaws.com/%s",
                                 bucketName, bucketRegion, testImageName);
-                AmazonImage testAmazonImage = new AmazonImage(testImageName, testImageUrl);
 
                 // AmazonS3 setup
                 when(amazonS3.getRegionName()).thenReturn(bucketRegion);
@@ -83,14 +75,9 @@ public class AmazonImageServiceImplTest {
                         mockedStatic.when(() -> FileUtils.convertMultipartToFile(any()))
                                         .thenReturn(new File(testImageName));
 
-                        // AmazonImageRepository setup
-                        when(amazonImageRepository.save(
-                                        argThat(image -> testImageName.equals(image.getImageName()) &&
-                                                        testImageUrl.equals(image.getImageUrl()))))
-                                        .thenReturn(testAmazonImage);
-
                         MockMultipartFile mockMultipartFile = createMockFileFromResource(
                                         testImageName, ContentType.IMAGE_JPG);
+
                         AmazonImage actualAmazonImage = amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
 
                         assertEquals(testImageName, actualAmazonImage.getImageName());
@@ -188,20 +175,6 @@ public class AmazonImageServiceImplTest {
                         });
 
                 }
-        }
-
-        @Test
-        void shouldThrowWhenDatabaseSaveFails() throws IOException {
-
-                MockMultipartFile mockMultipartFile = createMockFileFromResource(testImageName, ContentType.IMAGE_JPG);
-
-                // AmazonImageRepository setup
-                when(amazonImageRepository.save(any()))
-                                .thenThrow(OptimisticLockingFailureException.class);
-
-                assertThrows(DatabaseSaveException.class, () -> {
-                        amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
-                });
         }
 
         // #endregion
