@@ -12,7 +12,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.amazon.services.AmazonImageService;
+import com.mudda.backend.exceptions.S3ClientException;
+import com.mudda.backend.exceptions.S3ServiceException;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/v1/amazon/images")
@@ -36,5 +41,18 @@ public class AmazonImageController {
         AmazonImage amazonImage = amazonImageService.uploadImageToAmazon(file);
         return new ResponseEntity<AmazonImage>(amazonImage, HttpStatus.CREATED);
 
+    }
+
+    @DeleteMapping("/{fileName}")
+    public ResponseEntity<Void> deleteImage(@PathVariable String fileName) {
+        // TODO: handle exception
+        try {
+            amazonImageService.removeImageFromAmazon(fileName);
+            return ResponseEntity.noContent().build();
+        } catch (S3ServiceException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        } catch (S3ClientException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

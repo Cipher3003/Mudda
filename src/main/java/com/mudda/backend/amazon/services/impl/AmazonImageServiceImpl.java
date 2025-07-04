@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -133,4 +134,15 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         return objectKeys;
     }
 
+    @Override
+    public void removeImageFromAmazon(String imageFileName) {
+
+        try {
+            amazonS3.deleteObject(new DeleteObjectRequest(bucketName, imageFileName));
+        } catch (AmazonS3Exception e) {
+            throw new S3ServiceException(MessageCodes.AMAZON_ERROR);
+        } catch (SdkClientException e) {
+            throw new S3ClientException(MessageCodes.AMAZON_CLIENT_ERROR);
+        }
+    }
 }

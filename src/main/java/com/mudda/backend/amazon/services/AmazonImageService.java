@@ -12,4 +12,6 @@ public interface AmazonImageService {
 
     public List<String> getBucketContents();
 
+    public void removeImageFromAmazon(String imageFileName);
+
 }
