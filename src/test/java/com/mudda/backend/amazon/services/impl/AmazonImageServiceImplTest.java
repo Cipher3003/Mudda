@@ -67,7 +67,7 @@ public class AmazonImageServiceImplTest {
 
         // #region Success Case
         @Test
-        void testUploadImageToAmazonSuccess() throws IOException {
+        void shouldUploadImageSuccessfully() throws IOException {
 
                 String testImageUrl = String.format("https://%s.s3.%s.amazonaws.com/%s",
                                 bucketName, bucketRegion, testImageName);
@@ -100,10 +100,9 @@ public class AmazonImageServiceImplTest {
 
         // #endregion
 
-        // #region Validation Tests
-
+        // #region Input Validation Tests
         @Test
-        void testUploadImageToAmazonEmptyFile() {
+        void shouldThrowWhenFileIsEmpty() {
 
                 MockMultipartFile mockMultipartFile = createMockFile(
                                 testImageName, ContentType.IMAGE_JPG, "".getBytes());
@@ -114,7 +113,7 @@ public class AmazonImageServiceImplTest {
         }
 
         @Test
-        void testUploadImageToAmazonNullFile() {
+        void shouldThrowWhenFileIsNull() {
 
                 assertThrows(EmptyFileException.class, () -> {
                         amazonImageServiceImpl.uploadImageToAmazon(null);
@@ -122,7 +121,7 @@ public class AmazonImageServiceImplTest {
         }
 
         @Test
-        void testUploadImageToAmazonTooBigFile() {
+        void shoudlThrowWhenFileIsTooLarge() {
 
                 int MB = 1024 * 1024;
                 byte[] content = new byte[MB];
@@ -135,8 +134,11 @@ public class AmazonImageServiceImplTest {
                 });
         }
 
+        // #endregion
+
+        // #region File type & content validation tests
         @Test
-        void testUploadImageToAmazonNonImageContentType() {
+        void shouldThrowWhenContentTypeIsNotImage() {
 
                 MockMultipartFile mockMultipartFile = createMockFile(
                                 testImageName, ContentType.TEXT_PLAIN, testImageName.getBytes());
@@ -147,7 +149,7 @@ public class AmazonImageServiceImplTest {
         }
 
         @Test
-        void testUploadImageToAmazonNonImageContent() {
+        void shouldThrowWhenFileContentIsNotActualImage() {
 
                 MockMultipartFile mockMultipartFile = createMockFile(
                                 testImageName, ContentType.IMAGE_JPG, testImageName.getBytes());
@@ -158,7 +160,7 @@ public class AmazonImageServiceImplTest {
         }
 
         @Test
-        void testUploadImageToAmazonInvalidImageType() throws IOException {
+        void shouldThrowWhenImageHasInvalidExtension() throws IOException {
 
                 String testImageName = "testImageInvalidExt.webp";
                 MockMultipartFile mockMultipartFile = createMockFileFromResource(testImageName, ContentType.IMAGE_WEBP);
@@ -168,8 +170,11 @@ public class AmazonImageServiceImplTest {
                 });
         }
 
+        // #endregion
+
+        // #region Simulated internal failure scenarios
         @Test
-        void testUploadImageToAmazonFileConversionError() throws IOException {
+        void shouldThrowWhenFileConversionFails() throws IOException {
 
                 MockMultipartFile mockMultipartFile = createMockFileFromResource(testImageName, ContentType.IMAGE_JPG);
 
@@ -186,7 +191,7 @@ public class AmazonImageServiceImplTest {
         }
 
         @Test
-        void testUploadImageToAmazonDatabaseError() throws IOException {
+        void shouldThrowWhenDatabaseSaveFails() throws IOException {
 
                 MockMultipartFile mockMultipartFile = createMockFileFromResource(testImageName, ContentType.IMAGE_JPG);
 
@@ -198,5 +203,7 @@ public class AmazonImageServiceImplTest {
                         amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
                 });
         }
+
+        // #endregion
 
 }
