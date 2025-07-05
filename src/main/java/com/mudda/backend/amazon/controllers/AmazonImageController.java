@@ -45,7 +45,6 @@ public class AmazonImageController {
 
     @DeleteMapping("/{fileName}")
     public ResponseEntity<Void> deleteImage(@PathVariable String fileName) {
-        // TODO: handle exception
         try {
             amazonImageService.removeImageFromAmazon(fileName);
             return ResponseEntity.noContent().build();
