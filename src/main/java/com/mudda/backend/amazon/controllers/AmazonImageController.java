@@ -1,5 +1,6 @@
 package com.mudda.backend.amazon.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -36,10 +37,19 @@ public class AmazonImageController {
     }
 
     @PostMapping
-    public ResponseEntity<AmazonImage> uploadImageToAmazon(@RequestParam MultipartFile file) {
+    public ResponseEntity<List<AmazonImage>> uploadImageToAmazon(@RequestParam List<MultipartFile> files) {
 
-        AmazonImage amazonImage = amazonImageService.uploadImageToAmazon(file);
-        return new ResponseEntity<AmazonImage>(amazonImage, HttpStatus.CREATED);
+        if (files.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<AmazonImage> uploadedImages = new ArrayList<AmazonImage>();
+
+        for (MultipartFile file : files) {
+            uploadedImages.add(amazonImageService.uploadImageToAmazon(file));
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(uploadedImages);
 
     }
 
