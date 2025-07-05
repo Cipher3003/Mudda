@@ -3,7 +3,11 @@ package com.mudda.backend.amazon.services.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -20,7 +24,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.mudda.backend.amazon.ContentType;
 import com.mudda.backend.amazon.models.AmazonImage;
 import com.mudda.backend.exceptions.S3ClientException;
@@ -182,7 +189,7 @@ public class AmazonImageServiceImplTest {
         // #endregion
 
         @Test
-        void shouldThrowWhenUnableToConnectToAmazonS3() throws IOException {
+        void shouldThrowWhenUnableToConnectToAmazonS3OnUpload() throws IOException {
 
                 // AmazonS3 setup
                 when(amazonS3.putObject(any())).thenThrow(S3ServiceException.class);
@@ -223,6 +230,36 @@ public class AmazonImageServiceImplTest {
                                 amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
                         });
                 }
+        }
+
+        @Test
+        void shouldDeleteImageSuccessfully() {
+
+                amazonImageServiceImpl.removeImageFromAmazon(testImageName);
+
+                verify(amazonS3, times(1))
+                                .deleteObject(argThat(request -> request.getBucketName().equals(bucketName) &&
+                                                request.getKey().equals(testImageName)));
+        }
+
+        @Test
+        void shouldThrowWhenUnableToConnectToAmazonOnDelete() {
+
+                doThrow(AmazonS3Exception.class).when(amazonS3).deleteObject(any());
+
+                assertThrows(S3ServiceException.class, () -> {
+                        amazonImageServiceImpl.removeImageFromAmazon(testImageName);
+                });
+        }
+
+        @Test
+        void shouldThrowWhenBadDeleteRequest() {
+
+                doThrow(SdkClientException.class).when(amazonS3).deleteObject(any());
+
+                assertThrows(S3ClientException.class, () -> {
+                        amazonImageServiceImpl.removeImageFromAmazon(testImageName);
+                });
         }
 
 }
