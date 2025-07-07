@@ -8,6 +8,7 @@ import lombok.Builder;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,9 +22,11 @@ import java.util.List;
 public class Issue {
 
     @Id
-    private ObjectId issueId; // MongoDB _id as String
+    @Field("_id")
+    private String issueId; // MongoDB _id as String
 
-    private Long userId;     // Reference to User in PostgreSQL
+    private String userName;
+//    private Long userId;     // Reference to User in PostgreSQL
     private Long categoryId; // Reference to Category in PostgreSQL
 
     private String title;

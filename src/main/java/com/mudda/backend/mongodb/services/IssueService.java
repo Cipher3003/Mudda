@@ -14,7 +14,7 @@ public interface IssueService {
     List<Issue> findAllIssues();
     void deleteIssue(ObjectId id);
     List<Issue> findByStatus(IssueStatus status);
-    List<Issue> findIssueByUserId(Long user_id);
+    List<Issue> findIssueByUserName(String user_name);
     List<Issue> findIssueByCategoryId(Long category_id);
     List<Issue> findByLocation_CoordinatesNear(Point point, int distance);
 

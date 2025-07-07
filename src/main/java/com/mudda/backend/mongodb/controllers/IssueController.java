@@ -56,9 +56,9 @@ public class IssueController {
         return ResponseEntity.ok(issueService.findByStatus(status));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Issue>> getIssuesByUserId(@PathVariable Long userId) {
-        return ResponseEntity.ok(issueService.findIssueByUserId(userId));
+    @GetMapping("/user/{userName}")
+    public ResponseEntity<List<Issue>> getIssuesByUserName(@PathVariable String userName) {
+        return ResponseEntity.ok(issueService.findIssueByUserName(userName));
     }
 
     @GetMapping("/category/{categoryId}")

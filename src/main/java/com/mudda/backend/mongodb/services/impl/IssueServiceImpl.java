@@ -45,8 +45,8 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
-    public List<Issue> findIssueByUserId(Long user_id) {
-        return issueRepository.findIssueByUserId(user_id);
+    public List<Issue> findIssueByUserName(String user_name) {
+        return issueRepository.findIssueByUserName(user_name);
     }
 
     @Override
