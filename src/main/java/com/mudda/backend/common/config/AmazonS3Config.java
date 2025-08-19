@@ -3,14 +3,14 @@ package com.mudda.backend.common.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 @Configuration
-public class AmazonConfig {
-
+public class AmazonS3Config {
     private AmazonS3 amazonS3;
 
     @Value("${amazon.s3.region}")
@@ -24,6 +24,10 @@ public class AmazonConfig {
 
     public AmazonS3 getAmazonS3() {
         return amazonS3;
+    }
+
+    public String getRegion() {
+        return region;
     }
 
     @Bean

@@ -9,30 +9,10 @@
 
 <body>
     <h1>Test Image Upload to S3</h1>
-    <form action="http:127.0.0.1:8080/api/amazon/images/upload" method="post" enctype="multipart/form-data">
-        <label for="file">Select an image to upload:</label>
-        <input type="file" id="file" name="file" accept="image/*" required>
+    <form action="/api/v1/amazon/images" method="post" enctype="multipart/form-data">
+        <label for="files">Select an image to upload:</label>
+        <input type="file" id="files" name="files" accept="image/*" multiple required>
         <button type="submit">Upload</button>
-    </form>
-
-    <form action="http:127.0.0.1:8080/api/amazon/images/check-image-exists-in-database" method="post"
-        enctype="application/x-www-form-urlencoded">
-        <label for="fileName-1">File name to check in Database:</label>
-        <input type="text" id="fileName-1" name="fileName" required>
-        <button type="submit">Check</button>
-    </form>
-
-    <form action="http:127.0.0.1:8080/api/amazon/images/check-image-exists-in-cloud" method="post"
-        enctype="application/x-www-form-urlencoded">
-        <label for="fileName-2">File name to check in Cloud:</label>
-        <input type="text" id="fileName-2" name="fileName" required>
-        <button type="submit">Check</button>
-    </form>
-
-    <form id="imageDeleteForm">
-        <label for="deleteFileName">File name to delete:</label>
-        <input type="text" id="deleteFileName" name="fileName" required>
-        <button type="submit">Delete</button>
     </form>
 
     <h2>Uploaded Image</h2>
@@ -48,7 +28,8 @@
 
 <script>
     async function listBucketContents() {
-        const AMAZON_IMAGE_URL = "http:127.0.0.1:8080/api/amazon/images"
+        const BASE_URL = window.location.origin
+        const AMAZON_IMAGE_URL = BASE_URL + "/api/v1/amazon/images"
         const response = await fetch(AMAZON_IMAGE_URL)
         if (!response.ok) {
             throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
@@ -63,28 +44,39 @@
 
         bucket_items.forEach(item => {
             const list_item = document.createElement("li")
-            list_item.innerText = item
+            list_item.style.display = "flex"
+            list_item.style.alignItems = "center"
+            list_item.style.marginBottom = "8px"
+
+            const nameSpan = document.createElement("span")
+            nameSpan.innerText = item
+
+            const deleteButton = document.createElement("button")
+            deleteButton.innerText = "Delete"
+            deleteButton.style.marginLeft = "12px"
+            deleteButton.onclick = async () => {
+                try {
+                    const res = await fetch(`${AMAZON_IMAGE_URL}/${encodeURIComponent(item)}`, {
+                        method: "DELETE"
+                    })
+
+                    if (res.ok) {
+                        list_item.remove()
+                        console.log(`Deleted ${item}`)
+                    } else {
+                        console.log(`Failed to delete file: ${item}`);
+                    }
+                } catch (error) {
+                    console.error("Error: " + error);
+                }
+            }
+
+            list_item.appendChild(nameSpan)
+            list_item.appendChild(deleteButton)
             bucket_list.appendChild(list_item)
         });
     }
 
-    document.getElementById("imageDeleteForm").addEventListener("submit", function (event) {
-        event.preventDefault()
-
-        const fileName = document.getElementById("deleteFileName").value
-        const url = `http:127.0.0.1:8080/api/amazon/images/${encodeURIComponent(fileName)}`
-
-        fetch(url, { method: "DELETE" }).then((response) => {
-            if (response.ok) {
-                alert(`File: ${fileName} Deleted successfully`)
-            } else {
-                alert("File deletion failed")
-            }
-        }).catch((error) => {
-            console.error(error);
-            alert(`An error occurred ${error}`)
-        })
-    })
 </script>
 
 </html>
