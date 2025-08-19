@@ -23,7 +23,7 @@ public class Issue {
 
     @Id
     @Field("_id")
-    private String issueId; // MongoDB _id as String
+    private ObjectId issueId;
 
     private String userName;
 //    private Long userId;     // Reference to User in PostgreSQL
