@@ -30,7 +30,7 @@ public class Vote {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long voteId;
 
     @Column(nullable = false)
     private Long issueId; // soft link to issue that has this vote
@@ -38,5 +38,6 @@ public class Vote {
     @Column(nullable = false)
     private Long userId; // soft link to user that has made this vote
 
+    @Column(nullable = false)
     private Instant createdAt = Instant.now();
 }

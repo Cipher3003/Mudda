@@ -3,7 +3,17 @@ package com.mudda.backend.postgres.models;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import jakarta.persistence.*;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +24,7 @@ import lombok.Setter;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
     @Column(nullable = false)
     private String firstName;
@@ -45,4 +55,18 @@ public class User {
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
+
+    @Column
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

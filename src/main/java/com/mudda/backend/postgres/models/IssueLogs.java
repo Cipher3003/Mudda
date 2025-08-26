@@ -1,56 +1,54 @@
 package com.mudda.backend.postgres.models;
 
-import java.time.Instant;
-
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
+
+import java.time.Instant;
+
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "replies")
-public class Reply {
+@Table(name = "issue_logs")
+public class IssueLogs {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long replyId;
+    private Long issueLogId;
 
     @Column(nullable = false)
-    private String reply_text;
+    private Long issueId; // Reference to Issue in PostgreSQL
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private IssueStatus status;
 
     @Column(nullable = false)
-    private Long commentId; // soft link to comment where user replied
+    private Long approvedBy; // Reference to User in PostgreSQL
 
     @Column(nullable = false)
-    private Long userId; // soft link to user who replied on the comment
+    private String additionalNotes;
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
-    @Column
-    private Instant updatedAt;
-
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();
-        updatedAt = Instant.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
-    }
 }

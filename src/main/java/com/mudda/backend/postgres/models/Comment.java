@@ -21,7 +21,7 @@ import lombok.Setter;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long commentId;
 
     @Column(nullable = false)
     private String text;
@@ -29,7 +29,9 @@ public class Comment {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(nullable = false)
     private Long issueId; // soft link to issue on which comment was made
 
+    @Column(nullable = false)
     private Long userId; // soft link to user who made the comment on the Issue
 }
