@@ -2,19 +2,8 @@ package com.mudda.backend.postgres.models;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -51,20 +40,9 @@ public class User {
     @Column(nullable = true)
     private String profileImageUrl;
 
-    @Column(nullable = false)
-    private Instant createdAt = Instant.now();
-
-    // TODO: delete user if role is deleted ?
-    @Column(nullable = false)
+    @Column(name = "role_id", nullable = false)
     private Long roleId;
 
-    @ManyToMany
-    @JoinTable(name = "user_locations", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "location_id"))
-    private Set<Location> locations = new HashSet<>();
-
-    // One user can have one role
-    @ManyToOne
-    @JoinColumn(name = "role_id") // foreign key to role
-    private Role role;
-
+    @Column(nullable = false)
+    private Instant createdAt = Instant.now();
 }

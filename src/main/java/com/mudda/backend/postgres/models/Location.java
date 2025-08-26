@@ -1,24 +1,14 @@
 package com.mudda.backend.postgres.models;
 
+
+import jakarta.persistence.*;
 import lombok.Setter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-
-import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+import java.time.Instant;
+import org.locationtech.jts.geom.Point;
 
 @Getter
 @Setter
@@ -36,11 +26,14 @@ public class Location {
     private String state;
     private String pincode;
 
-    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
-    private GeoJsonPoint coordinates;
+    @Column(nullable = false)
+    private Instant createdAt = Instant.now();
 
-    // TODO: maybe remove
-    @ManyToMany(mappedBy = "locations")
-    private Set<User> users = new HashSet<>(); // users who have this location saved
 
+    /**
+     * PostGIS geometry column for storing coordinates (longitude/latitude).
+     * SRID 4326 = WGS84 standard for GPS coordinates.
+     */
+    @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
+    private Point coordinates;
 }
