@@ -8,10 +8,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface CategoryService {
-    Category createCategory(Category category);
-    Optional<Category> findCategoryById(Long id);
-    List<Category> findAllCategories();
-    void deleteCategory(Long id);
-    Optional<Category> findByName(String name);
-}
 
+    List<Category> findAllCategories();
+
+    Optional<Category> findCategoryById(Long id);
+
+    Optional<Category> findCategoryByName(String name);
+
+    Category createCategory(Category category);
+
+    void deleteCategory(Long id);
+
+}

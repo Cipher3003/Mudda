@@ -16,8 +16,8 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryRepository categoryRepository;
 
     @Override
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+    public List<Category> findAllCategories() {
+        return categoryRepository.findAll();
     }
 
     @Override
@@ -26,8 +26,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<Category> findAllCategories() {
-        return categoryRepository.findAll();
+    public Optional<Category> findCategoryByName(String name) {
+        return categoryRepository.findByName(name);
+    }
+
+    @Override
+    public Category createCategory(Category category) {
+        return categoryRepository.save(category);
     }
 
     @Override
@@ -35,8 +40,4 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.deleteById(id);
     }
 
-    @Override
-    public Optional<Category> findByName(String name){
-        return categoryRepository.findByName(name);
-    }
 }
