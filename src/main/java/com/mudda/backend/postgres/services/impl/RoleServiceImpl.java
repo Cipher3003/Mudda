@@ -14,15 +14,14 @@ public class RoleServiceImpl implements RoleService {
     @Autowired
     private RoleRepository roleRepository;
 
-
     @Override
-    public Role createRole(Role role) { 
-        return roleRepository.save(role);
+    public Optional<Role> findRoleById(Long id) {
+        return roleRepository.findById(id);
     }
 
     @Override
-    public Optional<Role> findRoleById(Long roleId) {
-        return roleRepository.findById(roleId);
+    public Optional<Role> findRoleByName(String name) {
+        return roleRepository.findByName(name);
     }
 
     @Override
@@ -31,12 +30,13 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public void deleteRole(Long id) {
-        roleRepository.deleteById(id);
+    public Role createRole(Role role) {
+        return roleRepository.save(role);
     }
 
     @Override
-    public Optional<Role> findByName(String name) {
-        return roleRepository.findByName(name);
+    public void deleteRole(Long id) {
+        roleRepository.deleteById(id); // not found case is ignored
     }
+
 }
