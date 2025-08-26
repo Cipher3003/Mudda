@@ -38,9 +38,7 @@ public class VoteServiceImpl implements VoteService {
     @Override
     public void deleteAllVotesByUserId(Long userId) {
         List<Vote> votes = voteRepository.findByUserId(userId);
-        for (Vote vote : votes) {
-            voteRepository.deleteById(vote.getId());
-        }
+        voteRepository.deleteAll(votes);
     }
 
     @Override

@@ -61,7 +61,9 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteAllCommentsByIssueId(Long issueId) {
         List<Comment> comments = commentRepository.findByIssueId(issueId);
-        commentRepository.deleteAll(comments);
+        for (Comment comment : comments) {
+            deleteComment(comment.getId());
+        }
     }
 
 }
