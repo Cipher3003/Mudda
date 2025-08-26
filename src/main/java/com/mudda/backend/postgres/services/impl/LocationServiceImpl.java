@@ -40,14 +40,14 @@ public class LocationServiceImpl implements LocationService {
         Location existing = locationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Location not found with id " + id));
 
-        // copy fields - keep id
         existing.setAddressLine(location.getAddressLine());
-        existing.setCity(location.getCity());
-        existing.setState(location.getState());
-        existing.setPincode(location.getPincode());
+        existing.setLocalityId(location.getLocalityId());
         existing.setCoordinates(location.getCoordinates());
-
         return locationRepository.save(existing);
+        // TODO: refactor and add logic for locality, make a single controller layer for location + locality service layers
+        // TODO: even for locality update, we must check if any records of the locality are even getting referenced in the location table
+        // if yes ( > 1) , add a new locality record and update the location record
+        // if no ( = 1), we can change the locality record
     }
 
     @Override

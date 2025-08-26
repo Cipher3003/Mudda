@@ -62,7 +62,7 @@ public class CommentServiceImpl implements CommentService {
     public void deleteAllCommentsByIssueId(Long issueId) {
         List<Comment> comments = commentRepository.findByIssueId(issueId);
         for (Comment comment : comments) {
-            deleteComment(comment.getId());
+            deleteComment(comment.getIssueId());
         }
     }
 

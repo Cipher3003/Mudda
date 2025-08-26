@@ -85,8 +85,8 @@ public class IssueServiceImpl implements IssueService {
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Issue not found with id " + id));
 
-        commentService.deleteAllCommentsByIssueId(issue.getId());
-        voteService.deleteAllVotesByIssueId(issue.getId());
+        commentService.deleteAllCommentsByIssueId(issue.getIssueId());
+        voteService.deleteAllVotesByIssueId(issue.getIssueId());
         // finally delete the issue
         issueRepository.deleteById(id);
     }

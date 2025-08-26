@@ -29,7 +29,7 @@ public class Reply {
     private Long replyId;
 
     @Column(nullable = false)
-    private String reply_text;
+    private String text;
 
     @Column(nullable = false)
     private Long commentId; // soft link to comment where user replied
