@@ -15,6 +15,4 @@ public interface LocationService {
     Location updateLocation(Long id, Location location);
 
     void deleteById(Long id);
-
-    // TODO: how to delete if user or issue deleted ?
 }
