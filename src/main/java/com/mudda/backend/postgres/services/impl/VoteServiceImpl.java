@@ -3,10 +3,13 @@ package com.mudda.backend.postgres.services.impl;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Service;
+
 import com.mudda.backend.postgres.models.Vote;
 import com.mudda.backend.postgres.repositories.VoteRepository;
 import com.mudda.backend.postgres.services.VoteService;
 
+@Service
 public class VoteServiceImpl implements VoteService {
 
     private final VoteRepository voteRepository;

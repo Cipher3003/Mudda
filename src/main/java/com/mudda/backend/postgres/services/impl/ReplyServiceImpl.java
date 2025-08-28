@@ -3,10 +3,13 @@ package com.mudda.backend.postgres.services.impl;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Service;
+
 import com.mudda.backend.postgres.models.Reply;
 import com.mudda.backend.postgres.repositories.ReplyRepository;
 import com.mudda.backend.postgres.services.ReplyService;
 
+@Service
 public class ReplyServiceImpl implements ReplyService {
 
     private final ReplyRepository replyRepository;
