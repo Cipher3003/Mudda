@@ -11,9 +11,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
-import org.hibernate.annotations.Type;
-import com.vladmihalcea.hibernate.type.array.ListArrayType;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -21,6 +18,10 @@ import lombok.AllArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
+
+import org.hibernate.annotations.Type;
+
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 
 @Getter
 @Setter

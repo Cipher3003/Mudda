@@ -55,8 +55,9 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
-    public List<Issue> findByLocation_CoordinatesNear(Point point, int distanceInKm) {
-        return issueRepository.findByLocation_CoordinatesNear(point, distanceInKm);
+    public List<Issue> findByLocation_CoordinatesNear(Point point, int distance) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findByLocation_CoordinatesNear'");
     }
 
     @Override
@@ -90,4 +91,5 @@ public class IssueServiceImpl implements IssueService {
         // finally delete the issue
         issueRepository.deleteById(id);
     }
+
 }
