@@ -9,12 +9,11 @@ import java.time.Instant;
 @Setter
 public class UserResponseDTO {
     private Long userId;
-    private String userName;
     private String firstName;
     private String lastName;
-    private String email;
-    private String countryCode;
     private String phoneNumber;
-    private int roleId;
+    private String email;
+    private String profileImageUrl;
+    private Long roleId;
     private Instant createdAt;
 }
