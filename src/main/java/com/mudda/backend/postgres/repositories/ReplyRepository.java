@@ -12,6 +12,6 @@ public interface ReplyRepository extends JpaRepository<Reply, Long> {
 
     public List<Reply> findByTextContaining(String text);
 
-    public List<Reply> findByCommentId(Long id);
+    public List<Reply> findByCommentId(Long commentId);
 
 }
