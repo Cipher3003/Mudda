@@ -15,7 +15,6 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-
 import java.time.Instant;
 
 @Getter
@@ -24,6 +23,8 @@ import java.time.Instant;
 @AllArgsConstructor
 @Entity
 @Table(name = "issue_logs")
+// TODO: remove deprecated when build issue logs and depratment features
+@Deprecated(forRemoval = false)
 public class IssueLogs {
 
     @Id

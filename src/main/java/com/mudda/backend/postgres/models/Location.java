@@ -1,6 +1,5 @@
 package com.mudda.backend.postgres.models;
 
-
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
@@ -30,12 +29,14 @@ public class Location {
     @Column(nullable = true)
     private String addressLine;
 
+    @Column(nullable = false)
+    private String pinCode;
+
     @Column(name = "locality_id", nullable = false)
     private Long localityId;
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
-
 
     /**
      * PostGIS geometry column for storing coordinates (longitude/latitude).

@@ -12,13 +12,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
-@Table(name = "categories")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Category {
+@Entity
+@Table(name = "issue_categories")
+public class IssueCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

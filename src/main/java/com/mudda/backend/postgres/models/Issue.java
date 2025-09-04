@@ -63,8 +63,9 @@ public class Issue {
     @Column(nullable = false)
     private boolean deleteFlag = false;
 
-    @Column(nullable = false)
-    private boolean reportFlag = false;
+    // TODO: uncomment when implement reporting
+    // @Column(nullable = false)
+    // private boolean reportFlag = false;
 
     @Column(nullable = false)
     private boolean urgencyFlag = false;

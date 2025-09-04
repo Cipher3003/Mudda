@@ -1,6 +1,6 @@
 package com.mudda.backend.postgres.services.impl;
 
-import com.mudda.backend.postgres.models.Category;
+import com.mudda.backend.postgres.models.IssueCategory;
 import com.mudda.backend.postgres.repositories.CategoryRepository;
 import com.mudda.backend.postgres.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,22 +16,22 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryRepository categoryRepository;
 
     @Override
-    public List<Category> findAllCategories() {
+    public List<IssueCategory> findAllCategories() {
         return categoryRepository.findAll();
     }
 
     @Override
-    public Optional<Category> findCategoryById(Long id) {
+    public Optional<IssueCategory> findCategoryById(Long id) {
         return categoryRepository.findById(id);
     }
 
     @Override
-    public Optional<Category> findCategoryByName(String name) {
+    public Optional<IssueCategory> findCategoryByName(String name) {
         return categoryRepository.findByName(name);
     }
 
     @Override
-    public Category createCategory(Category category) {
+    public IssueCategory createCategory(IssueCategory category) {
         return categoryRepository.save(category);
     }
 

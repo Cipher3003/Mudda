@@ -1,6 +1,6 @@
 package com.mudda.backend.postgres.controllers;
 
-import com.mudda.backend.postgres.models.Category;
+import com.mudda.backend.postgres.models.IssueCategory;
 import com.mudda.backend.postgres.services.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,19 +16,19 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<List<Category>> getAll() {
+    public ResponseEntity<List<IssueCategory>> getAll() {
         return ResponseEntity.ok(categoryService.findAllCategories());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getById(@PathVariable Long id) {
+    public ResponseEntity<IssueCategory> getById(@PathVariable Long id) {
         return categoryService.findCategoryById(id)
                 .map(ResponseEntity::ok) // 200 ok
                 .orElse(ResponseEntity.notFound().build()); // 404 not found
     }
 
     @GetMapping("/name/{name}")
-    public ResponseEntity<Category> getByName(@PathVariable String name) {
+    public ResponseEntity<IssueCategory> getByName(@PathVariable String name) {
         return categoryService.findCategoryByName(name)
                 .map(ResponseEntity::ok) // 200 ok
                 .orElse(ResponseEntity.notFound().build()); // 404 not found
@@ -36,7 +36,7 @@ public class CategoryController {
 
     // TODO: Validate input
     @PostMapping
-    public ResponseEntity<Category> create(@RequestBody Category category) {
+    public ResponseEntity<IssueCategory> create(@RequestBody IssueCategory category) {
         return ResponseEntity.ok(categoryService.createCategory(category));
     }
 

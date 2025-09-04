@@ -55,8 +55,8 @@ public class UserServiceImpl implements UserService {
     public User updateUser(Long id, User user) {
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Issue not found with id " + id));
-        existing.setFirstName(user.getFirstName());
-        existing.setLastName(user.getLastName());
+        existing.setUserName(user.getUserName());
+        existing.setName(user.getName());
         existing.setPhoneNumber(user.getPhoneNumber());
         existing.setEmail(user.getEmail());
         existing.setHashedPassword(user.getHashedPassword());

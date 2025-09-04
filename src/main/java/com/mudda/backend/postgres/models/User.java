@@ -3,7 +3,6 @@ package com.mudda.backend.postgres.models;
 import java.time.Instant;
 import java.time.LocalDate;
 
-
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
@@ -12,7 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
-
 
 import lombok.Getter;
 import lombok.Setter;
@@ -26,11 +24,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(nullable = false)
-    private String firstName;
+    @Column(nullable = false, unique = true)
+    private String userName;
 
     @Column(nullable = false)
-    private String lastName;
+    private String name;
 
     @Column(nullable = false, unique = true)
     private String phoneNumber;
@@ -40,9 +38,6 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String email;
-
-    // @Column(unique = true)
-    // private String countryCode;
 
     @Column(nullable = false)
     private String hashedPassword;

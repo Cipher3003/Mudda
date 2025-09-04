@@ -8,8 +8,8 @@ public class UserMapper {
 
     public static User toEntity(UserRequestDTO dto) {
         User user = new User();
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
+        user.setUserName(dto.getFirstName());
+        user.setName(dto.getLastName());
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setEmail(dto.getEmail());
         user.setHashedPassword(dto.getHashedPassword());
@@ -21,8 +21,8 @@ public class UserMapper {
     public static UserResponseDTO toResponseDTO(User user) {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setUserId(user.getUserId());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
+        dto.setFirstName(user.getUserName());
+        dto.setLastName(user.getName());
         dto.setPhoneNumber(user.getPhoneNumber());
         dto.setEmail(user.getEmail());
         dto.setProfileImageUrl(user.getProfileImageUrl());
