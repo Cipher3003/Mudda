@@ -1,4 +1,4 @@
-package com.mudda.backend.postgres.models;
+package com.mudda.backend.issue;
 
 // Enum for status
 public enum IssueStatus {
