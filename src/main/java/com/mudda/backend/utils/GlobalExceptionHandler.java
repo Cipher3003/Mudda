@@ -1,5 +1,6 @@
 package com.mudda.backend.utils;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +24,13 @@ public class GlobalExceptionHandler {
 
     public GlobalExceptionHandler(MessageUtil messageUtil) {
         this.messageUtil = messageUtil;
+    }
+
+    //    TODO: integrate messageUtil with this function properly
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> handleEntityNotFound(EntityNotFoundException e) {
+        // Logged in the service class
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 
     @ExceptionHandler(FileConversionException.class)
