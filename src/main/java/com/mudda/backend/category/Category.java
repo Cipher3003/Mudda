@@ -12,8 +12,8 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity(name = "IssueCategory")
-@Table(name = "issue_categories")
+@Entity(name = "Category")
+@Table(name = "categories")
 public class Category {
 
     @Id
