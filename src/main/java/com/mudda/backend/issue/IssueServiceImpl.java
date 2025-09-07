@@ -147,7 +147,7 @@ public class IssueServiceImpl implements IssueService {
             throw notFound("User", userId);
         if (locationService.findLocationById(locationId).isEmpty())
             throw notFound("Location", locationId);
-        if (categoryService.findCategoryById(categoryId).isEmpty())
+        if (categoryService.findById(categoryId).isEmpty())
             throw notFound("Category", categoryId);
     }
 
