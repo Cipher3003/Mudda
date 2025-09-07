@@ -9,8 +9,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/v1/issues")
 @RequiredArgsConstructor
@@ -43,21 +41,6 @@ public class IssueController {
         return issueService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<IssueSummaryResponse>> getIssuesByStatus(@PathVariable IssueStatus status) {
-        return ResponseEntity.ok(issueService.findByStatus(status));
-    }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<IssueSummaryResponse>> getIssuesByUserName(@PathVariable Long userId) {
-        return ResponseEntity.ok(issueService.findByUserId(userId));
-    }
-
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<IssueSummaryResponse>> getIssuesByCategoryId(@PathVariable Long categoryId) {
-        return ResponseEntity.ok(issueService.findByCategoryId(categoryId));
     }
 
     @PostMapping
