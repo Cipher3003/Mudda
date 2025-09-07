@@ -11,12 +11,9 @@ import java.util.Optional;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final CategoryMapper categoryMapper;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository,
-                               CategoryMapper categoryMapper) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
-        this.categoryMapper = categoryMapper;
     }
 
 //    ------------------------------
@@ -47,7 +44,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = new Category(name);
         Category saved = categoryRepository.save(category);
 
-        return categoryMapper.toResponse(saved);
+        return CategoryMapper.toResponse(saved);
     }
 
     @Override

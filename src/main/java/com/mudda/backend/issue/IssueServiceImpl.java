@@ -1,16 +1,14 @@
 package com.mudda.backend.issue;
 
 import com.mudda.backend.category.CategoryService;
-import com.mudda.backend.postgres.services.LocationService;
-import com.mudda.backend.postgres.services.UserService;
+import com.mudda.backend.comment.CommentService;
+import com.mudda.backend.location.LocationService;
+import com.mudda.backend.user.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import com.mudda.backend.postgres.services.CommentService;
-import com.mudda.backend.postgres.services.VoteService;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -26,22 +24,19 @@ public class IssueServiceImpl implements IssueService {
     private final UserService userService;
     private final LocationService locationService;
     private final CategoryService categoryService;
-    private final IssueMapper issueMapper;
 
     public IssueServiceImpl(IssueRepository issueRepository,
                             CommentService commentService,
                             VoteService voteService,
                             UserService userService,
                             LocationService locationService,
-                            CategoryService categoryService,
-                            IssueMapper issueMapper) {
+                            CategoryService categoryService) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteService = voteService;
         this.userService = userService;
         this.locationService = locationService;
         this.categoryService = categoryService;
-        this.issueMapper = issueMapper;
     }
 
 //    ------------------------------
@@ -66,7 +61,7 @@ public class IssueServiceImpl implements IssueService {
 
         Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
 
-        return issuePage.map(issueMapper::toSummary);
+        return issuePage.map(IssueMapper::toSummary);
     }
 
     @Override
@@ -113,7 +108,7 @@ public class IssueServiceImpl implements IssueService {
         );
 
         Issue saved = issueRepository.save(issue);
-        return issueMapper.toResponse(saved);
+        return IssueMapper.toResponse(saved);
     }
 
     @Override
@@ -124,7 +119,7 @@ public class IssueServiceImpl implements IssueService {
         existing.updateDetails(issueRequest.title(), issueRequest.description(), issueRequest.status());
 
         Issue updated = issueRepository.save(existing);
-        return issueMapper.toResponse(updated);
+        return IssueMapper.toResponse(updated);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.mudda.backend.issue;
 
 public class IssueMapper {
-    public IssueResponse toResponse(Issue issue) {
+    public static IssueResponse toResponse(Issue issue) {
         return new IssueResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -17,7 +17,7 @@ public class IssueMapper {
         );
     }
 
-    public IssueSummaryResponse toSummary(Issue issue) {
+    public static IssueSummaryResponse toSummary(Issue issue) {
         return new IssueSummaryResponse(
                 issue.getId(),
                 issue.getTitle(),
