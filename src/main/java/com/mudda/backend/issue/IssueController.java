@@ -19,15 +19,14 @@ public class IssueController {
 
     @GetMapping
     public ResponseEntity<Page<IssueSummaryResponse>> getAllIssues(
-            IssueFilterRequest filterRequest,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") IssueSortBy sort,
-            @RequestParam(defaultValue = "desc") String direction) {
+            @ModelAttribute(name = "filters") IssueFilterRequest filterRequest,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sortBy", defaultValue = "CREATED_AT") IssueSortBy sort,
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction) {
 
         Pageable pageable = PageRequest.of(
-                page,
-                size,
+                page, size,
                 direction.equalsIgnoreCase("desc")
                         ? Sort.by(sort.getFieldName()).descending()
                         : Sort.by(sort.getFieldName()).ascending()

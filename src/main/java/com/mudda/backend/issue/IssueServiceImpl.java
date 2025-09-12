@@ -1,5 +1,6 @@
 package com.mudda.backend.issue;
 
+//TODO: remove other entity services instead use their repository
 import com.mudda.backend.category.CategoryService;
 import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.location.LocationService;
