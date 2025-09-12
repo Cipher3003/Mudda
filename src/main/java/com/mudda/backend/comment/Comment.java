@@ -1,12 +1,8 @@
-package com.mudda.backend.postgres.models;
+package com.mudda.backend.comment;
 
 import java.time.Instant;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +22,9 @@ public class Comment {
     @Column(nullable = false)
     private String text;
 
+    @Column
+    private Long parentId;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -34,4 +33,9 @@ public class Comment {
 
     @Column(nullable = false)
     private Long userId; // soft link to user who made the comment on the Issue
+
+    @PrePersist
+    protected void onCreated() {
+        createdAt = Instant.now();
+    }
 }

@@ -1,18 +1,20 @@
-package com.mudda.backend.postgres.repositories;
+package com.mudda.backend.comment;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import com.mudda.backend.postgres.models.Comment;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     // generates a select query to find comments where issueId equals parameter
     // issueId
-    List<Comment> findByIssueId(Long issueId);
+    List<Comment> findByParentIdIsNull();
 
-    Optional<Comment> findByCommentId(Long id);
+    List<Comment> findByIssueIdAndParentIdIsNull(Long issueId);
+
+    // Find all replies for a specific parent comment
+    List<Comment> findByParentId(Long parentId);
+
+    void deleteByParentId(Long parentId);
 }

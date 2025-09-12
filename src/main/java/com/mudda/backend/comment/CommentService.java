@@ -1,7 +1,4 @@
-package com.mudda.backend.postgres.services;
-
-import com.mudda.backend.postgres.models.Comment;
-import com.mudda.backend.postgres.models.Reply;
+package com.mudda.backend.comment;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,9 +7,9 @@ public interface CommentService {
 
     List<Comment> findAllComments();
 
-    List<Comment> findByIssueId(Long issueId);
+    List<Comment> findCommentsByIssueId(Long issueId);
 
-    List<Reply> findAllReplies(Long commentId);
+    List<Comment> findAllReplies(Long parentId);
 
     Optional<Comment> findById(Long id);
 
