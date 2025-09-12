@@ -1,5 +1,8 @@
 package com.mudda.backend.issue;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +20,11 @@ public class IssueController {
 
     private final IssueService issueService;
 
+    @Operation(summary = "List issues with filters, sorting and pagination")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of issues"),
+            @ApiResponse(responseCode = "400", description = "Invalid Input")
+    })
     @GetMapping
     public ResponseEntity<Page<IssueSummaryResponse>> getAllIssues(
             @ModelAttribute(name = "filters") IssueFilterRequest filterRequest,

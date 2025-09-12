@@ -15,7 +15,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponse>> getAll(@RequestParam String search) {
+    public ResponseEntity<List<CategoryResponse>> getAll(@RequestParam(required = false) String search) {
         return ResponseEntity.ok(categoryService.findAllCategories(search));
     }
 
