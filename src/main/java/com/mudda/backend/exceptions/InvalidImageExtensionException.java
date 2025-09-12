@@ -1,5 +1,8 @@
 package com.mudda.backend.exceptions;
 
+import lombok.Getter;
+
+@Getter
 public class InvalidImageExtensionException extends RuntimeException {
     private final String errorMessageCode;
     private final Object[] args;
@@ -10,11 +13,4 @@ public class InvalidImageExtensionException extends RuntimeException {
         this.args = args;
     }
 
-    public String getErrorMessageCode() {
-        return errorMessageCode;
-    }
-
-    public Object[] getArgs() {
-        return args;
-    }
 }

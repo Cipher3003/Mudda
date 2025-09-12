@@ -27,34 +27,37 @@ public class VoteController {
     }
 
     @GetMapping("/issues/{issueId}/votes/{userId}")
-    public ResponseEntity<Boolean> checkVoteOnIssueIdByUserId(@PathVariable Long issueId, @PathVariable Long userId) {
+    public ResponseEntity<Boolean> checkVoteOnIssueIdByUserId(@PathVariable(name = "issueId") Long issueId,
+                                                              @PathVariable(name = "userId") Long userId) {
         return ResponseEntity.ok(voteService.hasUserVotedOnIssue(issueId, userId));
     }
 
     @GetMapping("/issues/{issueId}/votes")
-    public ResponseEntity<Long> getVoteCountByIssueId(@PathVariable Long issueId) {
+    public ResponseEntity<Long> getVoteCountByIssueId(@PathVariable(name = "issueId") Long issueId) {
         return ResponseEntity.ok(voteService.countVotesForIssue(issueId));
     }
 
-    @GetMapping("/votes/{id}")
-    public ResponseEntity<Vote> getVotesById(@PathVariable Long id) {
-        return voteService.findVoteById(id).map(ResponseEntity::ok)
+    @GetMapping("/votes/{voteId}")
+    public ResponseEntity<Vote> getVotesById(@PathVariable(name = "id") Long voteId) {
+        return voteService.findVoteById(voteId).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/issues/{issueId}/votes/{userId}")
-    public ResponseEntity<VoteResponse> create(@PathVariable Long issueId, @PathVariable Long userId) {
+    public ResponseEntity<VoteResponse> create(@PathVariable(name = "issueId") Long issueId,
+                                               @PathVariable(name = "userId") Long userId) {
         return ResponseEntity.ok(voteService.castVote(issueId, userId));
     }
 
-    @DeleteMapping("/votes/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        voteService.delete(id);
+    @DeleteMapping("/votes/{voteId}")
+    public ResponseEntity<Void> delete(@PathVariable(name = "id") Long voteId) {
+        voteService.delete(voteId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/issues/{issueId}/votes/{userId}")
-    public ResponseEntity<Void> deleteVoteOnIssueIdByUserId(@PathVariable Long issueId, @PathVariable Long userId) {
+    public ResponseEntity<Void> deleteVoteOnIssueIdByUserId(@PathVariable(name = "issueId") Long issueId,
+                                                            @PathVariable(name = "userId") Long userId) {
         voteService.deleteAllVotesByIssueIdAndUserId(issueId, userId);
         return ResponseEntity.noContent().build();
     }

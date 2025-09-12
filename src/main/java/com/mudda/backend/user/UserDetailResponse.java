@@ -1,16 +1,18 @@
 package com.mudda.backend.user;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.Instant;
 
 public record UserDetailResponse(
-        Long userId,
-        String userName,
+        @JsonProperty("user_id") Long userId,
+        @JsonProperty("username") String userName,
         String Name,
-        String phoneNumber,
+        @JsonProperty("phone_number") String phoneNumber,
         String email,
-        String profileImageUrl,
-        Long roleId,
-        Instant createdAt
+        @JsonProperty("profile_image_url") String profileImageUrl,
+        @JsonProperty("role_id") Long roleId,
+        @JsonProperty("created_at") Instant createdAt
 ) {
     public static UserDetailResponse from(User user) {
         return new UserDetailResponse(

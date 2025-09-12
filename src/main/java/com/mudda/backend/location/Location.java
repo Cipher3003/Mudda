@@ -22,7 +22,7 @@ public class Location {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long locationId;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String addressLine;
 
     @Column(nullable = false)

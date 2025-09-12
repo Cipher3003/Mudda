@@ -1,5 +1,8 @@
 package com.mudda.backend.exceptions;
 
+import lombok.Getter;
+
+@Getter
 public class FileConversionException extends RuntimeException {
 
     private final String errorMessageCode;
@@ -9,14 +12,6 @@ public class FileConversionException extends RuntimeException {
         super(errorMessageCode);
         this.errorMessageCode = errorMessageCode;
         this.args = args;
-    }
-
-    public String getErrorMessageCode() {
-        return errorMessageCode;
-    }
-
-    public Object[] getArgs() {
-        return args;
     }
 
 }

@@ -1,4 +1,4 @@
-package com.mudda.backend.location;
+package com.mudda.backend.postgres.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -13,6 +13,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "user_locations")
+@Deprecated
 public class UserLocation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

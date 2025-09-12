@@ -1,5 +1,6 @@
 package com.mudda.backend.role;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,26 +20,26 @@ public class RoleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleResponse> getById(@PathVariable Long id) {
+    public ResponseEntity<RoleResponse> getById(@PathVariable(name = "id") Long id) {
         return roleService.findRoleById(id)
                 .map(ResponseEntity::ok) // 200 ok
                 .orElse(ResponseEntity.notFound().build()); // 404 not found
     }
 
     @GetMapping("/name/{name}")
-    public ResponseEntity<List<RoleResponse>> getById(@PathVariable String name) {
+    public ResponseEntity<List<RoleResponse>> getById(@PathVariable(name = "name") String name) {
         return ResponseEntity.ok(roleService.findRoleContainingText(name));
     }
 
     // TODO: Validate input
     @PostMapping
-    public ResponseEntity<RoleResponse> create(@RequestBody CreateRoleRequest roleRequest) {
+    public ResponseEntity<RoleResponse> create(@Valid @RequestBody CreateRoleRequest roleRequest) {
         return ResponseEntity.ok(roleService.createRole(roleRequest));
     }
 
     // TODO: not found check
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable(name = "id") Long id) {
         roleService.deleteRole(id);
         return ResponseEntity.noContent().build();
     }

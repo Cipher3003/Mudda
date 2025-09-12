@@ -71,11 +71,6 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
-    public List<IssueSummaryResponse> findByStatus(IssueStatus status) {
-        return issueRepository.findByStatus(status);
-    }
-
-    @Override
     public List<IssueSummaryResponse> findByUserId(Long userId) {
         return issueRepository.findByUserId(userId);
     }

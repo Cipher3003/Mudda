@@ -1,5 +1,6 @@
 package com.mudda.backend.common.config;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +12,10 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 @Configuration
 public class AmazonS3Config {
+    @Getter
     private AmazonS3 amazonS3;
 
+    @Getter
     @Value("${amazon.s3.region}")
     private String region;
 
@@ -21,14 +24,6 @@ public class AmazonS3Config {
 
     @Value("${amazon.s3.secret-key}")
     private String secretKey;
-
-    public AmazonS3 getAmazonS3() {
-        return amazonS3;
-    }
-
-    public String getRegion() {
-        return region;
-    }
 
     @Bean
     AmazonS3 s3() {

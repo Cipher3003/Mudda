@@ -13,8 +13,6 @@ public interface IssueService {
 
     Optional<IssueResponse> findById(Long id);
 
-    List<IssueSummaryResponse> findByStatus(IssueStatus status);
-
     List<IssueSummaryResponse> findByUserId(Long userId);
 
     List<IssueSummaryResponse> findByCategoryId(Long categoryId);

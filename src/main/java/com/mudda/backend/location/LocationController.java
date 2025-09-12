@@ -35,9 +35,9 @@ public class LocationController {
         return ResponseEntity.ok(locationService.findAllLocations());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<LocationResponse> getById(@PathVariable Long id) {
-        return locationService.findLocationById(id)
+    @GetMapping("/{locationId}")
+    public ResponseEntity<LocationResponse> getById(@PathVariable(name = "locationId") Long locationId) {
+        return locationService.findLocationById(locationId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -50,10 +50,11 @@ public class LocationController {
     }
 
     // TODO: Validate input
-    @PutMapping("/{id}")
-    public ResponseEntity<LocationResponse> update(@PathVariable Long id, @RequestBody UpdateLocationRequest locationRequest) {
+    @PutMapping("/{locationId}")
+    public ResponseEntity<LocationResponse> update(@PathVariable(name = "locationId") Long locationId,
+                                                   @RequestBody UpdateLocationRequest locationRequest) {
         try {
-            LocationResponse updated = locationService.updateLocation(id, locationRequest);
+            LocationResponse updated = locationService.updateLocation(locationId, locationRequest);
             return ResponseEntity.ok(updated);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -61,10 +62,10 @@ public class LocationController {
     }
 
     // TODO: not found check
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @DeleteMapping("/{locationId}")
+    public ResponseEntity<Void> delete(@PathVariable(name = "locationId") Long locationId) {
         try {
-            locationService.deleteById(id);
+            locationService.deleteById(locationId);
             return ResponseEntity.noContent().build();
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();

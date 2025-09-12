@@ -1,5 +1,8 @@
 package com.mudda.backend.exceptions;
 
+import lombok.Getter;
+
+@Getter
 public class NonImageFileException extends RuntimeException {
 
     private final String errorMessageCode;
@@ -11,11 +14,4 @@ public class NonImageFileException extends RuntimeException {
         this.args = args;
     }
 
-    public String getErrorMessageCode() {
-        return errorMessageCode;
-    }
-
-    public Object[] getArgs() {
-        return args;
-    }
 }

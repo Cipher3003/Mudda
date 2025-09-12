@@ -1,6 +1,7 @@
 package com.mudda.backend.comment;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,13 +62,13 @@ public class CommentController {
 
     // TODO: Validate input
     @PostMapping
-    public ResponseEntity<Comment> create(@RequestBody CreateCommentRequest commentRequest) {
+    public ResponseEntity<Comment> create(@Valid @RequestBody CreateCommentRequest commentRequest) {
         return ResponseEntity.ok(commentService.createComment(CommentMapper.toComment(commentRequest)));
     }
 
     @PostMapping("/{commentId}/replies")
     public ResponseEntity<Comment> createReply(@PathVariable(name = "commentId") Long commentId,
-                                               @RequestBody CreateCommentRequest commentRequest) {
+                                               @Valid @RequestBody CreateCommentRequest commentRequest) {
         return ResponseEntity.ok(commentService.createComment(CommentMapper.toReply(commentId, commentRequest)));
     }
 

@@ -1,4 +1,4 @@
-package com.mudda.backend.amazon.services.impl;
+package com.mudda.backend.amazon;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +19,6 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.mudda.backend.amazon.models.AmazonImage;
-import com.mudda.backend.amazon.services.AmazonImageService;
 import com.mudda.backend.exceptions.S3ServiceException;
 import com.mudda.backend.exceptions.EmptyFileException;
 import com.mudda.backend.exceptions.FileConversionException;
@@ -37,11 +35,11 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class AmazonImageServiceImpl implements AmazonImageService {
 
-    private String bucketName;
-    private AmazonS3 amazonS3;
+    private final String bucketName;
+    private final AmazonS3 amazonS3;
 
     public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName,
-            AmazonS3 amazonS3) {
+                                  AmazonS3 amazonS3) {
         this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
     }
@@ -65,7 +63,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         List<String> validExtensions = List.of("jpeg", "png", "jpg");
         String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
 
-        // Check if file extensions are valid else throw InvalidImageExntesionException
+        // Check if file extensions are valid else throw InvalidImageExtensionException
         if (fileExtension == null ||
                 validExtensions
                         .stream()
@@ -98,8 +96,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
             String fileUrl = getFileUrl(bucketName, amazonS3.getRegionName()).concat(fileName);
 
-            AmazonImage amazonImage = new AmazonImage(fileName, fileUrl);
-            return amazonImage;
+            return new AmazonImage(fileName, fileUrl);
         } catch (IOException e) {
             throw new FileConversionException(MessageCodes.MULTIPART_TO_FILE_CONVERT_EXCEPT);
         } catch (AmazonS3Exception e) {

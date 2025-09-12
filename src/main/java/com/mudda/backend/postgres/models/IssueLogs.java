@@ -1,5 +1,6 @@
 package com.mudda.backend.postgres.models;
 
+import com.mudda.backend.issue.IssueStatus;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Entity;

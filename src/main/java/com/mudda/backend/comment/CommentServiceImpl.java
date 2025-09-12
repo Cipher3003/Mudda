@@ -42,14 +42,16 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Comment updateComment(Long id, String text) {
-        Comment comment = commentRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         comment.setText(text);
         return commentRepository.save(comment);
     }
 
     @Override
     public void deleteComment(Long id) {
-        Comment comment = commentRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         if (comment.getParentId() == null) {
             commentRepository.deleteByParentId(comment.getCommentId());
         }

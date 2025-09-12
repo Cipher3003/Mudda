@@ -1,4 +1,4 @@
-package com.mudda.backend.amazon.controllers;
+package com.mudda.backend.amazon;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.mudda.backend.amazon.models.AmazonImage;
-import com.mudda.backend.amazon.services.AmazonImageService;
 import com.mudda.backend.exceptions.S3ClientException;
 import com.mudda.backend.exceptions.S3ServiceException;
 
@@ -24,7 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RequestMapping("/api/v1/amazon/images")
 public class AmazonImageController {
 
-    private AmazonImageService amazonImageService;
+    private final AmazonImageService amazonImageService;
 
     public AmazonImageController(AmazonImageService amazonImageService) {
         this.amazonImageService = amazonImageService;
@@ -43,7 +41,7 @@ public class AmazonImageController {
             return ResponseEntity.badRequest().build();
         }
 
-        List<AmazonImage> uploadedImages = new ArrayList<AmazonImage>();
+        List<AmazonImage> uploadedImages = new ArrayList<>();
 
         for (MultipartFile file : files) {
             uploadedImages.add(amazonImageService.uploadImageToAmazon(file));

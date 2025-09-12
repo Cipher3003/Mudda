@@ -1,15 +1,20 @@
 package com.mudda.backend.user;
 
+import jakarta.validation.constraints.*;
+
 import java.time.LocalDate;
 
 public record CreateUserRequest(
-        String userName,
-        String name,
-        String email,
-        LocalDate dateOfBirth,
+        @NotBlank String userName,
+        @NotBlank String name,
+        @NotBlank @Email String email,
+        @NotNull @Past LocalDate dateOfBirth,
+        @NotBlank
+        @Pattern(regexp = "^\\+?[0-9]{10,15}$",
+                message = "Phone number must be 10-15 digits and can start with +")
         String phoneNumber,
-        String hashedPassword,
-        Long roleId,
+        @NotBlank String hashedPassword,
+        @NotNull @Positive Long roleId,
         String profileImageUrl
 ) {
 }

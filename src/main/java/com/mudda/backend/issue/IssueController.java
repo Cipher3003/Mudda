@@ -44,7 +44,7 @@ public class IssueController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IssueResponse> getIssueById(@PathVariable Long id) {
+    public ResponseEntity<IssueResponse> getIssueById(@PathVariable(name = "id") Long id) {
         return issueService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -56,13 +56,13 @@ public class IssueController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<IssueResponse> updateIssue(@PathVariable Long id,
+    public ResponseEntity<IssueResponse> updateIssue(@PathVariable(name = "id") Long id,
                                                      @Valid @RequestBody UpdateIssueRequest issueRequest) {
         return ResponseEntity.ok(issueService.updateIssue(id, issueRequest));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIssue(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteIssue(@PathVariable(name = "id") Long id) {
         issueService.deleteIssue(id);
         return ResponseEntity.noContent().build();
     }
