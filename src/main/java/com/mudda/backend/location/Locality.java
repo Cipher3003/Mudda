@@ -1,25 +1,18 @@
-package com.mudda.backend.postgres.models;
+package com.mudda.backend.location;
 
 
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 
 import lombok.Setter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.time.Instant;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Entity
+@Entity(name = "Locality")
 @Table(name = "localities")
 public class Locality {
     @Id
@@ -34,5 +27,15 @@ public class Locality {
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
+
+    public Locality(String city, String state) {
+        this.city = city;
+        this.state = state;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+    }
 
 }

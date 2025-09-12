@@ -1,8 +1,7 @@
-package com.mudda.backend.postgres.controllers;
+package com.mudda.backend.location;
 
-import com.mudda.backend.postgres.models.Location;
-import com.mudda.backend.postgres.services.LocationService;
-
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +19,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/locations")
+@Tag(name = "Location Management",
+        description = "Works with default postgres geocoordinate object will modify it later to be lightweight")
+// TODO: normalize to not use a lot fields in requests, validation, DTO and error handling
 public class LocationController {
 
     private final LocationService locationService;
@@ -29,12 +31,12 @@ public class LocationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Location>> getAll() {
+    public ResponseEntity<List<LocationResponse>> getAll() {
         return ResponseEntity.ok(locationService.findAllLocations());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Location> getById(@PathVariable Long id) {
+    public ResponseEntity<LocationResponse> getById(@PathVariable Long id) {
         return locationService.findLocationById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -42,16 +44,16 @@ public class LocationController {
 
     // TODO: Validate input
     @PostMapping
-    public ResponseEntity<Location> create(@RequestBody Location location) {
-        Location saved = locationService.createLocation(location);
+    public ResponseEntity<LocationResponse> create(@RequestBody @Valid CreateLocationRequest locationRequest) {
+        LocationResponse saved = locationService.createLocation(locationRequest);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     // TODO: Validate input
     @PutMapping("/{id}")
-    public ResponseEntity<Location> update(@PathVariable Long id, @RequestBody Location location) {
+    public ResponseEntity<LocationResponse> update(@PathVariable Long id, @RequestBody UpdateLocationRequest locationRequest) {
         try {
-            Location updated = locationService.updateLocation(id, location);
+            LocationResponse updated = locationService.updateLocation(id, locationRequest);
             return ResponseEntity.ok(updated);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
