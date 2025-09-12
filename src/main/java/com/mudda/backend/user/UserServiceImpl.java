@@ -1,13 +1,7 @@
-package com.mudda.backend.postgres.services.impl;
+package com.mudda.backend.user;
 
 import java.util.List;
 import java.util.Optional;
-
-import com.mudda.backend.postgres.models.Issue;
-import com.mudda.backend.postgres.models.User;
-import com.mudda.backend.postgres.repositories.UserRepository;
-import com.mudda.backend.postgres.services.IssueService;
-import com.mudda.backend.postgres.services.UserService;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +13,6 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final IssueService issueService;
 
     @Override
     public List<User> findAllUsers() {
@@ -42,12 +35,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<Issue> findAllIssuesByUserId(Long userId) {
-        return issueService.findByUserId(userId);
-    }
-
-    @Override
-    public User createUser(User user) {
+    public User createUser(CreateUserRequest userRequest) {
+        User user = UserMapper.toEntity(userRequest);
         return userRepository.save(user);
     }
 

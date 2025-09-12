@@ -1,4 +1,4 @@
-package com.mudda.backend.postgres.models;
+package com.mudda.backend.location;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

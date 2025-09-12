@@ -1,4 +1,4 @@
-package com.mudda.backend.postgres.models;
+package com.mudda.backend.user;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -42,7 +42,7 @@ public class User {
     @Column(nullable = false)
     private String hashedPassword;
 
-    @Column(nullable = true)
+    @Column
     private String profileImageUrl;
 
     @Column(name = "role_id", nullable = false)

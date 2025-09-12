@@ -1,10 +1,8 @@
-package com.mudda.backend.postgres.services;
+package com.mudda.backend.user;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.mudda.backend.postgres.models.Issue;
-import com.mudda.backend.postgres.models.User;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,9 +15,7 @@ public interface UserService {
 
     Optional<User> findByPhoneNumber(String phoneNumber);
 
-    List<Issue> findAllIssuesByUserId(Long userId);
-
-    User createUser(User user);
+    User createUser(CreateUserRequest userRequest);
 
     User updateUser(Long id, User user);
 
