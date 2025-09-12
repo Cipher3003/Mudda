@@ -1,7 +1,5 @@
-package com.mudda.backend.postgres.controllers;
+package com.mudda.backend.role;
 
-import com.mudda.backend.postgres.models.Role;
-import com.mudda.backend.postgres.services.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,28 +14,26 @@ public class RoleController {
     private final RoleService roleService;
 
     @GetMapping
-    public ResponseEntity<List<Role>> getAll() {
+    public ResponseEntity<List<RoleResponse>> getAll() {
         return ResponseEntity.ok(roleService.findAllRoles());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Role> getById(@PathVariable Long id) {
+    public ResponseEntity<RoleResponse> getById(@PathVariable Long id) {
         return roleService.findRoleById(id)
                 .map(ResponseEntity::ok) // 200 ok
                 .orElse(ResponseEntity.notFound().build()); // 404 not found
     }
 
     @GetMapping("/name/{name}")
-    public ResponseEntity<Role> getById(@PathVariable String name) {
-        return roleService.findRoleByName(name)
-                .map(ResponseEntity::ok) // 200 ok
-                .orElse(ResponseEntity.notFound().build()); // 404 not found
+    public ResponseEntity<List<RoleResponse>> getById(@PathVariable String name) {
+        return ResponseEntity.ok(roleService.findRoleContainingText(name));
     }
 
     // TODO: Validate input
     @PostMapping
-    public ResponseEntity<Role> create(@RequestBody Role role) {
-        return ResponseEntity.ok(roleService.createRole(role));
+    public ResponseEntity<RoleResponse> create(@RequestBody CreateRoleRequest roleRequest) {
+        return ResponseEntity.ok(roleService.createRole(roleRequest));
     }
 
     // TODO: not found check
