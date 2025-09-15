@@ -48,8 +48,8 @@ public class SeedService {
     private final CommentService commentService;
 
     public SeedService(RoleService roleService, CategoryService categoryService,
-                       LocationService locationService, UserService userService,
-                       IssueService issueService, CommentService commentService) {
+            LocationService locationService, UserService userService,
+            IssueService issueService, CommentService commentService) {
         this.roleService = roleService;
         this.categoryService = categoryService;
         this.locationService = locationService;
@@ -67,45 +67,71 @@ public class SeedService {
     @Transactional
     public List<String> clearDatabase() {
         List<String> feedback = new ArrayList<>();
-        feedback.add("Starting database cleanup...");
+        feedback.add("Starting database cleanup using manual deletion...");
+
+        // The order of deletion is crucial to avoid foreign key constraint violations.
+        // We delete from entities that have dependencies first, moving towards root
+        // entities.
+        // For example, Comments depend on Issues and Users, so they must be deleted
+        // first.
+        List<String> entityNamesInDeletionOrder = List.of(
+                "CommentLike",
+                "Comment",
+                "Vote",
+                "Issue",
+
+                "User",
+                "Location",
+                "Locality",
+                "Category",
+                "Role");
 
         try {
-            // A PostgresSQL-specific way to temporarily disable foreign key checks
-            entityManager.createNativeQuery("SET session_replication_role = 'replica'").executeUpdate();
-            feedback.add("Step 1: Foreign key constraints disabled.");
-
-            // Fetch all table names in the 'public' schema
-            @SuppressWarnings("unchecked")
-            List<String> tableNames = entityManager.createNativeQuery(
-                    "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
-            ).getResultList();
-            feedback.add("Step 2: Found " + tableNames.size() + " tables to clear.");
-
-            // Truncate all tables and reset their auto-incrementing keys
-            for (String tableName : tableNames) {
-                entityManager.createNativeQuery("TRUNCATE TABLE \"" + tableName + "\" RESTART IDENTITY CASCADE")
-                        .executeUpdate();
+            for (String entityName : entityNamesInDeletionOrder) {
+                String jpql = "DELETE FROM " + entityName;
+                int deletedCount = entityManager.createQuery(jpql).executeUpdate();
+                feedback.add("Deleted " + deletedCount + " records from " + entityName + ".");
             }
-            feedback.add("Step 3: All tables truncated successfully.");
+            feedback.add("All records deleted successfully.");
 
-            // Re-enable foreign key checks
-            entityManager.createNativeQuery("SET session_replication_role = 'origin'").executeUpdate();
-            feedback.add("Step 4: Foreign key constraints re-enabled.");
+            // --- New Step: Reset all primary key sequences ---
+            feedback.add("Resetting all table sequences...");
+            // Note: These sequence names are based on default Hibernate/JPA naming
+            // conventions.
+            // You may need to adjust them if your entity definitions specify custom
+            // sequence names.
+            List<String> sequenceNames = List.of(
+                    "comment_likes_seq",
+                    "comments_comment_id_seq",
+                    "votes_vote_id_seq",
+                    "issues_issue_id_seq",
+                    "users_user_id_seq",
+                    "locations_location_id_seq",
+                    "localities_locality_id_seq",
+                    "categories_category_id_seq",
+                    "roles_role_id_seq");
+
+            for (String sequenceName : sequenceNames) {
+                try {
+                    entityManager.createNativeQuery("ALTER SEQUENCE " + sequenceName + " RESTART WITH 1;")
+                            .executeUpdate();
+                    feedback.add("Sequence '" + sequenceName + "' reset to 1.");
+                } catch (Exception e) {
+                    // This might fail if a sequence doesn't exist or name is different, which is
+                    // okay.
+                    // We log it as a warning instead of a fatal error.
+                    feedback.add("WARN: Could not reset sequence '" + sequenceName
+                            + "'. It might not exist or name is incorrect. Skipping.");
+                }
+            }
             feedback.add("Database cleared successfully.");
 
         } catch (Exception e) {
             feedback.add("ERROR: An unexpected error occurred while clearing the database.");
             feedback.add("Error Details: " + e.getMessage());
-            // The @Transactional annotation will automatically handle the rollback.
-            // We re-enable constraints in a finally block to be safe.
-        } finally {
-            try {
-                // Ensure constraints are always re-enabled, even on failure.
-                entityManager.createNativeQuery("SET session_replication_role = 'origin'").executeUpdate();
-            } catch (Exception e) {
-                feedback.add("CRITICAL ERROR: Failed to re-enable foreign key constraints. " +
-                        "Manual intervention may be required.");
-            }
+            // The @Transactional annotation will automatically handle rolling back the
+            // transaction
+            // in case of an error, preventing a partially cleared database.
         }
         return feedback;
     }
@@ -148,7 +174,6 @@ public class SeedService {
             generateReplies(generationMap.get(Entity.Reply), topLevelCommentIds, issueIds, userIds, feedback);
         }
 
-
         if (feedback.isEmpty()) {
             feedback.add("No entities requested for generation.");
         } else if (feedback.stream().noneMatch(msg -> msg.startsWith("ERROR:"))) {
@@ -162,7 +187,9 @@ public class SeedService {
     private void generateRoles(int count, List<Long> roleIds, List<String> feedback) {
         feedback.add("Generating " + count + " roles...");
         for (int i = 0; i < count; i++) {
-            CreateRoleRequest request = new CreateRoleRequest(faker.job().title());
+            // Appending a random number to ensure the role name is unique
+            String uniqueRoleName = faker.job().title() + " " + random.nextInt(100000);
+            CreateRoleRequest request = new CreateRoleRequest(uniqueRoleName);
             // In a real app: roleService.createRole(request);
             RoleResponse role = roleService.createRole(request);
             // Simulating DB save by adding a generated ID to our list.
@@ -175,15 +202,13 @@ public class SeedService {
         for (int i = 0; i < count; i++) {
             CoordinateDTO coordinate = new CoordinateDTO(
                     Double.parseDouble(faker.address().latitude().replace(',', '.')),
-                    Double.parseDouble(faker.address().longitude().replace(',', '.'))
-            );
+                    Double.parseDouble(faker.address().longitude().replace(',', '.')));
             CreateLocationRequest request = new CreateLocationRequest(
                     faker.address().streetAddress(),
                     faker.address().zipCode(),
                     faker.address().city(),
                     faker.address().state(),
-                    coordinate
-            );
+                    coordinate);
             // In a real app: locationService.createLocation(request);
             LocationResponse location = locationService.createLocation(request);
             locationIds.add(location.locationId());
@@ -193,7 +218,9 @@ public class SeedService {
     private void generateCategories(int count, List<Long> categoryIds, List<String> feedback) {
         feedback.add("Generating " + count + " categories...");
         for (int i = 0; i < count; i++) {
-            CreateCategoryRequest request = new CreateCategoryRequest(faker.commerce().department());
+            // Appending a random number to ensure the category name is unique
+            String uniqueCategoryName = faker.commerce().department() + " " + random.nextInt(100000);
+            CreateCategoryRequest request = new CreateCategoryRequest(uniqueCategoryName);
             // In a real app: categoryService.createCategory(request);
             CategoryResponse category = categoryService.createCategory(request);
             categoryIds.add(category.id());
@@ -207,16 +234,22 @@ public class SeedService {
         }
         feedback.add("Generating " + count + " users...");
         for (int i = 0; i < count; i++) {
+            // Generate unique username, email, and phone number to avoid constraint
+            // violations
+            String uniqueSuffix = String.valueOf(random.nextInt(100000));
+            String baseUsername = faker.name().username().replaceAll("[^a-zA-Z0-9]", ""); // Sanitize username
+            String uniqueUsername = baseUsername + uniqueSuffix;
+            String uniqueEmail = uniqueUsername + "@example.com";
+            String uniquePhoneNumber = "+919" + faker.number().digits(9); // Create a unique 12-digit number
             CreateUserRequest request = new CreateUserRequest(
-                    faker.name().username(),
+                    uniqueUsername,
                     faker.name().fullName(),
-                    faker.internet().emailAddress(),
+                    uniqueEmail,
                     faker.date().birthday().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-                    faker.numerify("##########"),
+                    uniquePhoneNumber,
                     faker.internet().password(),
                     getRandomId(roleIds), // Get a random existing role ID
-                    faker.avatar().image()
-            );
+                    faker.avatar().image());
             // In a real app: userService.createUser(request);
             User user = userService.createUser(request);
             userIds.add(user.getUserId());
@@ -224,7 +257,7 @@ public class SeedService {
     }
 
     private void generateIssues(int count, List<Long> issueIds, List<Long> userIds,
-                                List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
+            List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
         if (userIds.isEmpty() || locationIds.isEmpty() || categoryIds.isEmpty()) {
             feedback.add("Cannot generate issues: Missing Users, Locations, or Categories. " +
                     "Add users, locations, categories in request.");
@@ -242,8 +275,7 @@ public class SeedService {
                     getRandomId(userIds),
                     getRandomId(locationIds),
                     getRandomId(categoryIds),
-                    media
-            );
+                    media);
             // In a real app: issueService.createIssue(request);
             IssueResponse issue = issueService.createIssue(request);
             issueIds.add(issue.id());
@@ -251,7 +283,7 @@ public class SeedService {
     }
 
     private void generateComments(int count, List<Long> topLevelCommentIds, List<Long> issueIds,
-                                  List<Long> userIds, List<String> feedback) {
+            List<Long> userIds, List<String> feedback) {
         if (issueIds.isEmpty() || userIds.isEmpty()) {
             feedback.add("Cannot generate comments: Missing Issues or Users. Add issues, users in request");
             return;
@@ -266,13 +298,14 @@ public class SeedService {
             );
             // In a real app: commentService.createComment(request);
             Comment comment = commentService.createComment(CommentMapper.toComment(request));
-            // Simulating DB save and adding new comment's ID to the list for potential replies.
+            // Simulating DB save and adding new comment's ID to the list for potential
+            // replies.
             topLevelCommentIds.add(comment.getCommentId());
         }
     }
 
     private void generateReplies(int count, List<Long> topLevelCommentIds, List<Long> issueIds,
-                                 List<Long> userIds, List<String> feedback) {
+            List<Long> userIds, List<String> feedback) {
         if (topLevelCommentIds.isEmpty() || userIds.isEmpty() || issueIds.isEmpty()) {
             feedback.add("Cannot generate replies: Missing parent Comments, Users, or Issues. " +
                     "Add comments, users, issues in request");

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/seed")
+@RequestMapping("api/v1/seed")
 public class SeedController {
 
     private final SeedService seedService;
