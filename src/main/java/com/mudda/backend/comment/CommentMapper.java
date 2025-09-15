@@ -23,17 +23,8 @@ public class CommentMapper {
         comment.setText(commentRequest.text());
         comment.setIssueId(commentRequest.issueId());
         comment.setUserId(commentRequest.userId());
+        comment.setParentId(commentRequest.parentId());
         return comment;
     }
-
-    public static Comment toReply(Long parentId, CreateCommentRequest commentRequest) {
-        Comment comment = new Comment();
-        comment.setText(commentRequest.text());
-        comment.setIssueId(commentRequest.issueId());
-        comment.setUserId(commentRequest.userId());
-        comment.setParentId(parentId);
-        return comment;
-    }
-
 
 }

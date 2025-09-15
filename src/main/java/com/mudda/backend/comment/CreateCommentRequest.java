@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 public record CreateCommentRequest(
         @NotNull @NotEmpty String text,
         @NotNull Long issueId,
-        @NotNull Long userId
+        @NotNull Long userId,
+        Long parentId
 ) {
 }
