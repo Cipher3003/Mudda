@@ -7,13 +7,15 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
+    private final PasswordEncoder passwordEncoder;
+    
     @Override
     public List<User> findAllUsers() {
         return userRepository.findAll();
@@ -36,7 +38,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(CreateUserRequest userRequest) {
-        User user = UserMapper.toEntity(userRequest);
+        User user = userRequest.toEntity();
+        user.setHashedPassword(passwordEncoder.encode(userRequest.hashedPassword()));
         return userRepository.save(user);
     }
 

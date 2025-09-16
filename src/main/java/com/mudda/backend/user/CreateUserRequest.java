@@ -17,4 +17,16 @@ public record CreateUserRequest(
         @NotNull @Positive Long roleId,
         String profileImageUrl
 ) {
+        public User toEntity(){
+                User user = new User();
+                user.setUserName(this.userName);
+                user.setName(this.name);
+                user.setEmail(this.email);
+                user.setDateOfBirth(this.dateOfBirth);
+                user.setPhoneNumber(this.phoneNumber);
+                user.setHashedPassword(this.hashedPassword);
+                user.setRoleId(this.roleId);
+                user.setProfileImageUrl(this.profileImageUrl);
+                return user;
+        }
 }
