@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(CreateUserRequest userRequest) {
         User user = userRequest.toEntity();
-        user.setHashedPassword(passwordEncoder.encode(userRequest.hashedPassword()));
+        user.setHashedPassword(passwordEncoder.encode(userRequest.password()));
         return userRepository.save(user);
     }
 

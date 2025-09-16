@@ -9,7 +9,7 @@ public class UserMapper {
         user.setEmail(userRequest.email());
         user.setDateOfBirth(userRequest.dateOfBirth());
         user.setPhoneNumber(userRequest.phoneNumber());
-        user.setHashedPassword(userRequest.hashedPassword());
+        user.setHashedPassword(userRequest.password());
         user.setRoleId(userRequest.roleId());
         user.setProfileImageUrl(userRequest.profileImageUrl());
         return user;

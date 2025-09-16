@@ -13,7 +13,7 @@ public record CreateUserRequest(
         @Pattern(regexp = "^\\+?[0-9]{10,15}$",
                 message = "Phone number must be 10-15 digits and can start with +")
         String phoneNumber,
-        @NotBlank String hashedPassword,
+        @NotBlank String password,
         @NotNull @Positive Long roleId,
         String profileImageUrl
 ) {
@@ -24,7 +24,7 @@ public record CreateUserRequest(
                 user.setEmail(this.email);
                 user.setDateOfBirth(this.dateOfBirth);
                 user.setPhoneNumber(this.phoneNumber);
-                user.setHashedPassword(this.hashedPassword);
+                user.setHashedPassword(this.password);
                 user.setRoleId(this.roleId);
                 user.setProfileImageUrl(this.profileImageUrl);
                 return user;
