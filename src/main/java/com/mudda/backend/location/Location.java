@@ -28,8 +28,11 @@ public class Location {
     @Column(nullable = false)
     private String pinCode;
 
-    @Column(name = "locality_id", nullable = false)
-    private Long localityId;
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String state;
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
@@ -41,10 +44,11 @@ public class Location {
     @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
     private Point coordinate;
 
-    public Location(String addressLine, String pinCode, Long localityId, Point coordinate) {
+    public Location(String addressLine, String pinCode, String city, String state, Point coordinate) {
         this.addressLine = addressLine;
         this.pinCode = pinCode;
-        this.localityId = localityId;
+        this.city = city;
+        this.state = state;
         this.coordinate = coordinate;
     }
 

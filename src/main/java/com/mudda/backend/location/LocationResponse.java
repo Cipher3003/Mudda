@@ -8,12 +8,12 @@ public record LocationResponse(
         String pinCode,
         CoordinateDTO coordinate
 ) {
-    public static LocationResponse from(Location location, Locality locality) {
+    public static LocationResponse from(Location location) {
         return new LocationResponse(
                 location.getLocationId(),
                 location.getAddressLine(),
-                locality.getCity(),
-                locality.getState(),
+                location.getCity(),
+                location.getState(),
                 location.getPinCode(),
                 CoordinateDTO.from(location.getCoordinate())
         );
