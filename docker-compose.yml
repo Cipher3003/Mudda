@@ -1,4 +1,38 @@
 services:
+  # Database service
+  postgres:
+    image: postgis/postgis:17-3.5
+    container_name: mudda-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Backend application service
+  backend:
+    build: .
+    container_name: mudda-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Database soruce
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # AWS Credentials
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
+    depends_on:
+      - postgres
+
+  # Prometheus service
   prometheus:
     image: prom/prometheus:main
     container_name: prometheus
@@ -9,11 +43,23 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
 
-  grfana:
+  # Grafana service
+  grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+
+  # Load Testing Service
+  k6:
+    image: grafana/k6:latest
+    container_name: load-tester
+    command: tail -f /dev/null
+    volumes:
+      - ./load_tests:/home/k6/scripts
+
+volumes:
+  postgres_data:
