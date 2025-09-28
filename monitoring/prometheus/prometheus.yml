@@ -1,0 +1,12 @@
+global:
+  # Scrape metrics every 5 seconds by default
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "backend"
+    # The path to your Actuator metrics endpoint
+    metrics_path: "/actuator/prometheus"
+
+    # Configure the targets to scrape
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
