@@ -123,6 +123,16 @@
 			<version>2.3.0</version> <!-- stable release available in Maven Central -->
 		</dependency>
 
+		<!-- Load and Metric tests -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
