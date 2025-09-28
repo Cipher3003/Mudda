@@ -57,9 +57,11 @@ services:
   k6:
     image: grafana/k6:latest
     container_name: load-tester
-    command: tail -f /dev/null
     volumes:
-      - ./load_tests:/home/k6/scripts
+      - ./load_tests/load_test.js:/home/k6/scripts/test.js
+    command: run /home/k6/scripts/test.js
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
