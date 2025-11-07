@@ -1,18 +1,26 @@
 import http from 'k6/http';
 import { sleep, check, group } from 'k6';
+import { smokeStages, loadStages, stressStages, devStages, spikeStages } from './stages';
 
+// TODO: Make stages tests work and try it
 // --- Test Setup ---
 const BASE_URL = 'http://backend:8080/api/v1/issues';
-// NOTE: For 'backend', ensure your docker-compose or local setup is correct.
+
+// const MODE = __ENV.MODE || "dev"
+const MODE = "stress"
+
+const profiles = {
+    dev: devStages,
+    smoke: smokeStages,
+    load: loadStages,
+    stress: stressStages,
+    spike: spikeStages
+};
 
 // 1. Test Configuration (Options)
 export const options = {
     // A ramp-up/ramp-down scenario to simulate realistic load changes
-    stages: [
-        { duration: '10s', target: 5 },  // Ramp up to 5 VUs over 10s
-        { duration: '30s', target: 10 }, // Maintain 10 VUs for 30s
-        { duration: '10s', target: 0 },  // Ramp down to 0 VUs over 10s
-    ],
+    stages: profiles[MODE],
 
     // 2. Real Performance Metrics (Thresholds)
     // These define the pass/fail criteria for the whole test.
