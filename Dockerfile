@@ -4,6 +4,10 @@ WORKDIR /app
 # Copy Maven build files and code
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
+
+# Cache maven dependencies locally
+RUN ./mvnw dependency:go-offline -B
+
 COPY src ./src
 # Build the executable JAR
 RUN ./mvnw clean package -DskipTests
@@ -19,4 +23,4 @@ COPY --from=builder /app/${JAR_FILE} app.jar
 EXPOSE 8080
 
 # The command to run the application
-ENTRYPOINT [ "java", "-jar", "app.jar" ]
+ENTRYPOINT [ "java", "-Xmx256M", "-jar", "app.jar" ]

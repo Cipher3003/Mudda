@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.info.Info;
         description = "API docs for Mudda Backend"))
 @SpringBootApplication()
 public class BackendApplication {
+    // https://www.youtube.com/watch?v=ducj4uR_ZoE
 
     public static void main(String[] args) {
         SpringApplication.run(BackendApplication.class, args);

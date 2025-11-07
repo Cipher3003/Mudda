@@ -13,13 +13,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # Backend application service
   backend:
+    # Backend application service
     build: .
     container_name: mudda-backend
     ports:
       - "8080:8080"
     environment:
+      SPRING_APPLICATION_NAME: backend
       # Database soruce
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME}
@@ -32,8 +33,8 @@ services:
     depends_on:
       - postgres
 
-  # Prometheus service
   prometheus:
+    # Prometheus service
     image: prom/prometheus:main
     container_name: prometheus
     ports:
@@ -56,10 +57,10 @@ services:
   # Load Testing Service
   k6:
     image: grafana/k6:latest
-    container_name: load-tester
+    container_name: k6
     volumes:
-      - ./load_tests/load_test.js:/home/k6/scripts/test.js
-    command: run /home/k6/scripts/test.js
+      - ./load_tests:/home/k6/scripts
+    command: run /home/k6/scripts/issues_load_test.js
     depends_on:
       - backend
 
