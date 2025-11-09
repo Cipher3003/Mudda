@@ -14,7 +14,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     Optional<CategoryResponse> findProjectedById(Long id);
 
-    Optional<CategoryResponse> findByName(String name);
-
     List<CategoryResponse> findByNameContainingIgnoreCase(String text);
 }

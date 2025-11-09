@@ -1,6 +1,7 @@
 package com.mudda.backend.utils;
 
 import jakarta.persistence.EntityNotFoundException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,6 +10,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.mudda.backend.exceptions.S3ClientException;
 import com.mudda.backend.exceptions.S3ServiceException;
+import com.amazonaws.services.appintegrations.model.DuplicateResourceException;
 import com.mudda.backend.exceptions.DatabaseSaveException;
 import com.mudda.backend.exceptions.FileConversionException;
 import com.mudda.backend.exceptions.FileSizeLimitExceededException;
@@ -26,7 +28,12 @@ public class GlobalExceptionHandler {
         this.messageUtil = messageUtil;
     }
 
-    //    TODO: integrate messageUtil with this function properly
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<?> handleDuplicatEntity(DuplicateResourceException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+    // TODO: integrate messageUtil with this function properly
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> handleEntityNotFound(EntityNotFoundException e) {
         // Logged in the service class

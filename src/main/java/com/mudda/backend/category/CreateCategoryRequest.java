@@ -1,8 +1,6 @@
 package com.mudda.backend.category;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 
-public record CreateCategoryRequest(
-        @NotEmpty String name
-) {
+public record CreateCategoryRequest(@NotBlank String name) {
 }

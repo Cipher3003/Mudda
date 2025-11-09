@@ -10,10 +10,10 @@ public interface CategoryService {
 
     List<CategoryResponse> findAllCategories(String name);
 
-    Optional<CategoryResponse> findById(Long id);
+    Optional<CategoryResponse> findById(long id);
 
     CategoryResponse createCategory(CreateCategoryRequest categoryRequest);
 
-    void deleteCategory(Long id);
+    void deleteCategory(long id);
 
 }

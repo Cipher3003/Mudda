@@ -1,8 +1,13 @@
 package com.mudda.backend.category;
 
 import jakarta.persistence.EntityNotFoundException;
+
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import com.amazonaws.services.appintegrations.model.DuplicateResourceException;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,43 +21,48 @@ public class CategoryServiceImpl implements CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
-//    ------------------------------
-//     Read Operations (queries)
-//    ------------------------------
+    // #region Queries (Read Operations)
 
     @Override
     public List<CategoryResponse> findAllCategories(@RequestParam String search) {
-        if (search == null) return categoryRepository.findAllProjectedBy();
+        if (search == null || search.isBlank())
+            return categoryRepository.findAllProjectedBy();
         return categoryRepository.findByNameContainingIgnoreCase(search);
     }
 
     @Override
-    public Optional<CategoryResponse> findById(Long id) {
+    public Optional<CategoryResponse> findById(long id) {
         return categoryRepository.findProjectedById(id);
     }
 
-//    ------------------------------
-//    Write Operations (commands)
-//    ------------------------------
+    // #endregion
 
+    // #region Commands (Write Operation)
+
+    @Transactional
     @Override
     public CategoryResponse createCategory(CreateCategoryRequest categoryRequest) {
-        String name = categoryRequest.name();
-        if (categoryRepository.findByName(name).isPresent())
-            throw new IllegalArgumentException("Category with name " + name + " already exists.");
+        Category saved;
 
-        Category category = new Category(name);
-        Category saved = categoryRepository.save(category);
+        try {
+            saved = categoryRepository.save(new Category(categoryRequest.name()));
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateResourceException("Category with name %s already exists"
+                    .formatted(categoryRequest.name()));
+        }
 
         return CategoryMapper.toResponse(saved);
     }
 
+    @Transactional
     @Override
-    public void deleteCategory(Long id) {
-        categoryRepository.findById(id).
-                orElseThrow(() -> new EntityNotFoundException("Category not found with id " + id));
+    public void deleteCategory(long id) {
+        categoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Category not found with id " + id));
 
         categoryRepository.deleteById(id);
     }
+
+    // #endregion
 
 }
