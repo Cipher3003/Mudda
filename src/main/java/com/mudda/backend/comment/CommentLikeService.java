@@ -1,10 +1,16 @@
 package com.mudda.backend.comment;
 
+import java.util.List;
+
 public interface CommentLikeService {
 
-    boolean hasUserLikedOnComment(Long commentId, Long userId);
+    CommentLikeResponse userLikesOnComment(long commentId, long userId);
 
-    CommentLike userLikesOnComment(Long commentId, Long userId);
+    CommentLikeResponse userRemovesLikeFromComment(long commentId, long userId);
 
-    void userRemovesLikeFromComment(Long commentId, Long userId);
+    long countByCommentId(long commentId);
+
+    void deleteAllByCommentId(List<Long> replyIds);
+
+    void deleteByCommentId(long commentId);
 }

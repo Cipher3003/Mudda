@@ -3,11 +3,12 @@ package com.mudda.backend.comment;
 import java.time.Instant;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Getter
+@Setter
 @Entity(name = "CommentLike")
 @Table(name = "comment_likes")
 public class CommentLike {
@@ -23,7 +24,7 @@ public class CommentLike {
     private Long userId;
 
     @Column(nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @PrePersist
     protected void onCreate() {

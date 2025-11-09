@@ -3,16 +3,17 @@ package com.mudda.backend.comment;
 import java.time.Instant;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
 @Setter
-@Entity
+@Entity(name = "Comment")
 @Table(name = "comments")
 public class Comment {
     @Id
@@ -26,7 +27,7 @@ public class Comment {
     private Long parentId;
 
     @Column(nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column(nullable = false)
     private Long issueId; // soft link to issue on which comment was made

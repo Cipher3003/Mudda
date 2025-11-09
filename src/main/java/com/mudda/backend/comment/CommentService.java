@@ -1,24 +1,30 @@
 package com.mudda.backend.comment;
 
-import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CommentService {
 
-    List<Comment> findAllComments();
+    Page<CommentDetailResponse> findCommentsWithLikes(long issueId, Pageable pageable, long userId);
 
-    List<Comment> findCommentsByIssueId(Long issueId);
+    Page<ReplyResponse> findAllReplies(long parentId, Pageable pageable, long userId);
 
-    List<Comment> findAllReplies(Long parentId);
+    Optional<CommentDetailResponse> findById(long id, long userId);
 
-    Optional<Comment> findById(Long id);
+    CommentResponse createComment(long issueId, CreateCommentRequest createCommentRequest);
 
-    Comment createComment(Comment comment);
+    CommentResponse createReply(long commentId, CreateCommentRequest createCommentRequest);
 
-    Comment updateComment(Long id, String text);
+    CommentLikeResponse likeComment(long commentId, long userId);
 
-    void deleteComment(Long id);
+    CommentResponse updateComment(long id, String text);
 
-    void deleteAllCommentsByIssueId(Long issueId);
+    void deleteComment(long id);
+
+    void deleteAllCommentsByIssueId(long issueId);
+
+    CommentLikeResponse deleteLikeComment(long commentId, long userId);
 
 }
