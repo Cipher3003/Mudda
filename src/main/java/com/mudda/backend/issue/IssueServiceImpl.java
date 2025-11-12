@@ -1,17 +1,23 @@
 package com.mudda.backend.issue;
 
-//TODO: remove other entity services instead use their repository
-import com.mudda.backend.category.CategoryService;
+import com.mudda.backend.category.Category;
+import com.mudda.backend.category.CategoryRepository;
 import com.mudda.backend.comment.CommentService;
-import com.mudda.backend.location.LocationService;
-import com.mudda.backend.user.UserService;
+import com.mudda.backend.location.Location;
+import com.mudda.backend.location.LocationMapper;
+import com.mudda.backend.location.LocationRepository;
+import com.mudda.backend.location.LocationDTO;
+import com.mudda.backend.user.UserRepository;
+import com.mudda.backend.utils.EntityValidator;
+import com.mudda.backend.vote.Vote;
+import com.mudda.backend.vote.VoteRepository;
+import com.mudda.backend.vote.VoteService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.geo.Point;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,38 +27,46 @@ public class IssueServiceImpl implements IssueService {
 
     private final IssueRepository issueRepository;
     private final CommentService commentService;
+    private final VoteRepository voteRepository;
     private final VoteService voteService;
-    private final UserService userService;
-    private final LocationService locationService;
-    private final CategoryService categoryService;
+    private final UserRepository userRepository;
+    private final LocationRepository locationRepository;
+    private final CategoryRepository categoryRepository;
 
     public IssueServiceImpl(IssueRepository issueRepository,
                             CommentService commentService,
+                            VoteRepository voteRepository,
                             VoteService voteService,
-                            UserService userService,
-                            LocationService locationService,
-                            CategoryService categoryService) {
+                            UserRepository userRepository,
+                            LocationRepository locationRepository,
+                            CategoryRepository categoryRepository) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
+        this.voteRepository = voteRepository;
         this.voteService = voteService;
-        this.userService = userService;
-        this.locationService = locationService;
-        this.categoryService = categoryService;
+        this.userRepository = userRepository;
+        this.locationRepository = locationRepository;
+        this.categoryRepository = categoryRepository;
     }
 
-//    ------------------------------
-//     Read Operations (queries)
-//    ------------------------------
+    // #region Queries (Read Operations)
 
     @Override
-    public Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable) {
+    public Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, long userId) {
+
+        List<Long> locationIds = locationRepository.findByCityAndState(filterRequest.city(), filterRequest.state())
+                .stream()
+                .map(Location::getLocationId)
+                .toList();
+
+        if (locationIds.isEmpty()) return Page.empty();
 
         Specification<Issue> specification = Specification.where(
                 IssueSpecifications.containsText(filterRequest.search())
                         .and(IssueSpecifications.hasStatus(filterRequest.status()))
                         .and(IssueSpecifications.hasUserId(filterRequest.userId()))
                         .and(IssueSpecifications.hasCategoryId(filterRequest.categoryId()))
-                        .and(IssueSpecifications.hasLocationId(filterRequest.locationId()))
+                        .and(IssueSpecifications.hasLocationIds(locationIds))
                         .and(IssueSpecifications.isUrgent(filterRequest.urgency()))
                         .and(IssueSpecifications.severityBetween(filterRequest.minSeverity(),
                                 filterRequest.maxSeverity()))
@@ -61,89 +75,103 @@ public class IssueServiceImpl implements IssueService {
         );
 
         Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
+        List<Long> issuesVotedByUser = voteRepository.findByUserId(userId).stream()
+                .map(Vote::getIssueId).toList();
 
-        return issuePage.map(IssueMapper::toSummary);
+        return issuePage.map(issue -> {
+                    long voteCount = voteRepository.countByIssueId(issue.getId());
+                    return IssueMapper.toSummary(issue, voteCount, issuesVotedByUser.contains(issue.getId()));
+                }
+        );
     }
 
     @Override
-    public Optional<IssueResponse> findById(Long id) {
-        return issueRepository.findProjectedById(id);
+    public Optional<IssueResponse> findById(long id, long userId) {
+        Optional<Issue> optionalIssue = issueRepository.findById(id);
+        if (optionalIssue.isEmpty()) return Optional.empty();
+
+        Issue issue = optionalIssue.get();
+        long voteCount = voteRepository.countByIssueId(issue.getId());
+        boolean hasUserLiked = voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
+
+        Optional<Location> location = locationRepository.findById(issue.getLocationId());
+        if (location.isEmpty()) return Optional.empty();
+
+        LocationDTO summary = LocationMapper.toSummary(location.get());
+
+        Optional<Category> category = categoryRepository.findById(issue.getCategoryId());
+
+        return category.map(categoryResponse ->
+                IssueMapper.toResponse(issue, summary, categoryResponse.getName(), voteCount, hasUserLiked)
+        );
     }
 
-    @Override
-    public List<IssueSummaryResponse> findByUserId(Long userId) {
-        return issueRepository.findByUserId(userId);
-    }
+    // #endregion
 
-    @Override
-    public List<IssueSummaryResponse> findByCategoryId(Long categoryId) {
-        return issueRepository.findByCategoryId(categoryId);
-    }
+    // #region Commands (Write Operations)
 
-    @Override
-    public List<Issue> findByLocation_CoordinatesNear(Point point, int distance) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findByLocation_CoordinatesNear'");
-    }
-
-//    ------------------------------
-//    Write Operations (commands)
-//    ------------------------------
-
+    @Transactional
     @Override
     public IssueResponse createIssue(CreateIssueRequest issueRequest) {
         validateReferences(issueRequest.userId(), issueRequest.locationId(), issueRequest.categoryId());
 
-        Issue issue = new Issue(
-                issueRequest.title(),
-                issueRequest.description(),
-                issueRequest.userId(),
-                issueRequest.locationId(),
-                issueRequest.categoryId(),
-                issueRequest.mediaUrls()
-        );
+        Issue issue = IssueMapper.toIssue(issueRequest);
+
+        Optional<Location> location = locationRepository.findById(issue.getLocationId());
+        if (location.isEmpty())
+            throw new IllegalArgumentException("Location ID for creating Issue not valid");
+
+        Optional<Category> category = categoryRepository.findById(issueRequest.categoryId());
+        if (category.isEmpty())
+            throw new IllegalArgumentException("Category ID for creating Issue not valid");
 
         Issue saved = issueRepository.save(issue);
-        return IssueMapper.toResponse(saved);
+        return IssueMapper.toResponse(
+                saved,
+                LocationMapper.toSummary(location.get()),
+                category.get().getName(),
+                0,
+                false
+        );
     }
 
+    @Transactional
     @Override
-    public IssueResponse updateIssue(Long id, UpdateIssueRequest issueRequest) {
+    public IssueUpdateResponse updateIssue(long id, UpdateIssueRequest issueRequest) {
         Issue existing = issueRepository.findById(id).
-                orElseThrow(() -> notFound("Issue", id));
+                orElseThrow(() -> notFound(id));
 
         existing.updateDetails(issueRequest.title(), issueRequest.description(), issueRequest.status());
-
         Issue updated = issueRepository.save(existing);
         return IssueMapper.toResponse(updated);
     }
 
+    @Transactional
     @Override
-    public void deleteIssue(Long id) {
+    public void deleteIssue(long id) {
         Issue issue = issueRepository.findById(id).
-                orElseThrow(() -> notFound("Issue", id));
+                orElseThrow(() -> notFound(id));
 
         commentService.deleteAllCommentsByIssueId(issue.getId());
         voteService.deleteAllVotesByIssueId(issue.getId());
         issueRepository.deleteById(id);
     }
 
+    // #endregion
+
 //    ------------------------------
 //    Helpers
 //    ------------------------------
 
-    private void validateReferences(Long userId, Long locationId, Long categoryId) {
+    private void validateReferences(long userId, long locationId, long categoryId) {
 
-        if (userService.findUserById(userId).isEmpty())
-            throw notFound("User", userId);
-        if (locationService.findLocationById(locationId).isEmpty())
-            throw notFound("Location", locationId);
-        if (categoryService.findById(categoryId).isEmpty())
-            throw notFound("Category", categoryId);
+        EntityValidator.validateExists(userRepository, userId, "User");
+        EntityValidator.validateExists(locationRepository, locationId, "Location");
+        EntityValidator.validateExists(categoryRepository, categoryId, "Category");
     }
 
-    private EntityNotFoundException notFound(String entity, Long id) {
-        return new EntityNotFoundException(entity + " not found with id " + id);
+    private EntityNotFoundException notFound(long id) {
+        return new EntityNotFoundException("Issue not found with id: %d".formatted(id));
     }
 
 }

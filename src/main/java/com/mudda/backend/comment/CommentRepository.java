@@ -10,18 +10,18 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    Page<Comment> findByIssueIdAndParentIdIsNull(Long issueId, Pageable pageable);
+    Page<Comment> findByIssueIdAndParentIdIsNull(long issueId, Pageable pageable);
 
-    List<Comment> findByIssueId(Long issueId);
+    List<Comment> findByIssueId(long issueId);
 
     // Find all replies for a specific parent comment
-    List<Comment> findByParentId(Long parentId);
+    List<Comment> findByParentId(long parentId);
 
-    Page<Comment> findByParentId(Long parentId, Pageable pageable);
+    Page<Comment> findByParentId(long parentId, Pageable pageable);
 
     List<Comment> findByParentIdIn(List<Long> parentId);
 
     long countByParentId(long parentId);
 
-    void deleteByParentId(Long parentId);
+    void deleteByParentId(long parentId);
 }

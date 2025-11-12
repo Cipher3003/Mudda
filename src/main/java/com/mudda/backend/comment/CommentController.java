@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -72,14 +73,14 @@ public class CommentController {
     @PostMapping("/issues/{issueId}/comments")
     public ResponseEntity<CommentResponse> createComment(@PathVariable long issueId,
                                                          @Valid @RequestBody CreateCommentRequest request) {
-        return ResponseEntity.ok(commentService.createComment(issueId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(issueId, request));
     }
 
     @Operation(description = "Creates replies under a comment")
     @PostMapping("/comments/{commentId}/replies")
     public ResponseEntity<CommentResponse> createReply(@PathVariable long commentId,
                                                        @Valid @RequestBody CreateCommentRequest request) {
-        return ResponseEntity.ok(commentService.createReply(commentId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createReply(commentId, request));
     }
 
     @Operation(description = "Updates both comments and replies by their commentId")

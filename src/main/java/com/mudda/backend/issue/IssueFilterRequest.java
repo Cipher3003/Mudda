@@ -4,12 +4,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.Instant;
 
+// TODO: add latitude, longitude and radius for coordinate based filtering
 public record IssueFilterRequest(
         String search,
         IssueStatus status,
         Long userId,
         Long categoryId,
-        Long locationId,
+        String city,
+        String state,
         Boolean urgency,
         Double minSeverity,
         Double maxSeverity,

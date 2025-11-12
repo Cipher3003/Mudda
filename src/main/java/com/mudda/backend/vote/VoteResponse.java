@@ -1,4 +1,4 @@
-package com.mudda.backend.issue;
+package com.mudda.backend.vote;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

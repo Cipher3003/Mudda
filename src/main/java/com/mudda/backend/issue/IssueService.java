@@ -9,24 +9,16 @@ import java.util.Optional;
 
 public interface IssueService {
 
-    Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable);
+    Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, long userId);
 
-    Optional<IssueResponse> findById(Long id);
-
-    List<IssueSummaryResponse> findByUserId(Long userId);
-
-    List<IssueSummaryResponse> findByCategoryId(Long categoryId);
-
-    // TODO: refactor and correct
-    @Deprecated
-    List<Issue> findByLocation_CoordinatesNear(Point point, int distance);
+    Optional<IssueResponse> findById(long id, long userId);
 
     IssueResponse createIssue(CreateIssueRequest issueRequest);
 
-    IssueResponse updateIssue(Long id, UpdateIssueRequest issueRequest);
+    IssueUpdateResponse updateIssue(long id, UpdateIssueRequest issueRequest);
 
     /**
      * Deletes an Issue and cleanup all related entities to it.
      */
-    void deleteIssue(Long id);
+    void deleteIssue(long id);
 }

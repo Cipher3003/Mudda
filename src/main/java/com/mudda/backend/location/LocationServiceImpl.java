@@ -1,9 +1,7 @@
 package com.mudda.backend.location;
 
-import org.locationtech.jts.geom.Coordinate;
-import org.springframework.stereotype.Service;
-
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,52 +17,46 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public List<LocationResponse> findAllLocations() {
-        return locationRepository.findAll().stream()
-                .map(LocationResponse::from)
-                .toList();
+        return locationRepository.findAll().stream().map(LocationMapper::toResponse).toList();
     }
 
     @Override
-    public Optional<LocationResponse> findLocationById(Long id) {
-        return locationRepository.findById(id)
-                .map(LocationResponse::from);
+    public Optional<LocationResponse> findById(Long id) {
+        return locationRepository.findById(id).map(LocationMapper::toResponse);
     }
 
     @Override
     public LocationResponse createLocation(CreateLocationRequest locationRequest) {
-        CoordinateDTO coordinateDTO = locationRequest.coordinate();
-        Coordinate coordinate = new Coordinate(coordinateDTO.x(), coordinateDTO.y());
-
-        Location location = new Location(
-                locationRequest.addressLine(),
-                locationRequest.pinCode(),
-                locationRequest.city(),
-                locationRequest.state(),
-                PointFactory.createPoint(coordinate));
-
+        Location location = LocationMapper.toLocation(locationRequest);
         Location saved = locationRepository.save(location);
-        return LocationResponse.from(saved);
+        return LocationMapper.toResponse(saved);
     }
 
     @Override
     public LocationResponse updateLocation(Long id, UpdateLocationRequest locationRequest) {
         Location existing = locationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Location not found with id " + id));
+                .orElseThrow(() -> notFound(id));
 
-        existing.setAddressLine(locationRequest.addressLine());
-        existing.setPinCode(locationRequest.pinCode());
-        existing.setCity(locationRequest.city());
-        existing.setState(locationRequest.state());
+        existing.updateDetails(
+                locationRequest.addressLine(),
+                locationRequest.pinCode(),
+                locationRequest.city(),
+                locationRequest.state()
+        );
 
         Location updated = locationRepository.save(existing);
-        return LocationResponse.from(updated);
+        return LocationMapper.toResponse(updated);
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteLocation(Long id) {
         if (!locationRepository.existsById(id))
-            throw new EntityNotFoundException("Location not found with id " + id);
+            throw notFound(id);
 
         locationRepository.deleteById(id);
+    }
+
+    private EntityNotFoundException notFound(Long id) {
+        return new EntityNotFoundException("Location not found with id: %d".formatted(id));
     }
 }

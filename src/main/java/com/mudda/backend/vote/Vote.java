@@ -1,4 +1,4 @@
-package com.mudda.backend.issue;
+package com.mudda.backend.vote;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -29,7 +29,7 @@ public class Vote {
     private Long userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @PrePersist
     protected void onCreate() {
@@ -39,7 +39,9 @@ public class Vote {
 //    ----- Domain Constructor -----
 
     public Vote(Long issueId, Long userId) {
-        validateIds(issueId, userId);
+        if (issueId == null) throw new IllegalArgumentException("Issue Id cannot be null");
+        if (userId == null) throw new IllegalArgumentException("User Id cannot be null");
+
         this.issueId = issueId;
         this.userId = userId;
     }
@@ -49,11 +51,7 @@ public class Vote {
         return new Vote(issueId, userId);
     }
 
-    private void validateIds(Long issueId, Long userId) {
-        if (issueId == null) throw new IllegalArgumentException("Issue Id cannot be null");
-        if (userId == null) throw new IllegalArgumentException("User Id cannot be null");
-    }
-
+    //    TODO: remove unused methods
     // Domain methods for business logic
     public boolean isVotedBy(Long userId) {
         return this.userId.equals(userId);

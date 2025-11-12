@@ -1,6 +1,7 @@
 package com.mudda.backend.issue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mudda.backend.location.LocationDTO;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,8 +12,10 @@ public record IssueResponse(
         String description,
         IssueStatus status,
         @JsonProperty("reporter_id") Long userId,
-        @JsonProperty("location_id") Long locationId,
-        @JsonProperty("category_id") Long categoryId,
+        LocationDTO locationSummary,
+        String category,
+        @JsonProperty("vote_count") Long voteCount,
+        @JsonProperty("has_user_liked") Boolean hasUserLiked,
         @JsonProperty("media_urls") List<String> mediaUrls,
         @JsonProperty("severity_score") double severityScore,
         @JsonProperty("created_at") Instant createdAt,

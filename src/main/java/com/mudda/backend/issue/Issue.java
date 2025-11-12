@@ -75,7 +75,7 @@ public class Issue {
     private double severityScore = 0.0;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column(name = "updated_at")
     private Instant updatedAt;
@@ -124,8 +124,8 @@ public class Issue {
 //    ----- Domain Behaviour -------
 
     public void updateDetails(String title, String description, IssueStatus status) {
-        if (title != null && !title.isBlank()) setTitle(title);
-        if (description != null && !description.isBlank()) setDescription(description);
+        if (title != null && !title.isBlank()) setTitle(title.trim());
+        if (description != null && !description.isBlank()) setDescription(description.trim());
         if (status != null) setStatus(status);
     }
 }

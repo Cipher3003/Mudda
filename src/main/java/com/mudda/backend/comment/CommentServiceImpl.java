@@ -49,6 +49,7 @@ public class CommentServiceImpl implements CommentService {
                 .map(Comment::getCommentId)
                 .toList();
 
+//        TODO: use issueId to reduce the likedIds list
         Set<Long> likedIds = commentLikeRepository.findByUserIdAndCommentIdIn(userId, ids)
                 .stream()
                 .map(CommentLike::getCommentId)
@@ -199,16 +200,16 @@ public class CommentServiceImpl implements CommentService {
     //    ------------------------------
     //    Helpers
     //    ------------------------------
-    private void validateCommentReferences(Long issueId, Long userId) {
+    private void validateCommentReferences(long issueId, long userId) {
         EntityValidator.validateExists(issueRepository, issueId, "Issue");
         EntityValidator.validateExists(userRepository, userId, "User");
     }
 
-    private void validateReplyReferences(Long userId) {
+    private void validateReplyReferences(long userId) {
         EntityValidator.validateExists(userRepository, userId, "User");
     }
 
-    private EntityNotFoundException notFound(Long id) {
+    private EntityNotFoundException notFound(long id) {
         return new EntityNotFoundException("Comment not found with id: %d".formatted(id));
     }
 

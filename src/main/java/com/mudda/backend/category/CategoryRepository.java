@@ -12,7 +12,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<CategoryResponse> findAllProjectedBy();
 
-    Optional<CategoryResponse> findProjectedById(Long id);
+    Optional<CategoryResponse> findProjectedById(long id);
 
     List<CategoryResponse> findByNameContainingIgnoreCase(String text);
 }

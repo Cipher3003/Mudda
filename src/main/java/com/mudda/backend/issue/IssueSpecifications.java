@@ -3,6 +3,7 @@ package com.mudda.backend.issue;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
+import java.util.List;
 
 public class IssueSpecifications {
 
@@ -32,9 +33,11 @@ public class IssueSpecifications {
                 categoryId == null ? null : criteriaBuilder.equal(root.get("categoryId"), categoryId);
     }
 
-    public static Specification<Issue> hasLocationId(Long locationId) {
-        return (root, query, criteriaBuilder) ->
-                locationId == null ? null : criteriaBuilder.equal(root.get("locationId"), locationId);
+    public static Specification<Issue> hasLocationIds(List<Long> locationIds) {
+        return (root, query, criteriaBuilder) -> {
+            if (locationIds == null || locationIds.isEmpty()) return null;
+            return root.get("locationId").in(locationIds);
+        };
     }
 
     public static Specification<Issue> isUrgent(Boolean urgency) {

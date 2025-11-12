@@ -12,13 +12,13 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
 
     List<CommentLike> findByUserIdAndCommentIdIn(long userId, List<Long> ids);
 
-    boolean existsByCommentIdAndUserId(Long commentId, Long userId);
+    boolean existsByCommentIdAndUserId(long commentId, long userId);
 
-    void deleteByCommentId(Long commentId);
+    void deleteByCommentId(long commentId);
 
     void deleteAllByCommentId(List<Long> commentIds);
 
-    void deleteByCommentIdAndUserId(Long commentId, Long userId);
+    void deleteByCommentIdAndUserId(long commentId, long userId);
 
 
 }

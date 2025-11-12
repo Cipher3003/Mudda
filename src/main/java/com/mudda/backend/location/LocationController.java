@@ -4,16 +4,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,7 +13,6 @@ import java.util.List;
 @RequestMapping("/api/v1/locations")
 @Tag(name = "Location Management",
         description = "Works with default postgres geocoordinate object will modify it later to be lightweight")
-// TODO: normalize to not use a lot fields in requests, validation, DTO and error handling
 public class LocationController {
 
     private final LocationService locationService;
@@ -30,6 +21,9 @@ public class LocationController {
         this.locationService = locationService;
     }
 
+    // #region Queries (Read Operations)
+
+    //    TODO: maybe add filter request
     @GetMapping
     public ResponseEntity<List<LocationResponse>> getAll() {
         return ResponseEntity.ok(locationService.findAllLocations());
@@ -37,39 +31,34 @@ public class LocationController {
 
     @GetMapping("/{locationId}")
     public ResponseEntity<LocationResponse> getById(@PathVariable(name = "locationId") Long locationId) {
-        return locationService.findLocationById(locationId)
+        return locationService.findById(locationId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // TODO: Validate input
+    // #endregion
+
+    // #region Commands (Write Operations)
+
+    @Transactional
     @PostMapping
     public ResponseEntity<LocationResponse> create(@RequestBody @Valid CreateLocationRequest locationRequest) {
-        LocationResponse saved = locationService.createLocation(locationRequest);
-        return new ResponseEntity<>(saved, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(locationService.createLocation(locationRequest));
     }
 
-    // TODO: Validate input
+    @Transactional
     @PutMapping("/{locationId}")
     public ResponseEntity<LocationResponse> update(@PathVariable(name = "locationId") Long locationId,
                                                    @RequestBody UpdateLocationRequest locationRequest) {
-        try {
-            LocationResponse updated = locationService.updateLocation(locationId, locationRequest);
-            return ResponseEntity.ok(updated);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(locationService.updateLocation(locationId, locationRequest));
     }
 
-    // TODO: not found check
+    @Transactional
     @DeleteMapping("/{locationId}")
     public ResponseEntity<Void> delete(@PathVariable(name = "locationId") Long locationId) {
-        try {
-            locationService.deleteById(locationId);
-            return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        locationService.deleteLocation(locationId);
+        return ResponseEntity.noContent().build();
     }
 
+    // #endregion
 }

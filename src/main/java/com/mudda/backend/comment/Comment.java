@@ -69,6 +69,6 @@ public class Comment {
 //    ----- Domain Behaviour -------
 
     public void updateDetails(String text) {
-        if (text != null && !text.isBlank()) setText(text);
+        if (text != null && !text.isBlank()) setText(text.trim());
     }
 }
