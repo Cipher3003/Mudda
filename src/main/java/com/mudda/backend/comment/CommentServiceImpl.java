@@ -1,6 +1,8 @@
 package com.mudda.backend.comment;
 
-import com.mudda.backend.issue.IssueService;
+import com.mudda.backend.issue.IssueRepository;
+import com.mudda.backend.user.UserRepository;
+import com.mudda.backend.utils.EntityValidator;
 import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.data.domain.Page;
@@ -20,16 +22,20 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentLikeService commentLikeService;
     private final CommentLikeRepository commentLikeRepository;
-    private final IssueService issueService;
+    private final IssueRepository issueRepository;
+    private final UserRepository userRepository;
 
     public CommentServiceImpl(CommentRepository commentRepository,
                               CommentLikeService commentLikeService,
                               CommentLikeRepository commentLikeRepository,
-                              IssueService issueService) {
+                              IssueRepository issueRepository,
+                              UserRepository userRepository
+    ) {
         this.commentRepository = commentRepository;
         this.commentLikeService = commentLikeService;
         this.commentLikeRepository = commentLikeRepository;
-        this.issueService = issueService;
+        this.issueRepository = issueRepository;
+        this.userRepository = userRepository;
     }
 
     // #region Queries (Read Operations)
@@ -96,9 +102,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public CommentResponse createComment(long issueId, CreateCommentRequest createCommentRequest) {
-        // TODO: maybe use exitsBy to validate issueId
-        issueService.findById(issueId).orElseThrow(
-                () -> new IllegalArgumentException("Issue with id: %d not found".formatted(issueId)));
+        validateCommentReferences(issueId, createCommentRequest.userId());
 
         Comment comment = CommentMapper.toComment(createCommentRequest, issueId);
         Comment saved = commentRepository.save(comment);
@@ -108,9 +112,10 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public CommentResponse createReply(long parentId, CreateCommentRequest createCommentRequest) {
+        validateReplyReferences(createCommentRequest.userId());
+
         Comment parent = commentRepository.findById(parentId)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Comment with id: %d does not exists.".formatted(parentId)));
+                .orElseThrow(() -> notFound(parentId));
 
         Comment reply = CommentMapper.toReply(createCommentRequest, parent.getIssueId(), parentId);
         Comment saved = commentRepository.save(reply);
@@ -124,7 +129,8 @@ public class CommentServiceImpl implements CommentService {
             throw new IllegalArgumentException("Comment text cannot be empty.");
 
         Comment comment = commentRepository.findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> notFound(id));
+
         comment.updateDetails(text);
         Comment saved = commentRepository.save(comment);
         return CommentMapper.toCommentResponse(saved);
@@ -134,7 +140,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(long id) {
         Comment comment = commentRepository.findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> notFound(id));
 
         if (comment.getParentId() == null) {
             List<Long> replyIds = commentRepository.findByParentId(comment.getCommentId())
@@ -161,8 +167,7 @@ public class CommentServiceImpl implements CommentService {
                 .map(Comment::getCommentId)
                 .toList();
 
-        if (commentIds.isEmpty())
-            return;
+        if (commentIds.isEmpty()) return;
 
         // Fetch all replies
         List<Long> replyIds = commentRepository.findByParentIdIn(commentIds)
@@ -190,5 +195,21 @@ public class CommentServiceImpl implements CommentService {
     }
 
     // #endregion
+
+    //    ------------------------------
+    //    Helpers
+    //    ------------------------------
+    private void validateCommentReferences(Long issueId, Long userId) {
+        EntityValidator.validateExists(issueRepository, issueId, "Issue");
+        EntityValidator.validateExists(userRepository, userId, "User");
+    }
+
+    private void validateReplyReferences(Long userId) {
+        EntityValidator.validateExists(userRepository, userId, "User");
+    }
+
+    private EntityNotFoundException notFound(Long id) {
+        return new EntityNotFoundException("Comment not found with id: %d".formatted(id));
+    }
 
 }
