@@ -37,11 +37,19 @@ public class CommentMapper {
                 hasUserLiked);
     }
 
-    public static Comment toComment(CreateCommentRequest commentRequest) {
-        Comment comment = new Comment();
-        comment.setText(commentRequest.text());
-        comment.setUserId(commentRequest.userId());
-        return comment;
+    public static Comment toComment(CreateCommentRequest commentRequest, long issueId) {
+        return new Comment(
+                commentRequest.text(),
+                issueId,
+                commentRequest.userId());
+    }
+
+    public static Comment toReply(CreateCommentRequest commentRequest, long issueId, long parentId) {
+        return new Comment(
+                commentRequest.text(),
+                parentId,
+                issueId,
+                commentRequest.userId());
     }
 
 }

@@ -39,4 +39,38 @@ public class Comment {
     protected void onCreated() {
         createdAt = Instant.now();
     }
+
+//    ----- Domain Constructor -----
+
+    public Comment(String text, Long issueId, Long userId) {
+
+        if (text == null || text.isBlank())
+            throw new IllegalArgumentException("Comment text cannot be empty");
+        if (parentId == null || issueId == null || userId == null)
+            throw new IllegalArgumentException("Parent, Issue and User ID's must be provided");
+
+        this.text = text.trim();
+        this.parentId = null;
+        this.issueId = issueId;
+        this.userId = userId;
+    }
+
+    public Comment(String text, Long parentId, Long issueId, Long userId) {
+
+        if (text == null || text.isBlank())
+            throw new IllegalArgumentException("Comment text cannot be empty");
+        if (parentId == null || issueId == null || userId == null)
+            throw new IllegalArgumentException("Parent, Issue and User ID's must be provided");
+
+        this.text = text.trim();
+        this.parentId = parentId;
+        this.issueId = issueId;
+        this.userId = userId;
+    }
+
+//    ----- Domain Behaviour -------
+
+    public void updateDetails(String text) {
+        if (text != null && !text.isBlank()) setText(text);
+    }
 }

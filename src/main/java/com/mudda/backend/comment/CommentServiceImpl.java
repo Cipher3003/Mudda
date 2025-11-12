@@ -100,8 +100,7 @@ public class CommentServiceImpl implements CommentService {
         issueService.findById(issueId).orElseThrow(
                 () -> new IllegalArgumentException("Issue with id: %d not found".formatted(issueId)));
 
-        Comment comment = CommentMapper.toComment(createCommentRequest);
-        comment.setIssueId(issueId);
+        Comment comment = CommentMapper.toComment(createCommentRequest, issueId);
         Comment saved = commentRepository.save(comment);
         return CommentMapper.toCommentResponse(saved);
     }
@@ -113,10 +112,7 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(
                         () -> new IllegalArgumentException("Comment with id: %d does not exists.".formatted(parentId)));
 
-        Comment reply = CommentMapper.toComment(createCommentRequest);
-        reply.setParentId(parentId);
-        reply.setIssueId(parent.getIssueId());
-
+        Comment reply = CommentMapper.toReply(createCommentRequest, parent.getIssueId(), parentId);
         Comment saved = commentRepository.save(reply);
         return CommentMapper.toCommentResponse(saved);
     }
@@ -129,7 +125,7 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
-        comment.setText(text);
+        comment.updateDetails(text);
         Comment saved = commentRepository.save(comment);
         return CommentMapper.toCommentResponse(saved);
     }
