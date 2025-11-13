@@ -39,3 +39,4 @@ Spring Boot 3.3.13 (with Java 17) is in use.
 Project Setup: For new projects, use Spring Initializr to generate a Maven project with Spring Boot 3.3.13 and Java 17, adding necessary dependencies (e.g., Spring Web, Spring Data JPA, PostgreSQL Driver). Import the generated project into your IDE.
 
 Note: Spring Boot 3.x uses Spring Framework 6.x, which is compatible with Java 17.
+ A platform for govt and people to communicate their issues and their status easily at different levels and areas.
