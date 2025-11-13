@@ -11,5 +11,10 @@ public record ReplyResponse(
         @JsonProperty("comment_id") Long parentId,
         @JsonProperty("like_count") Long likeCount,
         @JsonProperty("created_at") Instant createdAt,
-        @JsonProperty("has_user_liked") Boolean hasUserLiked) {
+//        FLAGS
+        @JsonProperty("has_user_liked") Boolean hasUserLiked,
+        @JsonProperty("can_user_like") Boolean canUserLike,
+        @JsonProperty("can_user_update") Boolean canUserUpdate,
+        @JsonProperty("can_user_delete") Boolean canUserDelete
+) {
 }

@@ -22,8 +22,8 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "issue_logs")
+//@Entity
+//@Table(name = "issue_logs")
 // TODO: remove deprecated when build issue logs and depratment features
 @Deprecated(forRemoval = false)
 public class IssueLogs {

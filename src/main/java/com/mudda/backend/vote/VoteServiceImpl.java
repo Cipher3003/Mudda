@@ -1,30 +1,26 @@
 package com.mudda.backend.vote;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.mudda.backend.issue.IssueRepository;
-import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.utils.EntityValidator;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VoteServiceImpl implements VoteService {
 
     private final VoteRepository voteRepository;
     private final IssueRepository issueRepository;
-    private final UserRepository userRepository;
 
     public VoteServiceImpl(VoteRepository voteRepository,
-                           IssueRepository issueRepository,
-                           UserRepository userRepository) {
+                           IssueRepository issueRepository
+    ) {
         this.voteRepository = voteRepository;
         this.issueRepository = issueRepository;
-        this.userRepository = userRepository;
     }
 
     // #region Queries (Read Operations)
@@ -45,8 +41,13 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional
     @Override
-    public VoteResponse create(long issueId, long userId) {
-        validateReferences(issueId, userId);
+    public VoteResponse create(long issueId, Long userId) {
+
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
+        validateReferences(issueId);
 
         Vote vote = Vote.castVote(issueId, userId);
         Vote saved = voteRepository.save(vote);
@@ -73,7 +74,14 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional
     @Override
-    public void deleteVoteByIssueIdAndUserId(long issueId, long userId) {
+    public void deleteVoteByIssueIdAndUserId(long issueId, Long userId) {
+
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
+        validateReferences(issueId);
+
         voteRepository.deleteByIssueIdAndUserId(issueId, userId);
     }
 
@@ -89,14 +97,9 @@ public class VoteServiceImpl implements VoteService {
 //    Helpers
 //    ------------------------------
 
-    private void validateReferences(long issueId, long userId) {
+    private void validateReferences(long issueId) {
 
         EntityValidator.validateExists(issueRepository, issueId, "Issue");
-        EntityValidator.validateExists(userRepository, userId, "User");
-    }
-
-    private EntityNotFoundException notFound(long id) {
-        return new EntityNotFoundException("Issue not found with id: %d".formatted(id));
     }
 
 }

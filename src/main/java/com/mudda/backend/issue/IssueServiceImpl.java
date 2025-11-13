@@ -4,10 +4,9 @@ import com.mudda.backend.category.Category;
 import com.mudda.backend.category.CategoryRepository;
 import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.location.Location;
+import com.mudda.backend.location.LocationDTO;
 import com.mudda.backend.location.LocationMapper;
 import com.mudda.backend.location.LocationRepository;
-import com.mudda.backend.location.LocationDTO;
-import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.utils.EntityValidator;
 import com.mudda.backend.vote.Vote;
 import com.mudda.backend.vote.VoteRepository;
@@ -31,7 +30,6 @@ public class IssueServiceImpl implements IssueService {
     private final CommentService commentService;
     private final VoteRepository voteRepository;
     private final VoteService voteService;
-    private final UserRepository userRepository;
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
 
@@ -39,14 +37,12 @@ public class IssueServiceImpl implements IssueService {
                             CommentService commentService,
                             VoteRepository voteRepository,
                             VoteService voteService,
-                            UserRepository userRepository,
                             LocationRepository locationRepository,
                             CategoryRepository categoryRepository) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteRepository = voteRepository;
         this.voteService = voteService;
-        this.userRepository = userRepository;
         this.locationRepository = locationRepository;
         this.categoryRepository = categoryRepository;
     }
@@ -54,7 +50,7 @@ public class IssueServiceImpl implements IssueService {
     // #region Queries (Read Operations)
 
     @Override
-    public Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, long userId) {
+    public Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, Long userId) {
 
         List<Long> locationIds = locationRepository.findByCityAndState(filterRequest.city(), filterRequest.state())
                 .stream()
@@ -63,18 +59,16 @@ public class IssueServiceImpl implements IssueService {
 
         if (locationIds.isEmpty()) return Page.empty();
 
-        Specification<Issue> specification = Specification.where(
-                IssueSpecifications.containsText(filterRequest.search())
-                        .and(IssueSpecifications.hasStatus(filterRequest.status()))
-                        .and(IssueSpecifications.hasUserId(filterRequest.userId()))
-                        .and(IssueSpecifications.hasCategoryId(filterRequest.categoryId()))
-                        .and(IssueSpecifications.hasLocationIds(locationIds))
-                        .and(IssueSpecifications.isUrgent(filterRequest.urgency()))
-                        .and(IssueSpecifications.severityBetween(filterRequest.minSeverity(),
-                                filterRequest.maxSeverity()))
-                        .and(IssueSpecifications.createdAfter(filterRequest.createdAfter()))
-                        .and(IssueSpecifications.createdBefore(filterRequest.createdBefore()))
-        );
+        Specification<Issue> specification = IssueSpecifications
+                .containsText(filterRequest.search())
+                .and(IssueSpecifications.hasStatus(filterRequest.status()))
+                .and(IssueSpecifications.hasUserId(filterRequest.userId()))
+                .and(IssueSpecifications.hasCategoryId(filterRequest.categoryId()))
+                .and(IssueSpecifications.hasLocationIds(locationIds))
+                .and(IssueSpecifications.isUrgent(filterRequest.urgency()))
+                .and(IssueSpecifications.severityBetween(filterRequest.minSeverity(), filterRequest.maxSeverity()))
+                .and(IssueSpecifications.createdAfter(filterRequest.createdAfter()))
+                .and(IssueSpecifications.createdBefore(filterRequest.createdBefore()));
 
         Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
 
@@ -86,15 +80,19 @@ public class IssueServiceImpl implements IssueService {
         Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
                 .map(Vote::getIssueId).collect(Collectors.toSet());
 
+//        TODO: canUserVote is recommended to be always true but seems sus
         return issuePage.map(issue -> {
                     long voteCount = voteRepository.countByIssueId(issue.getId());
-                    return IssueMapper.toSummary(issue, voteCount, issuesVotedByUser.contains(issue.getId()));
+                    return IssueMapper.toSummary(
+                            issue, voteCount,
+                            issuesVotedByUser.contains(issue.getId()), true
+                    );
                 }
         );
     }
 
     @Override
-    public Optional<IssueResponse> findById(long id, long userId) {
+    public Optional<IssueResponse> findById(long id, Long userId) {
         Optional<Issue> optionalIssue = issueRepository.findById(id);
         if (optionalIssue.isEmpty()) return Optional.empty();
 
@@ -109,9 +107,14 @@ public class IssueServiceImpl implements IssueService {
 
         Optional<Category> category = categoryRepository.findById(issue.getCategoryId());
 
+//        TODO: canUserVote is recommended to be always true but seems sus
         return category.map(categoryResponse ->
-                IssueMapper.toResponse(issue, summary, categoryResponse.getName(), voteCount, hasUserVoted)
-        );
+                IssueMapper.toResponse(
+                        issue, summary, categoryResponse.getName(), voteCount, hasUserVoted,
+                        true, true,
+                        issue.getUserId().equals(userId),
+                        issue.getUserId().equals(userId)
+                ));
     }
 
     // #endregion
@@ -120,11 +123,16 @@ public class IssueServiceImpl implements IssueService {
 
     @Transactional
     @Override
-    public IssueResponse createIssue(CreateIssueRequest issueRequest) {
-//        TODO: maybe remove unnecessary validation since fetching entities validates it
-        validateReferences(issueRequest.userId(), issueRequest.locationId(), issueRequest.categoryId());
+    public IssueResponse createIssue(Long userId, CreateIssueRequest issueRequest) {
 
-        Issue issue = IssueMapper.toIssue(issueRequest);
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
+//        TODO: maybe remove unnecessary validation since fetching entities validates it
+        validateReferences(issueRequest.locationId(), issueRequest.categoryId());
+
+        Issue issue = IssueMapper.toIssue(userId, issueRequest);
 
         Optional<Location> location = locationRepository.findById(issue.getLocationId());
         if (location.isEmpty())
@@ -140,15 +148,20 @@ public class IssueServiceImpl implements IssueService {
                 LocationMapper.toSummary(location.get()),
                 category.get().getName(),
                 0,
-                false
+                false,
+                true, true, true, true
         );
     }
 
     @Transactional
     @Override
-    public IssueUpdateResponse updateIssue(long id, UpdateIssueRequest issueRequest) {
+    public IssueUpdateResponse updateIssue(long id, Long userId, UpdateIssueRequest issueRequest) {
         Issue existing = issueRepository.findById(id).
                 orElseThrow(() -> notFound(id));
+
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
         existing.updateDetails(issueRequest.title(), issueRequest.description(), issueRequest.status());
         Issue updated = issueRepository.save(existing);
@@ -158,9 +171,13 @@ public class IssueServiceImpl implements IssueService {
     //    TODO: use delete flag to soft delete ?
     @Transactional
     @Override
-    public void deleteIssue(long id) {
+    public void deleteIssue(long id, Long userId) {
         Issue issue = issueRepository.findById(id).
                 orElseThrow(() -> notFound(id));
+
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
         commentService.deleteAllCommentsByIssueId(issue.getId());
         voteService.deleteAllVotesByIssueId(issue.getId());
@@ -189,9 +206,8 @@ public class IssueServiceImpl implements IssueService {
 //    Helpers
 //    ------------------------------
 
-    private void validateReferences(long userId, long locationId, long categoryId) {
+    private void validateReferences(long locationId, long categoryId) {
 
-        EntityValidator.validateExists(userRepository, userId, "User");
         EntityValidator.validateExists(locationRepository, locationId, "Location");
         EntityValidator.validateExists(categoryRepository, categoryId, "Category");
     }

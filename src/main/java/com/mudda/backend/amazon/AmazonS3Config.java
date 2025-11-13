@@ -1,4 +1,4 @@
-package com.mudda.backend.common.config;
+package com.mudda.backend.amazon;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

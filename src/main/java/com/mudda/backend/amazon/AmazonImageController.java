@@ -28,24 +28,30 @@ public class AmazonImageController {
         this.amazonImageService = amazonImageService;
     }
 
+    // ----------- PUBLIC READ -----------------
+    // #region Queries (Read Operations)
+
     @GetMapping
     public ResponseEntity<List<String>> getBucketContents() {
         List<String> bucketContetList = amazonImageService.getBucketContents();
         return ResponseEntity.ok(bucketContetList);
     }
 
+    // #endregion
+
+    // ----------- AUTH COMMANDS -----------------
+    // #region Commands (Write Operations)
+
     @PostMapping
     public ResponseEntity<List<AmazonImage>> uploadImageToAmazon(@RequestParam List<MultipartFile> files) {
 
-        if (files.isEmpty()) {
+        if (files.isEmpty())
             return ResponseEntity.badRequest().build();
-        }
 
         List<AmazonImage> uploadedImages = new ArrayList<>();
 
-        for (MultipartFile file : files) {
+        for (MultipartFile file : files)
             uploadedImages.add(amazonImageService.uploadImageToAmazon(file));
-        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(uploadedImages);
 
@@ -62,4 +68,6 @@ public class AmazonImageController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    // #endregion
 }

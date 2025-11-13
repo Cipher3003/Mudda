@@ -1,5 +1,6 @@
 package com.mudda.backend.issue;
 
+import com.mudda.backend.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -23,6 +24,7 @@ public class IssueController {
         this.issueService = issueService;
     }
 
+    // ----------- PUBLIC READ -----------------
     // #region Queries (Read Operations)
 
     @Operation(summary = "List issues with filters, sorting and pagination")
@@ -30,14 +32,13 @@ public class IssueController {
             @ApiResponse(responseCode = "200", description = "List of issues"),
             @ApiResponse(responseCode = "400", description = "Invalid Input")
     })
-    @GetMapping("/{userId}")
+    @GetMapping
     public ResponseEntity<Page<IssueSummaryResponse>> getAllIssues(
             @ModelAttribute(name = "filters") IssueFilterRequest filterRequest,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sortBy", defaultValue = "CREATED_AT") IssueSortBy sort,
-            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction,
-            @PathVariable long userId
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction
     ) {
 
         Pageable pageable = PageRequest.of(
@@ -47,35 +48,48 @@ public class IssueController {
                         : Sort.by(sort.getFieldName()).ascending()
         );
 
+        Long userId = SecurityUtil.getUserIdOrNull();
+
         return ResponseEntity.ok(issueService.findAllIssues(filterRequest, pageable, userId));
     }
 
-    @GetMapping("/{userId}/{id}")
-    public ResponseEntity<IssueResponse> getIssueById(@PathVariable long userId,
-                                                      @PathVariable(name = "id") long id) {
-        return issueService.findById(id, userId)
+    @GetMapping("/{id}")
+    public ResponseEntity<IssueResponse> getIssueById(@PathVariable(name = "id") long id) {
+        Long userId = SecurityUtil.getUserIdOrNull();
+
+        return issueService
+                .findById(id, userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // #endregion
 
+    // ----------- AUTH COMMANDS -----------------
     // #region Commands (Write Operations)
 
     @PostMapping
     public ResponseEntity<IssueResponse> createIssue(@Valid @RequestBody CreateIssueRequest issueRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(issueService.createIssue(issueRequest));
+        Long userId = SecurityUtil.getUserIdOrNull();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(issueService.createIssue(userId, issueRequest));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<IssueUpdateResponse> updateIssue(@PathVariable(name = "id") long id,
-                                                           @Valid @RequestBody UpdateIssueRequest issueRequest) {
-        return ResponseEntity.ok(issueService.updateIssue(id, issueRequest));
+    public ResponseEntity<IssueUpdateResponse> updateIssue(
+            @PathVariable(name = "id") long id,
+            @Valid @RequestBody UpdateIssueRequest issueRequest
+    ) {
+        Long userId = SecurityUtil.getUserIdOrNull();
+
+        return ResponseEntity.ok(issueService.updateIssue(id, userId, issueRequest));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteIssue(@PathVariable(name = "id") long id) {
-        issueService.deleteIssue(id);
+        Long userId = SecurityUtil.getUserIdOrNull();
+
+        issueService.deleteIssue(id, userId);
         return ResponseEntity.noContent().build();
     }
 

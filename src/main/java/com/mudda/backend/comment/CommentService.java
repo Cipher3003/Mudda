@@ -8,15 +8,15 @@ import java.util.Optional;
 
 public interface CommentService {
 
-    Page<CommentDetailResponse> findCommentsWithLikes(long issueId, Pageable pageable, long userId);
+    Page<CommentDetailResponse> findCommentsWithLikes(long issueId, Pageable pageable, Long userId);
 
-    Page<ReplyResponse> findAllReplies(long parentId, Pageable pageable, long userId);
+    Page<ReplyResponse> findAllReplies(long parentId, Pageable pageable, Long userId);
 
-    Optional<CommentDetailResponse> findById(long id, long userId);
+    Optional<CommentDetailResponse> findById(long id, Long userId);
 
-    CommentResponse createComment(long issueId, CreateCommentRequest createCommentRequest);
+    CommentResponse createComment(long issueId, Long userId, CreateCommentRequest createCommentRequest);
 
-    CommentResponse createReply(long commentId, CreateCommentRequest createCommentRequest);
+    CommentResponse createReply(long commentId, Long userId, CreateCommentRequest createCommentRequest);
 
     CommentResponse updateComment(long id, String text);
 
@@ -28,8 +28,8 @@ public interface CommentService {
 
     void deleteAllCommentsByIssueIds(List<Long> issueIds);
 
-    CommentLikeResponse likeComment(long commentId, long userId);
+    CommentLikeResponse likeComment(long commentId, Long userId);
 
-    CommentLikeResponse deleteLikeComment(long commentId, long userId);
+    CommentLikeResponse deleteLikeComment(long commentId, Long userId);
 
 }

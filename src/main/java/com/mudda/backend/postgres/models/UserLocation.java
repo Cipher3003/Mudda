@@ -11,8 +11,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "user_locations")
+//@Entity
+//@Table(name = "user_locations")
 @Deprecated
 public class UserLocation {
     @Id

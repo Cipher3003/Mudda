@@ -21,6 +21,7 @@ public class LocationController {
         this.locationService = locationService;
     }
 
+    // ----------- PUBLIC READ -----------------
     // #region Queries (Read Operations)
 
     //    TODO: maybe add filter request
@@ -30,7 +31,7 @@ public class LocationController {
     }
 
     @GetMapping("/{locationId}")
-    public ResponseEntity<LocationResponse> getById(@PathVariable(name = "locationId") Long locationId) {
+    public ResponseEntity<LocationResponse> getById(@PathVariable(name = "locationId") long locationId) {
         return locationService.findById(locationId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -38,6 +39,7 @@ public class LocationController {
 
     // #endregion
 
+    // ----------- AUTH COMMANDS -----------------
     // #region Commands (Write Operations)
 
     @Transactional
@@ -48,7 +50,7 @@ public class LocationController {
 
     @Transactional
     @PutMapping("/{locationId}")
-    public ResponseEntity<LocationResponse> update(@PathVariable(name = "locationId") Long locationId,
+    public ResponseEntity<LocationResponse> update(@PathVariable(name = "locationId") long locationId,
                                                    @RequestBody UpdateLocationRequest locationRequest) {
         return ResponseEntity.ok(locationService.updateLocation(locationId, locationRequest));
     }
@@ -56,7 +58,7 @@ public class LocationController {
     //    NOTE: for developer use only
     @Transactional
     @DeleteMapping("/{locationId}")
-    public ResponseEntity<Void> delete(@PathVariable(name = "locationId") Long locationId) {
+    public ResponseEntity<Void> delete(@PathVariable(name = "locationId") long locationId) {
         locationService.deleteLocation(locationId);
         return ResponseEntity.noContent().build();
     }

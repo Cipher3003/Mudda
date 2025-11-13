@@ -17,6 +17,9 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
+    // ----------- PUBLIC READ -----------------
+    // #region Queries (Read Operations)
+
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAll(
             @RequestParam(required = false) String search) {
@@ -30,6 +33,11 @@ public class CategoryController {
                 .orElse(ResponseEntity.notFound().build()); // 404 not found
     }
 
+    // #endregion
+
+    // ----------- AUTH COMMANDS -----------------
+    // #region Commands (Write Operations)
+
     @PostMapping
     public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CreateCategoryRequest categoryRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(categoryRequest));
@@ -40,4 +48,6 @@ public class CategoryController {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }
+
+    // #endregion
 }

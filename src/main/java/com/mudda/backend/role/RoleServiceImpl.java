@@ -17,6 +17,8 @@ public class RoleServiceImpl implements RoleService {
         this.roleRepository = roleRepository;
     }
 
+    // #region Queries (Read Operations)
+
     @Override
     public Optional<RoleResponse> findById(long id) {
         return roleRepository.findById(id).map(RoleResponse::from);
@@ -28,6 +30,10 @@ public class RoleServiceImpl implements RoleService {
             return roleRepository.findByNameContaining(name).stream().map(RoleResponse::from).toList();
         return roleRepository.findAll().stream().map(RoleResponse::from).toList();
     }
+
+    // #endregion
+
+    // #region Commands (Write Operations)
 
     @Override
     public RoleResponse createRole(CreateRoleRequest roleRequest) {
@@ -50,4 +56,5 @@ public class RoleServiceImpl implements RoleService {
         roleRepository.deleteById(id);
     }
 
+    // #endregion
 }

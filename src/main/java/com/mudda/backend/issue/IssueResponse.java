@@ -15,10 +15,15 @@ public record IssueResponse(
         LocationDTO locationSummary,
         String category,
         @JsonProperty("vote_count") Long voteCount,
-        @JsonProperty("has_user_voted") Boolean hasUserVoted,
         @JsonProperty("media_urls") List<String> mediaUrls,
         @JsonProperty("severity_score") double severityScore,
         @JsonProperty("created_at") Instant createdAt,
-        @JsonProperty("updated_at") Instant updatedAt
+        @JsonProperty("updated_at") Instant updatedAt,
+        //        FLAGS
+        @JsonProperty("has_user_voted") Boolean hasUserVoted,
+        @JsonProperty("can_user_vote") Boolean canUserVote,
+        @JsonProperty("can_user_comment") Boolean canUserComment,
+        @JsonProperty("can_user_edit") Boolean canUserEdit,
+        @JsonProperty("can_user_delete") Boolean canUserDelete
 ) {
 }

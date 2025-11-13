@@ -10,7 +10,6 @@ import java.util.List;
 public record CreateIssueRequest(
         @NotEmpty String title,
         @NotEmpty String description,
-        @NotNull @JsonProperty("reporter_id") Long userId,
         @NotNull @JsonProperty("location_id") Long locationId,
         @NotNull @JsonProperty("category_id") Long categoryId,
         @Size(max = 5) @JsonProperty("media_urls") List<String> mediaUrls

@@ -34,13 +34,11 @@ public class RoleController {
 
     // #region Commands (Write Operations)
 
-    // TODO: Validate input
     @PostMapping
     public ResponseEntity<RoleResponse> create(@Valid @RequestBody CreateRoleRequest roleRequest) {
         return ResponseEntity.ok(roleService.createRole(roleRequest));
     }
 
-    // TODO: not found check
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable(name = "id") long id) {
         roleService.deleteRole(id);

@@ -8,13 +8,19 @@ public class CommentMapper {
                 comment.getText(),
                 comment.getUserId(),
                 comment.getIssueId(),
-                comment.getCreatedAt());
+                comment.getCreatedAt()
+        );
     }
 
-    public static CommentDetailResponse toCommentResponse(Comment comment,
-                                                          long likeCount,
-                                                          long replyCount,
-                                                          boolean hasUserLiked) {
+    public static CommentDetailResponse toCommentResponse(
+            Comment comment,
+            long likeCount,
+            long replyCount,
+            boolean hasUserLiked,
+            boolean canUserLike,
+            boolean canUserUpdate,
+            boolean canUserDelete
+    ) {
         return new CommentDetailResponse(
                 comment.getCommentId(),
                 comment.getText(),
@@ -23,10 +29,21 @@ public class CommentMapper {
                 likeCount,
                 replyCount,
                 comment.getCreatedAt(),
-                hasUserLiked);
+                hasUserLiked,
+                canUserLike,
+                canUserUpdate,
+                canUserDelete
+        );
     }
 
-    public static ReplyResponse toReplyResponse(Comment comment, long likeCount, boolean hasUserLiked) {
+    public static ReplyResponse toReplyResponse(
+            Comment comment,
+            long likeCount,
+            boolean hasUserLiked,
+            boolean canUserLike,
+            boolean canUserUpdate,
+            boolean canUserDelete
+    ) {
         return new ReplyResponse(
                 comment.getCommentId(),
                 comment.getText(),
@@ -34,22 +51,28 @@ public class CommentMapper {
                 comment.getParentId(),
                 likeCount,
                 comment.getCreatedAt(),
-                hasUserLiked);
+                hasUserLiked,
+                canUserLike,
+                canUserUpdate,
+                canUserDelete
+        );
     }
 
-    public static Comment toComment(CreateCommentRequest commentRequest, long issueId) {
+    public static Comment toComment(CreateCommentRequest commentRequest, long issueId, long userId) {
         return new Comment(
                 commentRequest.text(),
                 issueId,
-                commentRequest.userId());
+                userId
+        );
     }
 
-    public static Comment toReply(CreateCommentRequest commentRequest, long issueId, long parentId) {
+    public static Comment toReply(CreateCommentRequest commentRequest, long issueId, long userId, long parentId) {
         return new Comment(
                 commentRequest.text(),
                 parentId,
                 issueId,
-                commentRequest.userId());
+                userId
+        );
     }
 
 }

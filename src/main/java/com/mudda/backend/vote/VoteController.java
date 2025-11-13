@@ -1,5 +1,6 @@
 package com.mudda.backend.vote;
 
+import com.mudda.backend.security.SecurityUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ public class VoteController {
         return ResponseEntity.ok(voteService.findAllVotes(pageable));
     }
 
+    //    NOTE: DEVELOPER ONLY
     @GetMapping("/votes/{voteId}")
     public ResponseEntity<Vote> getVotesById(@PathVariable(name = "id") long voteId) {
         return voteService.findVoteById(voteId)
@@ -39,21 +41,24 @@ public class VoteController {
 
     // #region Commands (Write Operations)
 
-    @PostMapping("/issues/{issueId}/votes/{userId}")
-    public ResponseEntity<VoteResponse> create(@PathVariable(name = "issueId") long issueId,
-                                               @PathVariable(name = "userId") long userId) {
+    @PostMapping("/issues/{issueId}/votes")
+    public ResponseEntity<VoteResponse> create(@PathVariable(name = "issueId") long issueId) {
+        Long userId = SecurityUtil.getUserIdOrNull();
+
         return ResponseEntity.ok(voteService.create(issueId, userId));
     }
 
+    //    NOTE: DEVELOPER ONLY
     @DeleteMapping("/votes/{voteId}")
     public ResponseEntity<Void> delete(@PathVariable(name = "id") long voteId) {
         voteService.delete(voteId);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/issues/{issueId}/votes/{userId}")
-    public ResponseEntity<Void> deleteVoteOnIssueIdByUserId(@PathVariable(name = "issueId") long issueId,
-                                                            @PathVariable(name = "userId") long userId) {
+    @DeleteMapping("/issues/{issueId}/votes")
+    public ResponseEntity<Void> deleteVoteOnIssueIdByUserId(@PathVariable(name = "issueId") long issueId) {
+        Long userId = SecurityUtil.getUserIdOrNull();
+
         voteService.deleteVoteByIssueIdAndUserId(issueId, userId);
         return ResponseEntity.noContent().build();
     }

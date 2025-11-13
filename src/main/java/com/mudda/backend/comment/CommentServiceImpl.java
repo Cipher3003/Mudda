@@ -1,10 +1,8 @@
 package com.mudda.backend.comment;
 
 import com.mudda.backend.issue.IssueRepository;
-import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.utils.EntityValidator;
 import jakarta.persistence.EntityNotFoundException;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,25 +21,22 @@ public class CommentServiceImpl implements CommentService {
     private final CommentLikeService commentLikeService;
     private final CommentLikeRepository commentLikeRepository;
     private final IssueRepository issueRepository;
-    private final UserRepository userRepository;
 
     public CommentServiceImpl(CommentRepository commentRepository,
                               CommentLikeService commentLikeService,
                               CommentLikeRepository commentLikeRepository,
-                              IssueRepository issueRepository,
-                              UserRepository userRepository
+                              IssueRepository issueRepository
     ) {
         this.commentRepository = commentRepository;
         this.commentLikeService = commentLikeService;
         this.commentLikeRepository = commentLikeRepository;
         this.issueRepository = issueRepository;
-        this.userRepository = userRepository;
     }
 
     // #region Queries (Read Operations)
 
     @Override
-    public Page<CommentDetailResponse> findCommentsWithLikes(long issueId, Pageable pageable, long userId) {
+    public Page<CommentDetailResponse> findCommentsWithLikes(long issueId, Pageable pageable, Long userId) {
         Page<Comment> commentPage = commentRepository.findByIssueIdAndParentIdIsNull(issueId, pageable);
 
         List<Long> ids = commentPage.getContent()
@@ -49,25 +44,42 @@ public class CommentServiceImpl implements CommentService {
                 .map(Comment::getCommentId)
                 .toList();
 
+        if (userId == null)
+            return commentPage.map(comment ->
+                    getCommentResponseFromComment(comment, false,
+                            false, false, false));
+
         Set<Long> likedIds = commentLikeRepository.findByUserIdAndCommentIdIn(userId, ids)
                 .stream()
                 .map(CommentLike::getCommentId)
                 .collect(Collectors.toSet()); // Uses Set to keep lookup fast for mapping in below function
 
-        return commentPage.map(comment ->
-                getCommentResponseFromComment(comment, likedIds.contains(comment.getCommentId())));
+        return commentPage.map(comment -> getCommentResponseFromComment(
+                comment,
+                likedIds.contains(comment.getCommentId()),
+                true,
+                comment.getUserId().equals(userId),
+                comment.getUserId().equals(userId)
+        ));
     }
 
     @Override
-    public Optional<CommentDetailResponse> findById(long commentId, long userId) {
+    public Optional<CommentDetailResponse> findById(long commentId, Long userId) {
         boolean hasUserLiked = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
+
         return commentRepository
                 .findById(commentId)
-                .map(comment -> getCommentResponseFromComment(comment, hasUserLiked));
+                .map(comment -> getCommentResponseFromComment(
+                        comment,
+                        hasUserLiked,
+                        true,
+                        comment.getUserId().equals(userId),
+                        comment.getUserId().equals(userId)
+                ));
     }
 
     @Override
-    public Page<ReplyResponse> findAllReplies(long parentId, Pageable pageable, long userId) {
+    public Page<ReplyResponse> findAllReplies(long parentId, Pageable pageable, Long userId) {
         Page<Comment> replyPage = commentRepository.findByParentId(parentId, pageable);
 
         List<Long> ids = replyPage.getContent()
@@ -75,24 +87,48 @@ public class CommentServiceImpl implements CommentService {
                 .map(Comment::getCommentId)
                 .toList();
 
+        if (userId == null)
+            return replyPage.map(comment -> getReplyResponseFromComment(
+                    comment, false, false, false, false
+            ));
+
         Set<Long> likedIds = commentLikeRepository.findByUserIdAndCommentIdIn(userId, ids)
                 .stream()
                 .map(CommentLike::getCommentId)
                 .collect(Collectors.toSet()); // Uses Set to keep lookup fast for mapping in below function
 
-        return replyPage.map(comment ->
-                getReplyResponseFromComment(comment, likedIds.contains(comment.getCommentId())));
+        return replyPage.map(comment -> getReplyResponseFromComment(
+                comment,
+                likedIds.contains(comment.getCommentId()),
+                true,
+                comment.getUserId().equals(userId),
+                comment.getUserId().equals(userId)
+        ));
     }
 
-    private CommentDetailResponse getCommentResponseFromComment(Comment comment, boolean hasUserLiked) {
+    private CommentDetailResponse getCommentResponseFromComment(Comment comment,
+                                                                boolean hasUserLiked,
+                                                                boolean canUserLike,
+                                                                boolean canUserUpdate,
+                                                                boolean canUserDelete
+    ) {
         long likes = commentLikeService.countByCommentId(comment.getCommentId());
         long replies = commentRepository.countByParentId(comment.getCommentId());
-        return CommentMapper.toCommentResponse(comment, likes, replies, hasUserLiked);
+
+        return CommentMapper.toCommentResponse(comment, likes, replies, hasUserLiked,
+                canUserLike, canUserUpdate, canUserDelete);
     }
 
-    private ReplyResponse getReplyResponseFromComment(Comment comment, boolean hasUserLiked) {
+    private ReplyResponse getReplyResponseFromComment(Comment comment,
+                                                      boolean hasUserLiked,
+                                                      boolean canUserLike,
+                                                      boolean canUserUpdate,
+                                                      boolean canUserDelete
+    ) {
         long likes = commentLikeService.countByCommentId(comment.getCommentId());
-        return CommentMapper.toReplyResponse(comment, likes, hasUserLiked);
+
+        return CommentMapper.toReplyResponse(comment, likes, hasUserLiked,
+                canUserLike, canUserUpdate, canUserDelete);
     }
 
     // #endregion
@@ -101,23 +137,30 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
-    public CommentResponse createComment(long issueId, CreateCommentRequest createCommentRequest) {
-        validateCommentReferences(issueId, createCommentRequest.userId());
+    public CommentResponse createComment(long issueId, Long userId, CreateCommentRequest createCommentRequest) {
+        validateCommentReferences(issueId);
 
-        Comment comment = CommentMapper.toComment(createCommentRequest, issueId);
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
+        Comment comment = CommentMapper.toComment(createCommentRequest, issueId, userId);
         Comment saved = commentRepository.save(comment);
         return CommentMapper.toCommentResponse(saved);
     }
 
     @Transactional
     @Override
-    public CommentResponse createReply(long parentId, CreateCommentRequest createCommentRequest) {
-        validateReplyReferences(createCommentRequest.userId());
+    public CommentResponse createReply(long parentId, Long userId, CreateCommentRequest createCommentRequest) {
+
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
         Comment parent = commentRepository.findById(parentId)
                 .orElseThrow(() -> notFound(parentId));
 
-        Comment reply = CommentMapper.toReply(createCommentRequest, parent.getIssueId(), parentId);
+        Comment reply = CommentMapper.toReply(createCommentRequest, parent.getIssueId(), userId, parentId);
         Comment saved = commentRepository.save(reply);
         return CommentMapper.toCommentResponse(saved);
     }
@@ -158,6 +201,7 @@ public class CommentServiceImpl implements CommentService {
         commentRepository.deleteById(id);
     }
 
+    @Transactional
     @Override
     public void deleteAllCommentsByUserId(long userId) {
 //        Parent Comments
@@ -214,13 +258,23 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
-    public CommentLikeResponse likeComment(long commentId, long userId) {
+    public CommentLikeResponse likeComment(long commentId, Long userId) {
+
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
         return commentLikeService.userLikesOnComment(commentId, userId);
     }
 
     @Transactional
     @Override
-    public CommentLikeResponse deleteLikeComment(long commentId, long userId) {
+    public CommentLikeResponse deleteLikeComment(long commentId, Long userId) {
+
+//        TODO: change the exception to custom ?
+        if (userId == null)
+            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
         return commentLikeService.userRemovesLikeFromComment(commentId, userId);
     }
 
@@ -229,13 +283,8 @@ public class CommentServiceImpl implements CommentService {
     //    ------------------------------
     //    Helpers
     //    ------------------------------
-    private void validateCommentReferences(long issueId, long userId) {
+    private void validateCommentReferences(long issueId) {
         EntityValidator.validateExists(issueRepository, issueId, "Issue");
-        EntityValidator.validateExists(userRepository, userId, "User");
-    }
-
-    private void validateReplyReferences(long userId) {
-        EntityValidator.validateExists(userRepository, userId, "User");
     }
 
     private EntityNotFoundException notFound(long id) {

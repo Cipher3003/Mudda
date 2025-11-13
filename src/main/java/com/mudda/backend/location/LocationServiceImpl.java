@@ -15,6 +15,8 @@ public class LocationServiceImpl implements LocationService {
         this.locationRepository = locationRepository;
     }
 
+    // #region Queries (Read Operations)
+
     @Override
     public List<LocationResponse> findAllLocations() {
         return locationRepository.findAll().stream().map(LocationMapper::toResponse).toList();
@@ -24,6 +26,9 @@ public class LocationServiceImpl implements LocationService {
     public Optional<LocationResponse> findById(Long id) {
         return locationRepository.findById(id).map(LocationMapper::toResponse);
     }
+
+    // #endregion
+    // #region Commands (Write Operations)
 
     @Override
     public LocationResponse createLocation(CreateLocationRequest locationRequest) {
@@ -56,6 +61,11 @@ public class LocationServiceImpl implements LocationService {
         locationRepository.deleteById(id);
     }
 
+    // #endregion
+
+    //    ------------------------------
+    //    Helpers
+    //    ------------------------------
     private EntityNotFoundException notFound(Long id) {
         return new EntityNotFoundException("Location not found with id: %d".formatted(id));
     }

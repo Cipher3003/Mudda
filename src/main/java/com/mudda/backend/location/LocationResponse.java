@@ -19,7 +19,7 @@ public record LocationResponse(
         @JsonProperty("pin_code") String pinCode,
         String city,
         String state,
-        @JsonProperty("pin_code") Instant createdAt,
+        @JsonProperty("created_at") Instant createdAt,
         Point coordinate
 ) {
 }

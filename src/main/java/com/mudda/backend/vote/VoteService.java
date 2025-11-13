@@ -8,22 +8,19 @@ import java.util.Optional;
 
 public interface VoteService {
 
-    //    TODO: remove this method does not provide any value
     Page<Vote> findAllVotes(Pageable pageable);
 
-    //    TODO: remove this method does not provide any value
     Optional<Vote> findVoteById(long id);
 
-    VoteResponse create(long issueId, long userId);
+    VoteResponse create(long issueId, Long userId);
 
-    //    TODO: remove this method does not provide any value
     void delete(long id);
 
     void deleteAllVotesByIssueId(long issueId);
 
     void deleteAllVotesByUserId(long id);
 
-    void deleteVoteByIssueIdAndUserId(long issueId, long userId);
+    void deleteVoteByIssueIdAndUserId(long issueId, Long userId);
 
     void deleteAllVotesByIssueIds(List<Long> issueIds);
 

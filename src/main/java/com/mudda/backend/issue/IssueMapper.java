@@ -4,11 +4,11 @@ import com.mudda.backend.location.LocationDTO;
 
 public class IssueMapper {
 
-    public static Issue toIssue(CreateIssueRequest issueRequest) {
+    public static Issue toIssue(long userId, CreateIssueRequest issueRequest) {
         return new Issue(
                 issueRequest.title(),
                 issueRequest.description(),
-                issueRequest.userId(),
+                userId,
                 issueRequest.locationId(),
                 issueRequest.categoryId(),
                 issueRequest.mediaUrls()
@@ -16,7 +16,10 @@ public class IssueMapper {
     }
 
     public static IssueResponse toResponse(Issue issue, LocationDTO locationSummary,
-                                           String category, long voteCount, boolean hasUserLiked) {
+                                           String category, long voteCount, boolean hasUserLiked,
+                                           boolean canUserVote, boolean canUserComment,
+                                           boolean canUserEdit, boolean canUserDelete
+    ) {
         return new IssueResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -26,11 +29,15 @@ public class IssueMapper {
                 locationSummary,
                 category,
                 voteCount,
-                hasUserLiked,
                 issue.getMediaUrls(),
                 issue.getSeverityScore(),
                 issue.getCreatedAt(),
-                issue.getUpdatedAt()
+                issue.getUpdatedAt(),
+                hasUserLiked,
+                canUserVote,
+                canUserComment,
+                canUserEdit,
+                canUserDelete
         );
     }
 
@@ -43,15 +50,18 @@ public class IssueMapper {
         );
     }
 
-    public static IssueSummaryResponse toSummary(Issue issue, long voteCount, boolean hasUserLiked) {
+    public static IssueSummaryResponse toSummary(Issue issue, long voteCount,
+                                                 boolean hasUserLiked, boolean canUserVote
+    ) {
         return new IssueSummaryResponse(
                 issue.getId(),
                 issue.getTitle(),
                 issue.getStatus(),
                 voteCount,
-                hasUserLiked,
                 issue.getMediaUrls(),
-                issue.getCreatedAt()
+                issue.getCreatedAt(),
+                hasUserLiked,
+                canUserVote
         );
     }
 }

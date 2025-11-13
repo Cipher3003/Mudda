@@ -7,12 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
 
+    //    TODO: add proper authentication rules for endpoints
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -63,6 +65,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable(name = "id") long id) {
         userService.deleteUser(id);
+        SecurityContextHolder.clearContext();
         return ResponseEntity.noContent().build();
     }
 
