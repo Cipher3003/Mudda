@@ -1,0 +1,202 @@
+[
+  {
+    "userId": 5,
+    "categoryId": 1,
+    "title": "Pothole on Main Street",
+    "description": "A large pothole near the intersection causing traffic delays.",
+    "status": "OPEN",
+    "mediaUrls": ["https://example.com/pothole1.jpg"],
+    "location": {
+      "addressLine": "Main Street, Connaught Place",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110001",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [77.2090, 28.6139]
+      }
+    },
+    "createdAt": { "$date": "2025-06-01T10:15:00Z" },
+    "updatedAt": { "$date": "2025-06-01T10:15:00Z" }
+  },
+  {
+    "userId": 6,
+    "categoryId": 2,
+    "title": "Streetlight not working",
+    "description": "The streetlight in front of House #42 is out.",
+    "status": "OPEN",
+    "mediaUrls": ["https://example.com/streetlight.jpg"],
+    "location": {
+      "addressLine": "House #42, Sector 15",
+      "city": "Noida",
+      "state": "Uttar Pradesh",
+      "pincode": "201301",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [77.65, 28.7041]
+      }
+    },
+    "createdAt": { "$date": "2025-06-02T11:30:00Z" },
+    "updatedAt": { "$date": "2025-06-02T11:30:00Z" }
+  },
+  {
+    "userId": 7,
+    "categoryId": 3,
+    "title": "Overflowing Garbage",
+    "description": "Trash not collected for a week now.",
+    "status": "RESOLVED",
+    "mediaUrls": ["https://example.com/garbage.jpg"],
+    "location": {
+      "addressLine": "Near Andheri Station",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "pincode": "400053",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [72.8777, 19.0760]
+      }
+    },
+    "createdAt": { "$date": "2025-06-03T08:45:00Z" },
+    "updatedAt": { "$date": "2025-06-05T09:00:00Z" }
+  },
+  {
+    "userId": 9,
+    "categoryId": 1,
+    "title": "Broken footpath",
+    "description": "Footpath tiles are broken and dangerous.",
+    "status": "OPEN",
+    "mediaUrls": [],
+    "location": {
+      "addressLine": "T. Nagar Market",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "pincode": "600017",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [80.2707, 13.0827]
+      }
+    },
+    "createdAt": { "$date": "2025-06-04T14:20:00Z" },
+    "updatedAt": { "$date": "2025-06-04T14:20:00Z" }
+  },
+  {
+    "userId": 8,
+    "categoryId": 2,
+    "title": "Open manhole",
+    "description": "No cover on the manhole. Risk of accident.",
+    "status": "CLOSED",
+    "mediaUrls": ["https://example.com/manhole.jpg"],
+    "location": {
+      "addressLine": "Park Street",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "pincode": "700016",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [88.3639, 22.5726]
+      }
+    },
+    "createdAt": { "$date": "2025-06-05T12:00:00Z" },
+    "updatedAt": { "$date": "2025-06-06T13:00:00Z" }
+  },
+  {
+    "userId": 7,
+    "categoryId": 3,
+    "title": "Water leakage",
+    "description": "Pipe leaking for 3 days.",
+    "status": "OPEN",
+    "mediaUrls": [],
+    "location": {
+      "addressLine": "Malviya Nagar",
+      "city": "Jaipur",
+      "state": "Rajasthan",
+      "pincode": "302017",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [75.7873, 26.9124]
+      }
+    },
+    "createdAt": { "$date": "2025-06-06T07:30:00Z" },
+    "updatedAt": { "$date": "2025-06-06T07:30:00Z" }
+  },
+  {
+    "userId": 5,
+    "categoryId": 2,
+    "title": "Illegal parking",
+    "description": "Cars are blocking footpath every evening.",
+    "status": "RESOLVED",
+    "mediaUrls": ["https://example.com/parking.jpg"],
+    "location": {
+      "addressLine": "MP Nagar",
+      "city": "Bhopal",
+      "state": "Madhya Pradesh",
+      "pincode": "462011",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [77.4126, 23.2599]
+      }
+    },
+    "createdAt": { "$date": "2025-06-07T10:00:00Z" },
+    "updatedAt": { "$date": "2025-06-08T10:00:00Z" }
+  },
+  {
+    "userId": 8,
+    "categoryId": 1,
+    "title": "Fallen tree branch",
+    "description": "Tree branch has blocked one lane of traffic.",
+    "status": "CLOSED",
+    "mediaUrls": ["https://example.com/treebranch.jpg"],
+    "location": {
+      "addressLine": "MG Road",
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "pincode": "560001",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [77.5946, 12.9716]
+      }
+    },
+    "createdAt": { "$date": "2025-06-08T08:00:00Z" },
+    "updatedAt": { "$date": "2025-06-08T12:00:00Z" }
+  },
+  {
+    "userId": 6,
+    "categoryId": 3,
+    "title": "Construction debris",
+    "description": "Debris left on the road for 2 weeks.",
+    "status": "OPEN",
+    "mediaUrls": ["https://example.com/debris.jpg"],
+    "location": {
+      "addressLine": "Gandhipuram",
+      "city": "Coimbatore",
+      "state": "Tamil Nadu",
+      "pincode": "641012",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [76.9558, 11.0168]
+      }
+    },
+    "createdAt": { "$date": "2025-06-09T09:30:00Z" },
+    "updatedAt": { "$date": "2025-06-09T09:30:00Z" }
+  },
+  {
+    "userId": 7,
+    "categoryId": 1,
+    "title": "Blocked drain",
+    "description": "Drain blocked causing waterlogging.",
+    "status": "RESOLVED",
+    "mediaUrls": ["https://example.com/drain.jpg"],
+    "location": {
+      "addressLine": "Panaji Market",
+      "city": "Panaji",
+      "state": "Goa",
+      "pincode": "403001",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [74.1240, 15.2993]
+      }
+    },
+    "createdAt": { "$date": "2025-06-10T15:00:00Z" },
+    "updatedAt": { "$date": "2025-06-11T10:00:00Z" }
+  }
+]

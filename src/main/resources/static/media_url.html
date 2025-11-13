@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Image Upload to S3</title>
+</head>
+
+<body>
+    <h1>Test Image Upload to S3</h1>
+    <form action="/api/v1/amazon/images" method="post" enctype="multipart/form-data">
+        <label for="files">Select an image to upload:</label>
+        <input type="file" id="files" name="files" accept="image/*" multiple required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <h2>Uploaded Image</h2>
+    <img id="uploadedImage" src="" alt="Uploaded Image will appear here after upload."
+        style="max-width: 100%; height: auto;">
+
+    <br>
+    <br>
+
+    <button id="bucket_list_btn" onclick="listBucketContents()">List Bucket Contents</button>
+    <ul id="bucket_list"></ul>
+</body>
+
+<script>
+    async function listBucketContents() {
+        const BASE_URL = window.location.origin
+        const AMAZON_IMAGE_URL = BASE_URL + "/api/v1/amazon/images"
+        const response = await fetch(AMAZON_IMAGE_URL)
+        if (!response.ok) {
+            throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
+        }
+
+        const bucket_items = await response.json();
+        console.log(bucket_items)
+
+        const bucket_list = document.getElementById("bucket_list")
+
+        bucket_list.innerHTML = ""
+
+        bucket_items.forEach(item => {
+            const list_item = document.createElement("li")
+            list_item.style.display = "flex"
+            list_item.style.alignItems = "center"
+            list_item.style.marginBottom = "8px"
+
+            const nameSpan = document.createElement("span")
+            nameSpan.innerText = item
+
+            const deleteButton = document.createElement("button")
+            deleteButton.innerText = "Delete"
+            deleteButton.style.marginLeft = "12px"
+            deleteButton.onclick = async () => {
+                try {
+                    const res = await fetch(`${AMAZON_IMAGE_URL}/${encodeURIComponent(item)}`, {
+                        method: "DELETE"
+                    })
+
+                    if (res.ok) {
+                        list_item.remove()
+                        console.log(`Deleted ${item}`)
+                    } else {
+                        console.log(`Failed to delete file: ${item}`);
+                    }
+                } catch (error) {
+                    console.error("Error: " + error);
+                }
+            }
+
+            list_item.appendChild(nameSpan)
+            list_item.appendChild(deleteButton)
+            bucket_list.appendChild(list_item)
+        });
+    }
+
+</script>
+
+</html>

@@ -1,0 +1,274 @@
+[{
+  "_id": {
+    "$oid": "686ba5fe179aa98752785969"
+  },
+  "userName": "user01",
+  "categoryId": 1,
+  "title": "Massive pothole on main road",
+  "description": "The pothole has damaged several cars over the past week.",
+  "status": "OPEN",
+  "mediaUrls": [
+    "https://example.com/pothole2.jpg"
+  ],
+  "location": {
+    "addressLine": "Ashok Nagar",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "pincode": "600083",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        80.217,
+        13.042
+      ]
+    }
+  },
+  "createdAt": "2025-07-01T08:00:00Z",
+  "updatedAt": "2025-07-01T08:00:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa9875278596a"
+  },
+  "userName": "user04",
+  "categoryId": 2,
+  "title": "Transformer sparking",
+  "description": "The transformer near our house is sparking frequently at night.",
+  "status": "OPEN",
+  "mediaUrls": [
+    "https://example.com/transformer.jpg"
+  ],
+  "location": {
+    "addressLine": "Laxmi Nagar",
+    "city": "Delhi",
+    "state": "Delhi",
+    "pincode": "110092",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        77.273,
+        28.612
+      ]
+    }
+  },
+  "createdAt": "2025-07-01T12:00:00Z",
+  "updatedAt": "2025-07-01T12:00:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa9875278596b"
+  },
+  "userName": "user06",
+  "categoryId": 3,
+  "title": "Burst pipe leaking water",
+  "description": "Water is flooding the street from a burst underground pipe.",
+  "status": "OPEN",
+  "mediaUrls": [
+    "https://example.com/waterleak.jpg"
+  ],
+  "location": {
+    "addressLine": "Sector 62",
+    "city": "Noida",
+    "state": "Uttar Pradesh",
+    "pincode": "201301",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        77.368,
+        28.628
+      ]
+    }
+  },
+  "createdAt": "2025-07-02T09:30:00Z",
+  "updatedAt": "2025-07-02T09:30:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa9875278596c"
+  },
+  "userName": "user09",
+  "categoryId": 4,
+  "title": "Overflowing garbage bins",
+  "description": "No collection for over 5 days. The street smells terrible.",
+  "status": "RESOLVED",
+  "mediaUrls": [
+    "https://example.com/garbage2.jpg"
+  ],
+  "location": {
+    "addressLine": "Salt Lake Sector V",
+    "city": "Kolkata",
+    "state": "West Bengal",
+    "pincode": "700091",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        88.431,
+        22.579
+      ]
+    }
+  },
+  "createdAt": "2025-07-02T15:00:00Z",
+  "updatedAt": "2025-07-03T10:00:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa9875278596d"
+  },
+  "userName": "user12",
+  "categoryId": 1,
+  "title": "Damaged road divider",
+  "description": "The divider is broken and causing accidents at night.",
+  "status": "OPEN",
+  "mediaUrls": [],
+  "location": {
+    "addressLine": "Anna Salai",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "pincode": "600002",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        80.27,
+        13.068
+      ]
+    }
+  },
+  "createdAt": "2025-07-03T07:45:00Z",
+  "updatedAt": "2025-07-03T07:45:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa9875278596e"
+  },
+  "userName": "admin01",
+  "categoryId": 5,
+  "title": "Broken signage board",
+  "description": "No warning signs on a recently dug area.",
+  "status": "OPEN",
+  "mediaUrls": [
+    "https://example.com/signboard.jpg"
+  ],
+  "location": {
+    "addressLine": "Near Shivaji Park",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "pincode": "400028",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        72.84,
+        19.022
+      ]
+    }
+  },
+  "createdAt": "2025-07-04T11:15:00Z",
+  "updatedAt": "2025-07-04T11:15:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa9875278596f"
+  },
+  "userName": "user10",
+  "categoryId": 2,
+  "title": "No streetlight on entire road",
+  "description": "The entire road remains dark, it's unsafe for women and elderly.",
+  "status": "CLOSED",
+  "mediaUrls": [
+    "https://example.com/darkstreet.jpg"
+  ],
+  "location": {
+    "addressLine": "Vijay Nagar",
+    "city": "Indore",
+    "state": "Madhya Pradesh",
+    "pincode": "452010",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        75.869,
+        22.719
+      ]
+    }
+  },
+  "createdAt": "2025-07-04T19:00:00Z",
+  "updatedAt": "2025-07-05T09:00:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa98752785970"
+  },
+  "userName": "super01",
+  "categoryId": 3,
+  "title": "Sewage smell in area",
+  "description": "Bad odor all over due to sewage overflow.",
+  "status": "OPEN",
+  "mediaUrls": [],
+  "location": {
+    "addressLine": "Nungambakkam",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "pincode": "600034",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        80.234,
+        13.055
+      ]
+    }
+  },
+  "createdAt": "2025-07-05T08:30:00Z",
+  "updatedAt": "2025-07-05T08:30:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa98752785971"
+  },
+  "userName": "user07",
+  "categoryId": 4,
+  "title": "Animal carcass on footpath",
+  "description": "Dead dog on footpath, health hazard for residents.",
+  "status": "RESOLVED",
+  "mediaUrls": [
+    "https://example.com/dog.jpg"
+  ],
+  "location": {
+    "addressLine": "BTM Layout",
+    "city": "Bangalore",
+    "state": "Karnataka",
+    "pincode": "560076",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        77.61,
+        12.917
+      ]
+    }
+  },
+  "createdAt": "2025-07-06T10:00:00Z",
+  "updatedAt": "2025-07-07T08:00:00Z"
+},
+{
+  "_id": {
+    "$oid": "686ba5fe179aa98752785972"
+  },
+  "userName": "user03",
+  "categoryId": 1,
+  "title": "Cracked speed bump",
+  "description": "The speed bump is chipped and dangerous for two-wheelers.",
+  "status": "OPEN",
+  "mediaUrls": [],
+  "location": {
+    "addressLine": "JP Nagar",
+    "city": "Bangalore",
+    "state": "Karnataka",
+    "pincode": "560078",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        77.59,
+        12.905
+      ]
+    }
+  },
+  "createdAt": "2025-07-06T16:20:00Z",
+  "updatedAt": "2025-07-06T16:20:00Z"
+}]
