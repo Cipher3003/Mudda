@@ -1,5 +1,6 @@
 package com.mudda.backend.utils;
 
+import com.mudda.backend.exceptions.*;
 import jakarta.persistence.EntityNotFoundException;
 
 import jakarta.persistence.OptimisticLockException;
@@ -9,13 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import com.mudda.backend.exceptions.S3ClientException;
-import com.mudda.backend.exceptions.S3ServiceException;
 import com.amazonaws.services.appintegrations.model.DuplicateResourceException;
-import com.mudda.backend.exceptions.DatabaseSaveException;
-import com.mudda.backend.exceptions.FileConversionException;
-import com.mudda.backend.exceptions.FileSizeLimitExceededException;
-import com.mudda.backend.exceptions.InvalidImageExtensionException;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -29,8 +24,8 @@ public class GlobalExceptionHandler {
         this.messageUtil = messageUtil;
     }
 
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<?> handleDuplicateEntity(DuplicateResourceException e) {
+    @ExceptionHandler(DuplicateEntityException.class)
+    public ResponseEntity<?> handleDuplicateEntity(DuplicateEntityException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
 

@@ -1,5 +1,6 @@
 package com.mudda.backend.category;
 
+import com.mudda.backend.exceptions.DuplicateEntityException;
 import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -47,7 +48,7 @@ public class CategoryServiceImpl implements CategoryService {
         try {
             saved = categoryRepository.save(new Category(categoryRequest.name()));
         } catch (DataIntegrityViolationException e) {
-            throw new DuplicateResourceException("Category with name %s already exists"
+            throw new DuplicateEntityException("Category with name %s already exists"
                     .formatted(categoryRequest.name()));
         }
 
