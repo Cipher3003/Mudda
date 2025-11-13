@@ -16,9 +16,11 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
 
     void deleteByCommentId(long commentId);
 
-    void deleteAllByCommentId(List<Long> commentIds);
+    void deleteByUserId(long userId);
+
+    //    TODO: maybe use modifying query to directly delete instead of default fetch -> delete
+    void deleteAllByCommentIdIn(List<Long> commentIds);
 
     void deleteByCommentIdAndUserId(long commentId, long userId);
-
 
 }

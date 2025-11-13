@@ -3,6 +3,9 @@ package com.mudda.backend.role;
 import java.util.List;
 import java.util.Optional;
 
+import com.mudda.backend.exceptions.DuplicateEntityException;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,34 +18,36 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Optional<RoleResponse> findRoleById(Long id) {
+    public Optional<RoleResponse> findById(long id) {
         return roleRepository.findById(id).map(RoleResponse::from);
     }
 
     @Override
-    public List<RoleResponse> findRoleContainingText(String text) {
-        return roleRepository.findByNameContaining(text).stream()
-                .map(RoleResponse::from)
-                .toList();
-    }
-
-    @Override
-    public List<RoleResponse> findAllRoles() {
-        return roleRepository.findAll().stream()
-                .map(RoleResponse::from)
-                .toList();
+    public List<RoleResponse> findAllRoles(String name) {
+        if (name == null || name.isBlank())
+            return roleRepository.findByNameContaining(name).stream().map(RoleResponse::from).toList();
+        return roleRepository.findAll().stream().map(RoleResponse::from).toList();
     }
 
     @Override
     public RoleResponse createRole(CreateRoleRequest roleRequest) {
-        Role role = new Role(roleRequest.name());
-        Role saved = roleRepository.save(role);
+        Role saved;
+
+        try {
+            saved = roleRepository.save(new Role(roleRequest.name()));
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateEntityException("Role with name %s already exists"
+                    .formatted(roleRequest.name()));
+        }
+
         return RoleResponse.from(saved);
     }
 
     @Override
-    public void deleteRole(Long id) {
-        roleRepository.deleteById(id); // not found case is ignored
+    public void deleteRole(long id) {
+        if (!roleRepository.existsById(id))
+            throw new EntityNotFoundException("Role with id %d not found".formatted(id));
+        roleRepository.deleteById(id);
     }
 
 }

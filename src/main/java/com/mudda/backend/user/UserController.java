@@ -1,73 +1,70 @@
 package com.mudda.backend.user;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
-
 @RestController
 @RequestMapping("/api/v1/users")
-@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    // #region Queries (Read Operations)
+
     @GetMapping
-    public ResponseEntity<List<UserSummaryResponse>> getAllUsers() {
-        List<User> users = userService.findAllUsers();
-        return ResponseEntity.ok(users.stream()
-                .map(UserSummaryResponse::from)
-                .toList());
+    public ResponseEntity<Page<UserSummaryResponse>> getAllUsers(
+            @ModelAttribute(name = "filters") UserFilterRequest filterRequest,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sortBy", defaultValue = "CREATED_AT") UserSortBy sort,
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction
+    ) {
+        Pageable pageable = PageRequest.of(
+                page, size,
+                direction.equalsIgnoreCase("desc")
+                        ? Sort.by(sort.getFieldName()).descending()
+                        : Sort.by(sort.getFieldName()).ascending());
+
+        return ResponseEntity.ok(userService.findAllUsers(filterRequest, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDetailResponse> getUserById(@PathVariable(name = "id") Long id) {
-        return userService.findUserById(id)
-                .map(UserDetailResponse::from)
+    public ResponseEntity<UserDetailResponse> getUserById(@PathVariable(name = "id") long id) {
+        return userService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Get by Email
-    @GetMapping("/email/{email}")
-    public ResponseEntity<UserDetailResponse> getUserByEmail(@PathVariable(name = "email") String email) {
-        return userService.findByEmail(email)
-                .map(UserDetailResponse::from)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+    // #endregion
 
-    @GetMapping("/phone/{number}")
-    public ResponseEntity<UserDetailResponse> getUserByPhoneNumber(@PathVariable(name = "number") String number) {
-        return userService.findByPhoneNumber(number)
-                .map(UserDetailResponse::from)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+    // #region Commands (Write Operations)
 
     @PostMapping
     public ResponseEntity<UserDetailResponse> createUser(@Valid @RequestBody CreateUserRequest userRequest) {
-        User saved = userService.createUser(userRequest);
-        return ResponseEntity.ok(UserDetailResponse.from(saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequest));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserSummaryResponse> updateUser(@PathVariable(name = "id") Long id, @RequestBody User user) {
-        User updated = userService.updateUser(id, user);
-        return ResponseEntity.ok(UserSummaryResponse.from(updated));
+    public ResponseEntity<UserSummaryResponse> updateUser(@PathVariable(name = "id") long id,
+                                                          @RequestBody UpdateUserRequest userRequest) {
+        return ResponseEntity.ok(userService.updateUser(id, userRequest));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable(name = "id") Long id) {
+    public ResponseEntity<Void> delete(@PathVariable(name = "id") long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
+    // #endregion
 }

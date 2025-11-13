@@ -49,14 +49,13 @@ public class CommentServiceImpl implements CommentService {
                 .map(Comment::getCommentId)
                 .toList();
 
-//        TODO: use issueId to reduce the likedIds list
         Set<Long> likedIds = commentLikeRepository.findByUserIdAndCommentIdIn(userId, ids)
                 .stream()
                 .map(CommentLike::getCommentId)
                 .collect(Collectors.toSet()); // Uses Set to keep lookup fast for mapping in below function
 
-        return commentPage
-                .map(comment -> getCommentResponseFromComment(comment, likedIds.contains(comment.getCommentId())));
+        return commentPage.map(comment ->
+                getCommentResponseFromComment(comment, likedIds.contains(comment.getCommentId())));
     }
 
     @Override
@@ -81,8 +80,8 @@ public class CommentServiceImpl implements CommentService {
                 .map(CommentLike::getCommentId)
                 .collect(Collectors.toSet()); // Uses Set to keep lookup fast for mapping in below function
 
-        return replyPage
-                .map(comment -> getReplyResponseFromComment(comment, likedIds.contains(comment.getCommentId())));
+        return replyPage.map(comment ->
+                getReplyResponseFromComment(comment, likedIds.contains(comment.getCommentId())));
     }
 
     private CommentDetailResponse getCommentResponseFromComment(Comment comment, boolean hasUserLiked) {
@@ -159,11 +158,10 @@ public class CommentServiceImpl implements CommentService {
         commentRepository.deleteById(id);
     }
 
-    @Transactional
     @Override
-    public void deleteAllCommentsByIssueId(long issueId) {
-        // Parent Comments
-        List<Long> commentIds = commentRepository.findByIssueId(issueId)
+    public void deleteAllCommentsByUserId(long userId) {
+//        Parent Comments
+        List<Long> commentIds = commentRepository.findByUserId(userId)
                 .stream()
                 .map(Comment::getCommentId)
                 .toList();
@@ -181,6 +179,37 @@ public class CommentServiceImpl implements CommentService {
 
         commentLikeService.deleteAllByCommentId(allIds);
         commentRepository.deleteAllById(allIds);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllCommentsByIssueId(long issueId) {
+//        Fetches all comments and their replies since comment and reply both refer to issue individually
+        List<Long> commentIds = commentRepository.findByIssueId(issueId)
+                .stream()
+                .map(Comment::getCommentId)
+                .toList();
+
+        if (commentIds.isEmpty()) return;
+
+        commentLikeService.deleteAllByCommentId(commentIds);
+        commentRepository.deleteAllById(commentIds);
+    }
+
+    //    TODO: maybe refactor and combine above method and below method common functionality ?
+    @Transactional
+    @Override
+    public void deleteAllCommentsByIssueIds(List<Long> issueIds) {
+//        Fetches all comments and their replies since comment and reply both refer to issue individually
+        List<Long> commentIds = commentRepository.findByIssueIdIn(issueIds)
+                .stream()
+                .map(Comment::getCommentId)
+                .toList();
+
+        if (commentIds.isEmpty()) return;
+
+        commentLikeService.deleteAllByCommentId(commentIds);
+        commentRepository.deleteAllById(commentIds);
     }
 
     @Transactional

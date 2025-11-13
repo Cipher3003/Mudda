@@ -15,7 +15,7 @@ public record IssueResponse(
         LocationDTO locationSummary,
         String category,
         @JsonProperty("vote_count") Long voteCount,
-        @JsonProperty("has_user_liked") Boolean hasUserLiked,
+        @JsonProperty("has_user_voted") Boolean hasUserVoted,
         @JsonProperty("media_urls") List<String> mediaUrls,
         @JsonProperty("severity_score") double severityScore,
         @JsonProperty("created_at") Instant createdAt,

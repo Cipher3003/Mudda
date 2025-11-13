@@ -1,7 +1,6 @@
 package com.mudda.backend.role;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,27 +8,31 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/roles")
-@RequiredArgsConstructor
 public class RoleController {
 
     private final RoleService roleService;
 
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
+    // #region Queries (Read Operations)
+
     @GetMapping
-    public ResponseEntity<List<RoleResponse>> getAll() {
-        return ResponseEntity.ok(roleService.findAllRoles());
+    public ResponseEntity<List<RoleResponse>> getAll(@RequestParam String name) {
+        return ResponseEntity.ok(roleService.findAllRoles(name));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleResponse> getById(@PathVariable(name = "id") Long id) {
-        return roleService.findRoleById(id)
+    public ResponseEntity<RoleResponse> getById(@PathVariable(name = "id") long id) {
+        return roleService.findById(id)
                 .map(ResponseEntity::ok) // 200 ok
                 .orElse(ResponseEntity.notFound().build()); // 404 not found
     }
 
-    @GetMapping("/name/{name}")
-    public ResponseEntity<List<RoleResponse>> getById(@PathVariable(name = "name") String name) {
-        return ResponseEntity.ok(roleService.findRoleContainingText(name));
-    }
+    // #endregion
+
+    // #region Commands (Write Operations)
 
     // TODO: Validate input
     @PostMapping
@@ -39,8 +42,10 @@ public class RoleController {
 
     // TODO: not found check
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable(name = "id") Long id) {
+    public ResponseEntity<Void> delete(@PathVariable(name = "id") long id) {
         roleService.deleteRole(id);
         return ResponseEntity.noContent().build();
     }
+
+    // #endregion
 }

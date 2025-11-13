@@ -1,6 +1,7 @@
 package com.mudda.backend.role;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +10,7 @@ import java.time.Instant;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "roles")
 public class Role {
@@ -27,6 +28,8 @@ public class Role {
     private Instant updatedAt;
 
     public Role(String name) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Role name cannot be blank");
         this.name = name;
     }
 

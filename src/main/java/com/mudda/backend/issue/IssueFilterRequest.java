@@ -1,5 +1,6 @@
 package com.mudda.backend.issue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.Instant;
@@ -9,13 +10,19 @@ public record IssueFilterRequest(
         String search,
         IssueStatus status,
         Long userId,
-        Long categoryId,
+        @JsonProperty("category_id") Long categoryId,
         String city,
         String state,
         Boolean urgency,
-        Double minSeverity,
-        Double maxSeverity,
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant createdAfter,
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant createdBefore
+        @JsonProperty("min_severity") Double minSeverity,
+        @JsonProperty("max_severity") Double maxSeverity,
+
+        @JsonProperty("created_after")
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        Instant createdAfter,
+
+        @JsonProperty("created_before")
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        Instant createdBefore
 ) {
 }

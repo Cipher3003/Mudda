@@ -53,6 +53,7 @@ public class LocationController {
         return ResponseEntity.ok(locationService.updateLocation(locationId, locationRequest));
     }
 
+    //    NOTE: for developer use only
     @Transactional
     @DeleteMapping("/{locationId}")
     public ResponseEntity<Void> delete(@PathVariable(name = "locationId") Long locationId) {

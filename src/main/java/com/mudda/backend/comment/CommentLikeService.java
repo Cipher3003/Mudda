@@ -13,4 +13,6 @@ public interface CommentLikeService {
     void deleteAllByCommentId(List<Long> replyIds);
 
     void deleteByCommentId(long commentId);
+
+    void deleteAllByUserId(long userId);
 }

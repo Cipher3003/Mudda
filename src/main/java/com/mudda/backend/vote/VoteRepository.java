@@ -9,16 +9,20 @@ import java.util.List;
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
-    List<Vote> findByIssueId(Long issueId);
+    List<Vote> findByUserIdAndIssueIdIn(long userId, List<Long> issueId);
 
-    List<Vote> findByUserId(Long userId);
-
-    boolean existsByIssueIdAndUserId(Long issueId, Long userId);
+    boolean existsByIssueIdAndUserId(long issueId, long userId);
 
     @Query("SELECT COUNT(v) " +
             "FROM Vote v " +
             "WHERE v.issueId = :issueId")
-    long countByIssueId(Long issueId);
+    long countByIssueId(long issueId);
 
-    void deleteAllByIssueIdAndUserId(Long issueId, Long userId);
+    void deleteByUserId(long userId);
+
+    void deleteByIssueId(long issueId);
+
+    void deleteAllByIssueIdIn(List<Long> issueIds);
+
+    void deleteByIssueIdAndUserId(long issueId, long userId);
 }

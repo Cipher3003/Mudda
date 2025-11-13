@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class IssueServiceImpl implements IssueService {
@@ -75,8 +77,14 @@ public class IssueServiceImpl implements IssueService {
         );
 
         Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
-        List<Long> issuesVotedByUser = voteRepository.findByUserId(userId).stream()
-                .map(Vote::getIssueId).toList();
+
+        List<Long> issueIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getId)
+                .toList();
+
+        Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
+                .map(Vote::getIssueId).collect(Collectors.toSet());
 
         return issuePage.map(issue -> {
                     long voteCount = voteRepository.countByIssueId(issue.getId());
@@ -92,7 +100,7 @@ public class IssueServiceImpl implements IssueService {
 
         Issue issue = optionalIssue.get();
         long voteCount = voteRepository.countByIssueId(issue.getId());
-        boolean hasUserLiked = voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
+        boolean hasUserVoted = voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
 
         Optional<Location> location = locationRepository.findById(issue.getLocationId());
         if (location.isEmpty()) return Optional.empty();
@@ -102,7 +110,7 @@ public class IssueServiceImpl implements IssueService {
         Optional<Category> category = categoryRepository.findById(issue.getCategoryId());
 
         return category.map(categoryResponse ->
-                IssueMapper.toResponse(issue, summary, categoryResponse.getName(), voteCount, hasUserLiked)
+                IssueMapper.toResponse(issue, summary, categoryResponse.getName(), voteCount, hasUserVoted)
         );
     }
 
@@ -113,6 +121,7 @@ public class IssueServiceImpl implements IssueService {
     @Transactional
     @Override
     public IssueResponse createIssue(CreateIssueRequest issueRequest) {
+//        TODO: maybe remove unnecessary validation since fetching entities validates it
         validateReferences(issueRequest.userId(), issueRequest.locationId(), issueRequest.categoryId());
 
         Issue issue = IssueMapper.toIssue(issueRequest);
@@ -146,6 +155,7 @@ public class IssueServiceImpl implements IssueService {
         return IssueMapper.toResponse(updated);
     }
 
+    //    TODO: use delete flag to soft delete ?
     @Transactional
     @Override
     public void deleteIssue(long id) {
@@ -155,6 +165,22 @@ public class IssueServiceImpl implements IssueService {
         commentService.deleteAllCommentsByIssueId(issue.getId());
         voteService.deleteAllVotesByIssueId(issue.getId());
         issueRepository.deleteById(id);
+    }
+
+    //    TODO: use delete flag to soft delete ?
+    @Transactional
+    @Override
+    public void deleteAllIssuesByUser(long userId) {
+        List<Long> issueIds = issueRepository.findByUserId(userId)
+                .stream()
+                .map(Issue::getId)
+                .toList();
+
+        if (issueIds.isEmpty()) return;
+
+        commentService.deleteAllCommentsByIssueIds(issueIds);
+        voteService.deleteAllVotesByIssueIds(issueIds);
+        issueRepository.deleteAllById(issueIds);
     }
 
     // #endregion

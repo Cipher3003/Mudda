@@ -21,4 +21,6 @@ public interface IssueService {
      * Deletes an Issue and cleanup all related entities to it.
      */
     void deleteIssue(long id);
+
+    void deleteAllIssuesByUser(long id);
 }

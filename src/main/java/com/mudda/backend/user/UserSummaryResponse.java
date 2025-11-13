@@ -7,11 +7,4 @@ public record UserSummaryResponse(
         @JsonProperty("username") String userName,
         @JsonProperty("profile_image_url") String profileImageUrl
 ) {
-
-    public static UserSummaryResponse from(User user) {
-        return new UserSummaryResponse(
-                user.getUserId(),
-                user.getUserName(),
-                user.getProfileImageUrl());
-    }
 }

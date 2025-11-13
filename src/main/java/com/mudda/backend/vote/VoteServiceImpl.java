@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class VoteServiceImpl implements VoteService {
@@ -34,7 +35,7 @@ public class VoteServiceImpl implements VoteService {
     }
 
     @Override
-    public Optional<Vote> findVoteById(Long id) {
+    public Optional<Vote> findVoteById(long id) {
         return voteRepository.findById(id);
     }
 
@@ -42,8 +43,9 @@ public class VoteServiceImpl implements VoteService {
 
     // #region Commands (Write Operations)
 
+    @Transactional
     @Override
-    public VoteResponse create(Long issueId, Long userId) {
+    public VoteResponse create(long issueId, long userId) {
         validateReferences(issueId, userId);
 
         Vote vote = Vote.castVote(issueId, userId);
@@ -51,21 +53,34 @@ public class VoteServiceImpl implements VoteService {
         return VoteResponse.from(saved);
     }
 
+    @Transactional
     @Override
-    public void delete(Long id) {
+    public void delete(long id) {
         voteRepository.deleteById(id);
     }
 
 
+    @Transactional
     @Override
-    public void deleteAllVotesByIssueId(Long issueId) {
-        List<Vote> votes = voteRepository.findByIssueId(issueId);
-        voteRepository.deleteAll(votes);
+    public void deleteAllVotesByIssueId(long issueId) {
+        voteRepository.deleteByIssueId(issueId);
     }
 
     @Override
-    public void deleteVoteByIssueIdAndUserId(Long issueId, Long userId) {
-        voteRepository.deleteAllByIssueIdAndUserId(issueId, userId);
+    public void deleteAllVotesByUserId(long userId) {
+        voteRepository.deleteByUserId(userId);
+    }
+
+    @Transactional
+    @Override
+    public void deleteVoteByIssueIdAndUserId(long issueId, long userId) {
+        voteRepository.deleteByIssueIdAndUserId(issueId, userId);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllVotesByIssueIds(List<Long> issueIds) {
+        voteRepository.deleteAllByIssueIdIn(issueIds);
     }
 
     // #endregion

@@ -5,14 +5,12 @@ import java.util.List;
 
 public interface RoleService {
 
-    List<RoleResponse> findAllRoles();
+    List<RoleResponse> findAllRoles(String name);
 
-    Optional<RoleResponse> findRoleById(Long id);
-
-    List<RoleResponse> findRoleContainingText(String text);
+    Optional<RoleResponse> findById(long id);
 
     RoleResponse createRole(CreateRoleRequest roleRequest);
 
-    void deleteRole(Long id);
+    void deleteRole(long id);
 
 }

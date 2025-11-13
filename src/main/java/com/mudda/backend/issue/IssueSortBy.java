@@ -11,7 +11,7 @@ public enum IssueSortBy {
     CREATED_AT("createdAt"),
     UPDATED_AT("updatedAt");
 
-    final String fieldName;
+    private final String fieldName;
 
     IssueSortBy(String string) {
         this.fieldName = string;

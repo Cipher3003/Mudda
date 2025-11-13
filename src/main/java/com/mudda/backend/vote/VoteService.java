@@ -3,6 +3,7 @@ package com.mudda.backend.vote;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface VoteService {
@@ -11,14 +12,19 @@ public interface VoteService {
     Page<Vote> findAllVotes(Pageable pageable);
 
     //    TODO: remove this method does not provide any value
-    Optional<Vote> findVoteById(Long id);
+    Optional<Vote> findVoteById(long id);
 
-    VoteResponse create(Long issueId, Long userId);
+    VoteResponse create(long issueId, long userId);
 
     //    TODO: remove this method does not provide any value
-    void delete(Long id);
+    void delete(long id);
 
-    void deleteAllVotesByIssueId(Long issueId);
+    void deleteAllVotesByIssueId(long issueId);
 
-    void deleteVoteByIssueIdAndUserId(Long issueId, Long userId);
+    void deleteAllVotesByUserId(long id);
+
+    void deleteVoteByIssueIdAndUserId(long issueId, long userId);
+
+    void deleteAllVotesByIssueIds(List<Long> issueIds);
+
 }

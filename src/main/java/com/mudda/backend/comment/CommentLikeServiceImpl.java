@@ -36,12 +36,17 @@ public class CommentLikeServiceImpl implements CommentLikeService {
     }
 
     @Override
-    public void deleteAllByCommentId(List<Long> replyIds) {
-        likeRepository.deleteAllByCommentId(replyIds);
+    public void deleteAllByCommentId(List<Long> commentIds) {
+        likeRepository.deleteAllByCommentIdIn(commentIds);
     }
 
     @Override
     public void deleteByCommentId(long commentId) {
         likeRepository.deleteByCommentId(commentId);
+    }
+
+    @Override
+    public void deleteAllByUserId(long userId) {
+        likeRepository.deleteByUserId(userId);
     }
 }

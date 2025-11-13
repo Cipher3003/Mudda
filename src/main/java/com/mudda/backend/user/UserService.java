@@ -1,24 +1,21 @@
 package com.mudda.backend.user;
 
-import java.util.List;
-import java.util.Optional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public interface UserService {
-    List<User> findAllUsers();
+    Page<UserSummaryResponse> findAllUsers(UserFilterRequest filterRequest, Pageable pageable);
 
-    Optional<User> findUserById(Long id);
+    Optional<UserDetailResponse> findById(long id);
 
-    Optional<User> findByEmail(String email);
+    UserDetailResponse createUser(CreateUserRequest userRequest);
 
-    Optional<User> findByPhoneNumber(String phoneNumber);
+    UserSummaryResponse updateUser(long id, UpdateUserRequest userRequest);
 
-    User createUser(CreateUserRequest userRequest);
-
-    User updateUser(Long id, User user);
-
-    void deleteUser(Long id);
+    void deleteUser(long id);
 
 }

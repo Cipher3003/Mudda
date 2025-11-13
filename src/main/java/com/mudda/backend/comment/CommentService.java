@@ -1,9 +1,10 @@
 package com.mudda.backend.comment;
 
-import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface CommentService {
 
@@ -17,13 +18,17 @@ public interface CommentService {
 
     CommentResponse createReply(long commentId, CreateCommentRequest createCommentRequest);
 
-    CommentLikeResponse likeComment(long commentId, long userId);
-
     CommentResponse updateComment(long id, String text);
 
     void deleteComment(long id);
 
+    void deleteAllCommentsByUserId(long userId);
+
     void deleteAllCommentsByIssueId(long issueId);
+
+    void deleteAllCommentsByIssueIds(List<Long> issueIds);
+
+    CommentLikeResponse likeComment(long commentId, long userId);
 
     CommentLikeResponse deleteLikeComment(long commentId, long userId);
 
