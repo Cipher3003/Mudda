@@ -14,13 +14,13 @@ public interface VoteService {
 
     VoteResponse create(long issueId, Long userId);
 
-    void delete(long id);
+    void deleteVote(long id);
 
     void deleteAllVotesByIssueId(long issueId);
 
     void deleteAllVotesByUserId(long id);
 
-    void deleteVoteByIssueIdAndUserId(long issueId, Long userId);
+    VoteResponse deleteVoteByIssueIdAndUserId(long issueId, Long userId);
 
     void deleteAllVotesByIssueIds(List<Long> issueIds);
 
