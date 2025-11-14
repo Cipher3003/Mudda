@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.SdkClientException;
@@ -44,21 +45,48 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         this.amazonS3 = amazonS3;
     }
 
+    // #region Queries (Read Operations)
+
+    // NOTE: For testing only
+    @Override
+    public List<String> getBucketContents() {
+        List<String> objectKeys = new ArrayList<>();
+        try {
+            ObjectListing objectListing = amazonS3.listObjects(bucketName);
+
+            do {
+                for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
+                    objectKeys.add(summary.getKey());
+                }
+                objectListing = amazonS3.listNextBatchOfObjects(objectListing);
+            } while (objectListing.isTruncated());
+
+        } catch (Exception e) {
+            log.error("Failed to list objects in S3 bucket: {}", bucketName, e);
+        }
+
+        return objectKeys;
+    }
+
+    // #endregion
+
+    // #region Commands (Write Operations)
+
+    @Transactional
     @Override
     public AmazonImage uploadImageToAmazon(MultipartFile file) {
 
         // Check if file is empty or null
-        if (file == null || file.isEmpty()) {
+        if (file == null || file.isEmpty())
             throw new EmptyFileException(MessageCodes.EMPTY_FILE);
-        }
 
         // Check if file size exceeds maximum size (1MB default)
-        if (file.getSize() >= 1024 * 1024) {
+        if (file.getSize() >= 1024 * 1024)
             throw new FileSizeLimitExceededException(
                     MessageCodes.FILE_SIZE_EXCEED_LIMIT,
                     file.getSize(),
-                    1024 * 1024);
-        }
+                    1024 * 1024
+            );
 
         List<String> validExtensions = List.of("jpeg", "png", "jpg");
         String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
@@ -67,22 +95,23 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         if (fileExtension == null ||
                 validExtensions
                         .stream()
-                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))) {
+                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))
+        ) {
             throw new InvalidImageExtensionException(
                     MessageCodes.INVALID_IMAGE_EXTENSION,
-                    String.join(", ", validExtensions));
+                    String.join(", ", validExtensions)
+            );
         }
 
         // Check if file is an actual image and MIME type is an image
         String fileContentType = file.getContentType();
-        if (fileContentType == null || !fileContentType.startsWith("image/")) {
+        if (fileContentType == null || !fileContentType.startsWith("image/"))
             throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
-        }
 
         try {
-            if (ImageIO.read(file.getInputStream()) == null) {
+            if (ImageIO.read(file.getInputStream()) == null)
                 throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
-            }
+
         } catch (IOException e) {
             throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
         }
@@ -106,31 +135,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         }
     }
 
-    private String getFileUrl(String bucketName, String region) {
-        return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
-    }
-
-    // NOTE: For testing only
-    @Override
-    public List<String> getBucketContents() {
-        List<String> objectKeys = new ArrayList<>();
-        try {
-            ObjectListing objectListing = amazonS3.listObjects(bucketName);
-
-            do {
-                for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
-                    objectKeys.add(summary.getKey());
-                }
-                objectListing = amazonS3.listNextBatchOfObjects(objectListing);
-            } while (objectListing.isTruncated());
-
-        } catch (Exception e) {
-            log.error("Failed to list objects in S3 bucket: {}", bucketName, e);
-        }
-
-        return objectKeys;
-    }
-
+    @Transactional
     @Override
     public void removeImageFromAmazon(String imageFileName) {
 
@@ -142,4 +147,15 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             throw new S3ClientException(MessageCodes.AMAZON_CLIENT_ERROR);
         }
     }
+
+    // #endregion
+
+//    ------------------------------
+//    Helpers
+//    ------------------------------
+
+    private String getFileUrl(String bucketName, String region) {
+        return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
+    }
+
 }

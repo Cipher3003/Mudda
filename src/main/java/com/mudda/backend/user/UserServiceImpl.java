@@ -50,12 +50,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserSummaryResponse> findAllUsers(UserFilterRequest filterRequest, Pageable pageable) {
 
-        Specification<User> specification = Specification
-                .where(UserSpecifications.hasName(filterRequest.name())
-                        .and(UserSpecifications.hasRoleId(filterRequest.roleId()))
-                        .and(UserSpecifications.createdAfter(filterRequest.createdAfter()))
-                        .and(UserSpecifications.createdBefore(filterRequest.createdBefore()))
-                );
+        Specification<User> specification = UserSpecifications
+                .hasName(filterRequest.name())
+                .and(UserSpecifications.hasRoleId(filterRequest.roleId()))
+                .and(UserSpecifications.createdAfter(filterRequest.createdAfter()))
+                .and(UserSpecifications.createdBefore(filterRequest.createdBefore()));
+
         return userRepository.findAll(specification, pageable).map(UserMapper::toSummary);
     }
 

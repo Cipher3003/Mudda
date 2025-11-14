@@ -7,6 +7,7 @@ import com.mudda.backend.exceptions.DuplicateEntityException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RoleServiceImpl implements RoleService {
@@ -35,6 +36,7 @@ public class RoleServiceImpl implements RoleService {
 
     // #region Commands (Write Operations)
 
+    @Transactional
     @Override
     public RoleResponse createRole(CreateRoleRequest roleRequest) {
         Role saved;
@@ -49,6 +51,7 @@ public class RoleServiceImpl implements RoleService {
         return RoleResponse.from(saved);
     }
 
+    @Transactional
     @Override
     public void deleteRole(long id) {
         if (!roleRepository.existsById(id))

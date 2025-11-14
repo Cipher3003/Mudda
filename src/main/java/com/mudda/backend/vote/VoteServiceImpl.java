@@ -67,6 +67,7 @@ public class VoteServiceImpl implements VoteService {
         voteRepository.deleteByIssueId(issueId);
     }
 
+    @Transactional
     @Override
     public void deleteAllVotesByUserId(long userId) {
         voteRepository.deleteByUserId(userId);
