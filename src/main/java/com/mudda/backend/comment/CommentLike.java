@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Getter
 @Setter
 @Entity(name = "CommentLike")
@@ -29,5 +28,15 @@ public class CommentLike {
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();
+    }
+
+//    ----- Domain Constructor -----
+
+    public CommentLike(Long commentId, Long userId) {
+        if (commentId == null || userId == null)
+            throw new IllegalArgumentException("Comment and User ID's must be provided");
+
+        this.commentId = commentId;
+        this.userId = userId;
     }
 }

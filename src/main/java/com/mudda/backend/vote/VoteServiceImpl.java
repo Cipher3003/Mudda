@@ -50,16 +50,18 @@ public class VoteServiceImpl implements VoteService {
         validateReferences(issueId);
 
         Vote vote = Vote.castVote(issueId, userId);
-        Vote saved = voteRepository.save(vote);
-        return VoteResponse.from(saved);
+        voteRepository.save(vote);
+
+        long voteCount = voteRepository.countByIssueId(issueId);
+
+        return VoteResponse.from(voteCount, true);
     }
 
     @Transactional
     @Override
-    public void delete(long id) {
+    public void deleteVote(long id) {
         voteRepository.deleteById(id);
     }
-
 
     @Transactional
     @Override
@@ -67,6 +69,7 @@ public class VoteServiceImpl implements VoteService {
         voteRepository.deleteByIssueId(issueId);
     }
 
+    @Transactional
     @Override
     public void deleteAllVotesByUserId(long userId) {
         voteRepository.deleteByUserId(userId);
@@ -74,7 +77,7 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional
     @Override
-    public void deleteVoteByIssueIdAndUserId(long issueId, Long userId) {
+    public VoteResponse deleteVoteByIssueIdAndUserId(long issueId, Long userId) {
 
 //        TODO: change the exception to custom ?
         if (userId == null)
@@ -83,6 +86,9 @@ public class VoteServiceImpl implements VoteService {
         validateReferences(issueId);
 
         voteRepository.deleteByIssueIdAndUserId(issueId, userId);
+
+        long voteCount = voteRepository.countByIssueId(issueId);
+        return VoteResponse.from(voteCount, false);
     }
 
     @Transactional

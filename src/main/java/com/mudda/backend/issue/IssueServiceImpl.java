@@ -78,6 +78,7 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getId)
                 .toList();
 
+//        TODO: maybe use Vote entity's own check vote casted by user to filter this set even more
         Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
                 .map(Vote::getIssueId).collect(Collectors.toSet());
 

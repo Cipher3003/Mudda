@@ -2,13 +2,10 @@ package com.mudda.backend.category;
 
 import com.mudda.backend.exceptions.DuplicateEntityException;
 import jakarta.persistence.EntityNotFoundException;
-
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import com.amazonaws.services.appintegrations.model.DuplicateResourceException;
 
 import java.util.List;
 import java.util.Optional;

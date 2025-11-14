@@ -36,6 +36,7 @@ public class RoleServiceImpl implements RoleService {
 
     // #region Commands (Write Operations)
 
+    @Transactional
     @Override
     public RoleResponse createRole(CreateRoleRequest roleRequest) {
         Role saved;

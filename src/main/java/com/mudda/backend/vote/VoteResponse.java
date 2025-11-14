@@ -3,18 +3,16 @@ package com.mudda.backend.vote;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record VoteResponse(
-        @JsonProperty("vote_id") Long voteId,
-        @JsonProperty("issue_id") Long issueId,
-        @JsonProperty("user_id") Long userId
+        @JsonProperty("vote_count") Long voteCount,
+        @JsonProperty("has_user_voted") Boolean hasUserVoted
 ) {
     /**
      * Factory method to create VoteResponse from Vote entity
      */
-    public static VoteResponse from(Vote vote) {
+    public static VoteResponse from(long voteCount, boolean hasUserVoted) {
         return new VoteResponse(
-                vote.getVoteId(),
-                vote.getIssueId(),
-                vote.getUserId()
+                voteCount,
+                hasUserVoted
         );
     }
 }
