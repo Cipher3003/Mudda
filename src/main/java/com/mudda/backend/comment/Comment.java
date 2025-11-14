@@ -44,8 +44,8 @@ public class Comment {
 
         if (text == null || text.isBlank())
             throw new IllegalArgumentException("Comment text cannot be empty");
-        if (parentId == null || issueId == null || userId == null)
-            throw new IllegalArgumentException("Parent, Issue and User ID's must be provided");
+        if (issueId == null || userId == null)
+            throw new IllegalArgumentException("Issue and User ID's must be provided for Comment");
 
         this.text = text.trim();
         this.parentId = null;
@@ -58,7 +58,7 @@ public class Comment {
         if (text == null || text.isBlank())
             throw new IllegalArgumentException("Comment text cannot be empty");
         if (parentId == null || issueId == null || userId == null)
-            throw new IllegalArgumentException("Parent, Issue and User ID's must be provided");
+            throw new IllegalArgumentException("Parent, Issue and User ID's must be provided for Reply");
 
         this.text = text.trim();
         this.parentId = parentId;
