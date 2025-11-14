@@ -283,8 +283,12 @@ public class SeedService {
                     .mapToObj(n -> faker.internet().url())
                     .toList();
 
+            String title = faker.lorem().sentence(random.nextInt(5, 20)).trim();
+            if (title.length() > 150)
+                title = title.substring(0, 140);
+
             issueRequests.add(new CreateIssueRequest(
-                    faker.lorem().sentence(random.nextInt(5, 20)),
+                    title,
                     faker.lorem().paragraph(random.nextInt(5, 15)),
                     getRandomId(locationIds),
                     getRandomId(categoryIds),
