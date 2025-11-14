@@ -28,11 +28,11 @@ public class CommentLikeServiceImpl implements CommentLikeService {
     @Transactional
     @Override
     public CommentLikeResponse userLikesOnComment(long commentId, long userId) {
-        CommentLike commentLike = new CommentLike();
-        commentLike.setCommentId(commentId);
-        commentLike.setUserId(userId);
+        CommentLike commentLike = new CommentLike(commentId,userId);
         likeRepository.save(commentLike);
+
         long likesCount = likeRepository.countByCommentId(commentId);
+
         return new CommentLikeResponse(true, likesCount);
     }
 
@@ -40,7 +40,9 @@ public class CommentLikeServiceImpl implements CommentLikeService {
     @Override
     public CommentLikeResponse userRemovesLikeFromComment(long commentId, long userId) {
         likeRepository.deleteByCommentIdAndUserId(commentId, userId);
+
         long likesCount = likeRepository.countByCommentId(commentId);
+
         return new CommentLikeResponse(false, likesCount);
     }
 

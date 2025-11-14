@@ -41,6 +41,7 @@ public class VoteController {
 
     // #region Commands (Write Operations)
 
+    //    TODO: return VoteResponse with vote count and has user voted
     @PostMapping("/issues/{issueId}/votes")
     public ResponseEntity<VoteResponse> create(@PathVariable(name = "issueId") long issueId) {
         Long userId = SecurityUtil.getUserIdOrNull();
@@ -55,6 +56,7 @@ public class VoteController {
         return ResponseEntity.noContent().build();
     }
 
+    //    TODO: return VoteResponse with vote count and has user voted
     @DeleteMapping("/issues/{issueId}/votes")
     public ResponseEntity<Void> deleteVoteOnIssueIdByUserId(@PathVariable(name = "issueId") long issueId) {
         Long userId = SecurityUtil.getUserIdOrNull();
