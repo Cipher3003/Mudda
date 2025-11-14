@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -97,6 +98,19 @@ public class UserServiceImpl implements UserService {
         User user = UserMapper.toUser(userRequest);
         user.setHashedPassword(passwordEncoder.encode(userRequest.password()));
         return UserMapper.toDetail(userRepository.save(user), optionalRole.get().getName());
+    }
+
+    @Transactional
+    @Override
+    public List<Long> createUsers(List<CreateUserRequest> userRequests) {
+        List<User> users = userRepository.saveAll(
+                userRequests
+                        .stream()
+                        .map(UserMapper::toUser)
+                        .toList()
+        );
+
+        return users.stream().map(User::getUserId).toList();
     }
 
     @Transactional

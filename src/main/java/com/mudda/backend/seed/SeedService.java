@@ -1,25 +1,18 @@
 package com.mudda.backend.seed;
 
 import com.github.javafaker.Faker;
-import com.mudda.backend.category.CategoryResponse;
 import com.mudda.backend.category.CategoryService;
 import com.mudda.backend.category.CreateCategoryRequest;
-import com.mudda.backend.comment.Comment;
-import com.mudda.backend.comment.CommentMapper;
 import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.comment.CreateCommentRequest;
 import com.mudda.backend.issue.CreateIssueRequest;
-import com.mudda.backend.issue.IssueResponse;
 import com.mudda.backend.issue.IssueService;
 import com.mudda.backend.location.CoordinateDTO;
 import com.mudda.backend.location.CreateLocationRequest;
-import com.mudda.backend.location.LocationResponse;
 import com.mudda.backend.location.LocationService;
 import com.mudda.backend.role.CreateRoleRequest;
-import com.mudda.backend.role.RoleResponse;
 import com.mudda.backend.role.RoleService;
 import com.mudda.backend.user.CreateUserRequest;
-import com.mudda.backend.user.User;
 import com.mudda.backend.user.UserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -47,9 +40,13 @@ public class SeedService {
     private final IssueService issueService;
     private final CommentService commentService;
 
-    public SeedService(RoleService roleService, CategoryService categoryService,
-            LocationService locationService, UserService userService,
-            IssueService issueService, CommentService commentService) {
+    public SeedService(RoleService roleService,
+                       CategoryService categoryService,
+                       LocationService locationService,
+                       UserService userService,
+                       IssueService issueService,
+                       CommentService commentService
+    ) {
         this.roleService = roleService;
         this.categoryService = categoryService;
         this.locationService = locationService;
@@ -79,7 +76,6 @@ public class SeedService {
                 "Comment",
                 "Vote",
                 "Issue",
-
                 "User",
                 "Location",
                 "Locality",
@@ -149,36 +145,38 @@ public class SeedService {
         // --- Improvement 1: More efficient processing using a Map ---
         // This avoids iterating over the request list multiple times.
         Map<Entity, Integer> generationMap = new EnumMap<>(Entity.class);
-        request.seedDTOList().forEach(dto -> generationMap.put(dto.entity(), dto.count()));
+        request.seedDTOList()
+                .forEach(dto ->
+                        generationMap.put(dto.entity(), dto.count())
+                );
 
         // --- Process entities in a fixed order that respects dependencies ---
-        if (generationMap.containsKey(Entity.Role)) {
+        if (generationMap.containsKey(Entity.Role))
             generateRoles(generationMap.get(Entity.Role), roleIds, feedback);
-        }
-        if (generationMap.containsKey(Entity.Location)) {
-            generateLocations(generationMap.get(Entity.Location), locationIds, feedback);
-        }
-        if (generationMap.containsKey(Entity.Category)) {
-            generateCategories(generationMap.get(Entity.Category), categoryIds, feedback);
-        }
-        if (generationMap.containsKey(Entity.User)) {
-            generateUsers(generationMap.get(Entity.User), userIds, roleIds, feedback);
-        }
-        if (generationMap.containsKey(Entity.Issue)) {
-            generateIssues(generationMap.get(Entity.Issue), issueIds, userIds, locationIds, categoryIds, feedback);
-        }
-        if (generationMap.containsKey(Entity.Comment)) {
-            generateComments(generationMap.get(Entity.Comment), topLevelCommentIds, issueIds, userIds, feedback);
-        }
-        if (generationMap.containsKey(Entity.Reply)) {
-            generateReplies(generationMap.get(Entity.Reply), topLevelCommentIds, issueIds, userIds, feedback);
-        }
 
-        if (feedback.isEmpty()) {
+        if (generationMap.containsKey(Entity.User))
+            generateUsers(generationMap.get(Entity.User), userIds, roleIds, feedback);
+
+        if (generationMap.containsKey(Entity.Location))
+            generateLocations(generationMap.get(Entity.Location), locationIds, feedback);
+
+        if (generationMap.containsKey(Entity.Category))
+            generateCategories(generationMap.get(Entity.Category), categoryIds, feedback);
+
+        if (generationMap.containsKey(Entity.Issue))
+            generateIssues(generationMap.get(Entity.Issue), issueIds, userIds, locationIds, categoryIds, feedback);
+
+        if (generationMap.containsKey(Entity.Comment))
+            generateComments(generationMap.get(Entity.Comment), topLevelCommentIds, issueIds, userIds, feedback);
+
+        if (generationMap.containsKey(Entity.Reply))
+            generateReplies(generationMap.get(Entity.Reply), topLevelCommentIds, issueIds, userIds, feedback);
+
+        if (feedback.isEmpty())
             feedback.add("No entities requested for generation.");
-        } else if (feedback.stream().noneMatch(msg -> msg.startsWith("ERROR:"))) {
+        else if (feedback.stream().noneMatch(msg -> msg.startsWith("ERROR:")))
             feedback.add("All requested entities generated successfully.");
-        }
+
         return feedback;
     }
 
@@ -186,45 +184,13 @@ public class SeedService {
 
     private void generateRoles(int count, List<Long> roleIds, List<String> feedback) {
         feedback.add("Generating " + count + " roles...");
+        List<CreateRoleRequest> roleRequests = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             // Appending a random number to ensure the role name is unique
             String uniqueRoleName = faker.job().title() + " " + random.nextInt(100000);
-            CreateRoleRequest request = new CreateRoleRequest(uniqueRoleName);
-            // In a real app: roleService.createRole(request);
-            RoleResponse role = roleService.createRole(request);
-            // Simulating DB save by adding a generated ID to our list.
-            roleIds.add(role.roleId());
+            roleRequests.add(new CreateRoleRequest(uniqueRoleName));
         }
-    }
-
-    private void generateLocations(int count, List<Long> locationIds, List<String> feedback) {
-        feedback.add("Generating " + count + " locations...");
-        for (int i = 0; i < count; i++) {
-            CoordinateDTO coordinate = new CoordinateDTO(
-                    Double.parseDouble(faker.address().latitude().replace(',', '.')),
-                    Double.parseDouble(faker.address().longitude().replace(',', '.')));
-            CreateLocationRequest request = new CreateLocationRequest(
-                    faker.address().streetAddress(),
-                    faker.address().zipCode(),
-                    faker.address().city(),
-                    faker.address().state(),
-                    coordinate);
-            // In a real app: locationService.createLocation(request);
-            LocationResponse location = locationService.createLocation(request);
-            locationIds.add(location.locationId());
-        }
-    }
-
-    private void generateCategories(int count, List<Long> categoryIds, List<String> feedback) {
-        feedback.add("Generating " + count + " categories...");
-        for (int i = 0; i < count; i++) {
-            // Appending a random number to ensure the category name is unique
-            String uniqueCategoryName = faker.commerce().department() + " " + random.nextInt(100000);
-            CreateCategoryRequest request = new CreateCategoryRequest(uniqueCategoryName);
-            // In a real app: categoryService.createCategory(request);
-            CategoryResponse category = categoryService.createCategory(request);
-            categoryIds.add(category.id());
-        }
+        roleIds.addAll(roleService.createRoles(roleRequests));
     }
 
     private void generateUsers(int count, List<Long> userIds, List<Long> roleIds, List<String> feedback) {
@@ -233,6 +199,8 @@ public class SeedService {
             return;
         }
         feedback.add("Generating " + count + " users...");
+
+        List<CreateUserRequest> userRequests = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             // Generate unique username, email, and phone number to avoid constraint
             // violations
@@ -241,7 +209,8 @@ public class SeedService {
             String uniqueUsername = baseUsername + uniqueSuffix;
             String uniqueEmail = uniqueUsername + "@example.com";
             String uniquePhoneNumber = "+919" + faker.number().digits(9); // Create a unique 12-digit number
-            CreateUserRequest request = new CreateUserRequest(
+
+            userRequests.add(new CreateUserRequest(
                     uniqueUsername,
                     faker.name().fullName(),
                     uniqueEmail,
@@ -249,89 +218,134 @@ public class SeedService {
                     uniquePhoneNumber,
                     faker.internet().password(),
                     getRandomId(roleIds), // Get a random existing role ID
-                    faker.avatar().image());
-            // In a real app: userService.createUser(request);
-            User user = userService.createUser(request);
-            userIds.add(user.getUserId());
+                    faker.avatar().image()
+            ));
         }
+        userIds.addAll(userService.createUsers(userRequests));
+    }
+
+    private void generateLocations(int count, List<Long> locationIds, List<String> feedback) {
+        feedback.add("Generating " + count + " locations...");
+        List<CreateLocationRequest> locationRequests = new ArrayList<>();
+
+        for (int i = 0; i < count; i++) {
+            CoordinateDTO coordinate = new CoordinateDTO(
+                    Double.parseDouble(faker.address().latitude().replace(',', '.')),
+                    Double.parseDouble(faker.address().longitude().replace(',', '.')));
+
+            CreateLocationRequest request = new CreateLocationRequest(
+                    faker.address().streetAddress(),
+                    faker.address().zipCode(),
+                    faker.address().city(),
+                    faker.address().state(),
+                    coordinate);
+
+            locationRequests.add(request);
+        }
+        locationIds.addAll(locationService.createLocations(locationRequests));
+    }
+
+    private void generateCategories(int count, List<Long> categoryIds, List<String> feedback) {
+        feedback.add("Generating " + count + " categories...");
+        List<CreateCategoryRequest> categoryRequests = new ArrayList<>();
+
+        for (int i = 0; i < count; i++) {
+            // Appending a random number to ensure the category name is unique
+            String uniqueCategoryName = faker.commerce().department() + " " + random.nextInt(100000);
+            categoryRequests.add(new CreateCategoryRequest(uniqueCategoryName));
+        }
+
+        categoryIds.addAll(categoryService.createCategories(categoryRequests));
     }
 
     private void generateIssues(int count, List<Long> issueIds, List<Long> userIds,
-            List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
+                                List<Long> locationIds, List<Long> categoryIds, List<String> feedback
+    ) {
         if (userIds.isEmpty() || locationIds.isEmpty() || categoryIds.isEmpty()) {
             feedback.add("Cannot generate issues: Missing Users, Locations, or Categories. " +
                     "Add users, locations, categories in request.");
             return;
         }
         feedback.add("Generating " + count + " issues...");
+
+        List<CreateIssueRequest> issueRequests = new ArrayList<>();
+        List<Long> users = new ArrayList<>();
+
         for (int i = 0; i < count; i++) {
-            List<String> media = IntStream.range(0, faker.number().numberBetween(1, 5))
+            List<String> media = IntStream
+                    .range(0, faker.number().numberBetween(1, 5))
                     .mapToObj(n -> faker.internet().url())
                     .toList();
 
-            CreateIssueRequest request = new CreateIssueRequest(
+            issueRequests.add(new CreateIssueRequest(
                     faker.lorem().sentence(),
                     faker.lorem().paragraph(),
-                    getRandomId(userIds),
                     getRandomId(locationIds),
                     getRandomId(categoryIds),
-                    media);
-            // In a real app: issueService.createIssue(request);
-            IssueResponse issue = issueService.createIssue(request);
-            issueIds.add(issue.id());
+                    media
+            ));
+
+            users.add(getRandomId(userIds));
         }
+        issueIds.addAll(issueService.createIssues(users, issueRequests));
     }
 
-    private void generateComments(int count, List<Long> topLevelCommentIds, List<Long> issueIds,
-            List<Long> userIds, List<String> feedback) {
+    private void generateComments(int count, List<Long> parentCommentIds, List<Long> issueIds,
+                                  List<Long> userIds, List<String> feedback) {
         if (issueIds.isEmpty() || userIds.isEmpty()) {
             feedback.add("Cannot generate comments: Missing Issues or Users. Add issues, users in request");
             return;
         }
         feedback.add("Generating " + count + " top-level comments...");
+
+        List<CreateCommentRequest> commentRequests = new ArrayList<>();
+        List<Long> issues = new ArrayList<>();
+        List<Long> users = new ArrayList<>();
+
         for (int i = 0; i < count; i++) {
-            CreateCommentRequest request = new CreateCommentRequest(
-                    faker.lorem().paragraph(),
-                    getRandomId(issueIds),
-                    getRandomId(userIds),
-                    null // This is a top-level comment, so parentId is null
-            );
-            // In a real app: commentService.createComment(request);
-            Comment comment = commentService.createComment(CommentMapper.toComment(request));
-            // Simulating DB save and adding new comment's ID to the list for potential
-            // replies.
-            topLevelCommentIds.add(comment.getCommentId());
+            commentRequests.add(new CreateCommentRequest(
+                    faker.lorem().paragraph()
+            ));
+
+            issues.add(getRandomId(issueIds));
+            users.add(getRandomId(userIds));
         }
+
+        parentCommentIds.addAll(commentService.createComments(issues, users, commentRequests));
     }
 
-    private void generateReplies(int count, List<Long> topLevelCommentIds, List<Long> issueIds,
-            List<Long> userIds, List<String> feedback) {
-        if (topLevelCommentIds.isEmpty() || userIds.isEmpty() || issueIds.isEmpty()) {
+    private void generateReplies(int count, List<Long> parentCommentIds, List<Long> issueIds,
+                                 List<Long> userIds, List<String> feedback) {
+        if (parentCommentIds.isEmpty() || userIds.isEmpty() || issueIds.isEmpty()) {
             feedback.add("Cannot generate replies: Missing parent Comments, Users, or Issues. " +
                     "Add comments, users, issues in request");
             return;
         }
         feedback.add("Generating " + count + " replies...");
+
+        List<CreateCommentRequest> replyRequests = new ArrayList<>();
+        List<Long> parents = new ArrayList<>();
+        List<Long> issues = new ArrayList<>();
+        List<Long> users = new ArrayList<>();
+
         for (int i = 0; i < count; i++) {
-            Long parentId = getRandomId(topLevelCommentIds);
-            CreateCommentRequest request = new CreateCommentRequest(
-                    faker.lorem().paragraph(),
-                    getRandomId(issueIds), // A reply still belongs to an issue
-                    getRandomId(userIds),
-                    parentId // This is a reply, so parentId is set
-            );
-            // In a real app: commentService.createComment(request);
-            commentService.createComment(CommentMapper.toComment(request));
+            replyRequests.add(new CreateCommentRequest(
+                    faker.lorem().paragraph()
+            ));
+            parents.add(getRandomId(parentCommentIds));
+            issues.add(getRandomId(issueIds));
+            users.add(getRandomId(userIds));
         }
+
+        commentService.createReplies(parents, users, issues, replyRequests);
     }
 
     /**
      * Utility method to pick a random ID from a list of existing IDs.
      */
     private Long getRandomId(List<Long> idList) {
-        if (idList == null || idList.isEmpty()) {
-            return null;
-        }
+        if (idList == null || idList.isEmpty()) return null;
+
         return idList.get(random.nextInt(idList.size()));
     }
 }

@@ -57,6 +57,20 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
+    public List<Long> createCategories(List<CreateCategoryRequest> categoryRequests) {
+        List<Category> categories = categoryRepository.saveAll(
+                categoryRequests
+                        .stream()
+                        .map(categoryRequest ->
+                                new Category(categoryRequest.name()))
+                        .toList()
+        );
+
+        return categories.stream().map(Category::getId).toList();
+    }
+
+    @Transactional
+    @Override
     public void deleteCategory(long id) {
         categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id " + id));

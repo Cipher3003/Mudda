@@ -7,6 +7,7 @@ import com.mudda.backend.exceptions.DuplicateEntityException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RoleServiceImpl implements RoleService {
@@ -47,6 +48,20 @@ public class RoleServiceImpl implements RoleService {
         }
 
         return RoleResponse.from(saved);
+    }
+
+    @Transactional
+    @Override
+    public List<Long> createRoles(List<CreateRoleRequest> roleRequests) {
+        List<Role> roles = roleRepository.saveAll(roleRequests
+                .stream()
+                .map(roleRequest -> new Role(roleRequest.name()))
+                .toList());
+
+        return roles
+                .stream()
+                .map(Role::getRoleId)
+                .toList();
     }
 
     @Override

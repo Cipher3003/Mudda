@@ -11,6 +11,8 @@ public interface RoleService {
 
     RoleResponse createRole(CreateRoleRequest roleRequest);
 
+    List<Long> createRoles(List<CreateRoleRequest> roleRequests);
+
     void deleteRole(long id);
 
 }

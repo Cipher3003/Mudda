@@ -16,7 +16,11 @@ public interface CommentService {
 
     CommentResponse createComment(long issueId, Long userId, CreateCommentRequest createCommentRequest);
 
+    List<Long> createComments(List<Long> issueIds, List<Long> userIds, List<CreateCommentRequest> createCommentRequests);
+
     CommentResponse createReply(long commentId, Long userId, CreateCommentRequest createCommentRequest);
+
+    List<Long> createReplies(List<Long> parentIds, List<Long> userIds, List<Long> issueIds, List<CreateCommentRequest> createCommentRequests);
 
     CommentResponse updateComment(long id, String text);
 
