@@ -80,7 +80,6 @@ public class SeedService {
                 "Issue",
                 "User",
                 "Location",
-                "Locality",
                 "Category",
                 "Role");
 
@@ -105,7 +104,6 @@ public class SeedService {
                     "issues_issue_id_seq",
                     "users_user_id_seq",
                     "locations_location_id_seq",
-                    "localities_locality_id_seq",
                     "categories_category_id_seq",
                     "roles_role_id_seq");
 
