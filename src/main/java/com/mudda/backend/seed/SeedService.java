@@ -1,6 +1,5 @@
 package com.mudda.backend.seed;
 
-import com.github.javafaker.Faker;
 import com.mudda.backend.category.CategoryService;
 import com.mudda.backend.category.CreateCategoryRequest;
 import com.mudda.backend.comment.CommentService;
@@ -16,20 +15,24 @@ import com.mudda.backend.user.CreateUserRequest;
 import com.mudda.backend.user.UserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import net.datafaker.Faker;
+import net.datafaker.providers.base.Text;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.IntStream;
+
+import static net.datafaker.providers.base.Text.DIGITS;
+import static net.datafaker.providers.base.Text.EN_UPPERCASE;
 
 @Service
 public class SeedService {
 
     @PersistenceContext
     private EntityManager entityManager;
-    private final Faker faker = new Faker();
     private final Random random = new Random();
+    private final Faker faker = new Faker(random);
 
     // In a real application, these services would be injected.
     // For this example, we are instantiating them directly.
@@ -41,12 +44,11 @@ public class SeedService {
     private final CommentService commentService;
 
     public SeedService(RoleService roleService,
-                       CategoryService categoryService,
-                       LocationService locationService,
-                       UserService userService,
-                       IssueService issueService,
-                       CommentService commentService
-    ) {
+            CategoryService categoryService,
+            LocationService locationService,
+            UserService userService,
+            IssueService issueService,
+            CommentService commentService) {
         this.roleService = roleService;
         this.categoryService = categoryService;
         this.locationService = locationService;
@@ -132,6 +134,7 @@ public class SeedService {
         return feedback;
     }
 
+    @Transactional
     public List<String> seedDatabase(CreateSeedRequest request) {
         // --- Data stores to simulate database primary keys for relationships ---
         List<String> feedback = new ArrayList<>();
@@ -146,9 +149,7 @@ public class SeedService {
         // This avoids iterating over the request list multiple times.
         Map<Entity, Integer> generationMap = new EnumMap<>(Entity.class);
         request.seedDTOList()
-                .forEach(dto ->
-                        generationMap.put(dto.entity(), dto.count())
-                );
+                .forEach(dto -> generationMap.put(dto.entity(), dto.count()));
 
         // --- Process entities in a fixed order that respects dependencies ---
         if (generationMap.containsKey(Entity.Role))
@@ -205,21 +206,27 @@ public class SeedService {
             // Generate unique username, email, and phone number to avoid constraint
             // violations
             String uniqueSuffix = String.valueOf(random.nextInt(100000));
-            String baseUsername = faker.name().username().replaceAll("[^a-zA-Z0-9]", ""); // Sanitize username
+            String baseUsername = faker.credentials().username().replaceAll("[^a-zA-Z0-9]", ""); // Sanitize username
             String uniqueUsername = baseUsername + uniqueSuffix;
             String uniqueEmail = uniqueUsername + "@example.com";
             String uniquePhoneNumber = "+919" + faker.number().digits(9); // Create a unique 12-digit number
+            String password = faker.text().text(
+                    Text.TextSymbolsBuilder
+                            .builder()
+                            .len(8)
+                            .with(EN_UPPERCASE, 2)
+                            .with(DIGITS, 3)
+                            .build());
 
             userRequests.add(new CreateUserRequest(
                     uniqueUsername,
                     faker.name().fullName(),
                     uniqueEmail,
-                    faker.date().birthday().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+                    faker.timeAndDate().birthday(),
                     uniquePhoneNumber,
-                    faker.internet().password(),
+                    password,
                     getRandomId(roleIds), // Get a random existing role ID
-                    faker.avatar().image()
-            ));
+                    faker.avatar().image()));
         }
         userIds.addAll(userService.createUsers(userRequests));
     }
@@ -259,8 +266,7 @@ public class SeedService {
     }
 
     private void generateIssues(int count, List<Long> issueIds, List<Long> userIds,
-                                List<Long> locationIds, List<Long> categoryIds, List<String> feedback
-    ) {
+            List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
         if (userIds.isEmpty() || locationIds.isEmpty() || categoryIds.isEmpty()) {
             feedback.add("Cannot generate issues: Missing Users, Locations, or Categories. " +
                     "Add users, locations, categories in request.");
@@ -278,12 +284,11 @@ public class SeedService {
                     .toList();
 
             issueRequests.add(new CreateIssueRequest(
-                    faker.lorem().sentence(),
-                    faker.lorem().paragraph(),
+                    faker.lorem().sentence(random.nextInt(5, 20)),
+                    faker.lorem().paragraph(random.nextInt(5, 15)),
                     getRandomId(locationIds),
                     getRandomId(categoryIds),
-                    media
-            ));
+                    media));
 
             users.add(getRandomId(userIds));
         }
@@ -291,7 +296,7 @@ public class SeedService {
     }
 
     private void generateComments(int count, List<Long> parentCommentIds, List<Long> issueIds,
-                                  List<Long> userIds, List<String> feedback) {
+            List<Long> userIds, List<String> feedback) {
         if (issueIds.isEmpty() || userIds.isEmpty()) {
             feedback.add("Cannot generate comments: Missing Issues or Users. Add issues, users in request");
             return;
@@ -304,8 +309,7 @@ public class SeedService {
 
         for (int i = 0; i < count; i++) {
             commentRequests.add(new CreateCommentRequest(
-                    faker.lorem().paragraph()
-            ));
+                    faker.lorem().paragraph(random.nextInt(5, 15))));
 
             issues.add(getRandomId(issueIds));
             users.add(getRandomId(userIds));
@@ -315,7 +319,7 @@ public class SeedService {
     }
 
     private void generateReplies(int count, List<Long> parentCommentIds, List<Long> issueIds,
-                                 List<Long> userIds, List<String> feedback) {
+            List<Long> userIds, List<String> feedback) {
         if (parentCommentIds.isEmpty() || userIds.isEmpty() || issueIds.isEmpty()) {
             feedback.add("Cannot generate replies: Missing parent Comments, Users, or Issues. " +
                     "Add comments, users, issues in request");
@@ -330,8 +334,7 @@ public class SeedService {
 
         for (int i = 0; i < count; i++) {
             replyRequests.add(new CreateCommentRequest(
-                    faker.lorem().paragraph()
-            ));
+                    faker.lorem().paragraph(random.nextInt(5, 15))));
             parents.add(getRandomId(parentCommentIds));
             issues.add(getRandomId(issueIds));
             users.add(getRandomId(userIds));
@@ -344,7 +347,8 @@ public class SeedService {
      * Utility method to pick a random ID from a list of existing IDs.
      */
     private Long getRandomId(List<Long> idList) {
-        if (idList == null || idList.isEmpty()) return null;
+        if (idList == null || idList.isEmpty())
+            return null;
 
         return idList.get(random.nextInt(idList.size()));
     }
