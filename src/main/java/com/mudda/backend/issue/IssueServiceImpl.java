@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class IssueServiceImpl implements IssueService {
@@ -152,6 +153,19 @@ public class IssueServiceImpl implements IssueService {
                 false,
                 true, true, true, true
         );
+    }
+
+    @Transactional
+    @Override
+    public List<Long> createIssues(List<Long> userIds, List<CreateIssueRequest> issueRequests) {
+        List<Issue> issues = issueRepository.saveAll(
+                IntStream
+                        .range(0, userIds.size())
+                        .mapToObj(index ->
+                                IssueMapper.toIssue(userIds.get(index), issueRequests.get(index)))
+                        .toList());
+
+        return issues.stream().map(Issue::getId).toList();
     }
 
     @Transactional

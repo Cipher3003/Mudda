@@ -53,6 +53,19 @@ public class RoleServiceImpl implements RoleService {
 
     @Transactional
     @Override
+    public List<Long> createRoles(List<CreateRoleRequest> roleRequests) {
+        List<Role> roles = roleRepository.saveAll(roleRequests
+                .stream()
+                .map(roleRequest -> new Role(roleRequest.name()))
+                .toList());
+
+        return roles
+                .stream()
+                .map(Role::getRoleId)
+                .toList();
+    }
+
+    @Override
     public void deleteRole(long id) {
         if (!roleRepository.existsById(id))
             throw new EntityNotFoundException("Role with id %d not found".formatted(id));

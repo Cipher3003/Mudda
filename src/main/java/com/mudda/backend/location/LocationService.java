@@ -10,6 +10,8 @@ public interface LocationService {
 
     LocationResponse createLocation(CreateLocationRequest locationRequest);
 
+    List<Long> createLocations(List<CreateLocationRequest> locationRequests);
+
     LocationResponse updateLocation(Long id, UpdateLocationRequest locationRequest);
 
     void deleteLocation(Long id);

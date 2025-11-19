@@ -63,3 +63,4 @@ terraform.rc
 
 # Terminal files
 *.fish
+*.sh

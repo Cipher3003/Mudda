@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -151,6 +152,29 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
+    public List<Long> createComments(List<Long> issueIds, List<Long> userIds,
+                                     List<CreateCommentRequest> createCommentRequests
+    ) {
+        return commentRepository
+                .saveAll(
+                        IntStream
+                                .range(0, issueIds.size())
+                                .mapToObj(index ->
+                                        CommentMapper.toComment(
+                                                createCommentRequests.get(index),
+                                                issueIds.get(index),
+                                                userIds.get(index)
+                                        )
+                                )
+                                .toList()
+                )
+                .stream()
+                .map(Comment::getCommentId)
+                .toList();
+    }
+
+    @Transactional
+    @Override
     public CommentResponse createReply(long parentId, Long userId, CreateCommentRequest createCommentRequest) {
 
 //        TODO: change the exception to custom ?
@@ -163,6 +187,29 @@ public class CommentServiceImpl implements CommentService {
         Comment reply = CommentMapper.toReply(createCommentRequest, parent.getIssueId(), userId, parentId);
         Comment saved = commentRepository.save(reply);
         return CommentMapper.toCommentResponse(saved);
+    }
+
+    @Transactional
+    @Override
+    public List<Long> createReplies(List<Long> parentIds, List<Long> userIds,
+                                    List<Long> issueIds,
+                                    List<CreateCommentRequest> createCommentRequests
+    ) {
+        return commentRepository
+                .saveAll(IntStream.range(0, parentIds.size())
+                        .mapToObj(index ->
+                                CommentMapper.toReply(
+                                        createCommentRequests.get(index),
+                                        issueIds.get(index),
+                                        userIds.get(index),
+                                        parentIds.get(index)
+                                )
+                        )
+                        .toList()
+                )
+                .stream()
+                .map(Comment::getCommentId)
+                .toList();
     }
 
     @Transactional

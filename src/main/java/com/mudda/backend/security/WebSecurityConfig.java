@@ -13,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-//    TODO: upgrade to JWT
+    // TODO: upgrade to JWT
 
     private final CustomUserDetailsService userDetailsService;
 
@@ -27,13 +27,16 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         (requests) -> requests
-//                                Public Reads
+                                // Public Reads
                                 .requestMatchers(
                                         "/swagger-ui.html",
                                         "/swagger-ui/**",
                                         "/v3/api-docs/**",
-                                        "/v3/api-docs"
-                                )
+                                        "/v3/api-docs")
+                                .permitAll()
+                                .requestMatchers("/seed.html")
+                                .permitAll()
+                                .requestMatchers("/api/v1/seed/**")
                                 .permitAll()
                                 .requestMatchers("/media_url.html")
                                 .permitAll()
@@ -53,11 +56,10 @@ public class WebSecurityConfig {
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/locations/**")
                                 .permitAll()
-//
-//                                Everything Else Needs Login
+                                //
+                                // Everything Else Needs Login
                                 .anyRequest()
-                                .authenticated()
-                )
+                                .authenticated())
                 .userDetailsService(userDetailsService)
                 .httpBasic(Customizer.withDefaults());
 

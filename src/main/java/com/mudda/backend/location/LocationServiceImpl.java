@@ -41,6 +41,18 @@ public class LocationServiceImpl implements LocationService {
 
     @Transactional
     @Override
+    public List<Long> createLocations(List<CreateLocationRequest> locationRequests) {
+        List<Location> locations = locationRepository.saveAll(
+                locationRequests
+                        .stream()
+                        .map(LocationMapper::toLocation)
+                        .toList()
+        );
+
+        return locations.stream().map(Location::getLocationId).toList();
+    }
+
+    @Override
     public LocationResponse updateLocation(Long id, UpdateLocationRequest locationRequest) {
         Location existing = locationRepository.findById(id)
                 .orElseThrow(() -> notFound(id));
