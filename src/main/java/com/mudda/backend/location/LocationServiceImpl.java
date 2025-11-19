@@ -2,6 +2,7 @@ package com.mudda.backend.location;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ public class LocationServiceImpl implements LocationService {
     // #endregion
     // #region Commands (Write Operations)
 
+    @Transactional
     @Override
     public LocationResponse createLocation(CreateLocationRequest locationRequest) {
         Location location = LocationMapper.toLocation(locationRequest);
@@ -37,6 +39,7 @@ public class LocationServiceImpl implements LocationService {
         return LocationMapper.toResponse(saved);
     }
 
+    @Transactional
     @Override
     public LocationResponse updateLocation(Long id, UpdateLocationRequest locationRequest) {
         Location existing = locationRepository.findById(id)
@@ -53,6 +56,7 @@ public class LocationServiceImpl implements LocationService {
         return LocationMapper.toResponse(updated);
     }
 
+    @Transactional
     @Override
     public void deleteLocation(Long id) {
         if (!locationRepository.existsById(id))

@@ -18,7 +18,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
 
     @Column
@@ -38,14 +38,14 @@ public class Comment {
         createdAt = Instant.now();
     }
 
-//    ----- Domain Constructor -----
+    // ----- Domain Constructor -----
 
     public Comment(String text, Long issueId, Long userId) {
 
         if (text == null || text.isBlank())
             throw new IllegalArgumentException("Comment text cannot be empty");
-        if (parentId == null || issueId == null || userId == null)
-            throw new IllegalArgumentException("Parent, Issue and User ID's must be provided");
+        if (issueId == null || userId == null)
+            throw new IllegalArgumentException("Issue and User ID's must be provided for Comment");
 
         this.text = text.trim();
         this.parentId = null;
@@ -58,7 +58,7 @@ public class Comment {
         if (text == null || text.isBlank())
             throw new IllegalArgumentException("Comment text cannot be empty");
         if (parentId == null || issueId == null || userId == null)
-            throw new IllegalArgumentException("Parent, Issue and User ID's must be provided");
+            throw new IllegalArgumentException("Parent, Issue and User ID's must be provided for Reply");
 
         this.text = text.trim();
         this.parentId = parentId;
@@ -66,9 +66,10 @@ public class Comment {
         this.userId = userId;
     }
 
-//    ----- Domain Behaviour -------
+    // ----- Domain Behaviour -------
 
     public void updateDetails(String text) {
-        if (text != null && !text.isBlank()) setText(text.trim());
+        if (text != null && !text.isBlank())
+            setText(text.trim());
     }
 }

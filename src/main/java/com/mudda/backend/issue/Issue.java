@@ -32,10 +32,10 @@ public class Issue {
     @Column(name = "issue_id", updatable = false, nullable = false)
     private Long id;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, length = 150)
     private String title;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -91,14 +91,14 @@ public class Issue {
         updatedAt = Instant.now();
     }
 
-//    ----- Domain Constructor -----
+    // ----- Domain Constructor -----
 
     public Issue(String title,
-                 String description,
-                 Long userId,
-                 Long locationId,
-                 Long categoryId,
-                 List<String> mediaUrls) {
+            String description,
+            Long userId,
+            Long locationId,
+            Long categoryId,
+            List<String> mediaUrls) {
 
         if (title == null || title.isBlank())
             throw new IllegalArgumentException("Issue title cannot be empty");
@@ -121,11 +121,14 @@ public class Issue {
         }
     }
 
-//    ----- Domain Behaviour -------
+    // ----- Domain Behaviour -------
 
     public void updateDetails(String title, String description, IssueStatus status) {
-        if (title != null && !title.isBlank()) setTitle(title.trim());
-        if (description != null && !description.isBlank()) setDescription(description.trim());
-        if (status != null) setStatus(status);
+        if (title != null && !title.isBlank())
+            setTitle(title.trim());
+        if (description != null && !description.isBlank())
+            setDescription(description.trim());
+        if (status != null)
+            setStatus(status);
     }
 }

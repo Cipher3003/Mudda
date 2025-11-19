@@ -51,16 +51,15 @@ public class VoteController {
     //    NOTE: DEVELOPER ONLY
     @DeleteMapping("/votes/{voteId}")
     public ResponseEntity<Void> delete(@PathVariable(name = "id") long voteId) {
-        voteService.delete(voteId);
+        voteService.deleteVote(voteId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/issues/{issueId}/votes")
-    public ResponseEntity<Void> deleteVoteOnIssueIdByUserId(@PathVariable(name = "issueId") long issueId) {
+    public ResponseEntity<VoteResponse> deleteVoteOnIssueIdByUserId(@PathVariable(name = "issueId") long issueId) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
-        voteService.deleteVoteByIssueIdAndUserId(issueId, userId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(voteService.deleteVoteByIssueIdAndUserId(issueId, userId));
     }
 
     // #endregion
