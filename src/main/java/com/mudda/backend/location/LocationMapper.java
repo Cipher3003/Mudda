@@ -5,8 +5,8 @@ import org.locationtech.jts.geom.Coordinate;
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : LocationMapper
- * Author  : Vikas Kumar
+ * File : LocationMapper
+ * Author : Vikas Kumar
  * Created : 12-11-2025
  * ---------------------------------------------------------------
  */
@@ -26,8 +26,8 @@ public class LocationMapper {
                 location.getCity(),
                 location.getState(),
                 location.getCreatedAt(),
-                location.getCoordinate()
-        );
+                CoordinateDTO.from(location.getCoordinate())
+            );
     }
 
     public static Location toLocation(CreateLocationRequest locationRequest) {
