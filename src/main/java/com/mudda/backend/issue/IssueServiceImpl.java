@@ -35,11 +35,11 @@ public class IssueServiceImpl implements IssueService {
     private final CategoryRepository categoryRepository;
 
     public IssueServiceImpl(IssueRepository issueRepository,
-                            CommentService commentService,
-                            VoteRepository voteRepository,
-                            VoteService voteService,
-                            LocationRepository locationRepository,
-                            CategoryRepository categoryRepository) {
+            CommentService commentService,
+            VoteRepository voteRepository,
+            VoteService voteService,
+            LocationRepository locationRepository,
+            CategoryRepository categoryRepository) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteRepository = voteRepository;
@@ -57,8 +57,6 @@ public class IssueServiceImpl implements IssueService {
                 .stream()
                 .map(Location::getLocationId)
                 .toList();
-
-        if (locationIds.isEmpty()) return Page.empty();
 
         Specification<Issue> specification = IssueSpecifications
                 .containsText(filterRequest.search())
@@ -78,45 +76,54 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getId)
                 .toList();
 
-//        TODO: maybe use Vote entity's own check vote casted by user to filter this set even more
-        Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
-                .map(Vote::getIssueId).collect(Collectors.toSet());
+        if (userId != null) {
 
-//        TODO: canUserVote is recommended to be always true but seems sus
+            // TODO: maybe use Vote entity's own check vote casted by user to filter this
+            // set even more
+            Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
+                    .map(Vote::getIssueId).collect(Collectors.toSet());
+
+            // TODO: canUserVote is recommended to be always true but seems sus
+            return issuePage.map(issue -> {
+                long voteCount = voteRepository.countByIssueId(issue.getId());
+                return IssueMapper.toSummary(
+                        issue, voteCount,
+                        issuesVotedByUser.contains(issue.getId()), true);
+            });
+        }
+
         return issuePage.map(issue -> {
-                    long voteCount = voteRepository.countByIssueId(issue.getId());
-                    return IssueMapper.toSummary(
-                            issue, voteCount,
-                            issuesVotedByUser.contains(issue.getId()), true
-                    );
-                }
-        );
+            long voteCount = voteRepository.countByIssueId(issue.getId());
+            return IssueMapper.toSummary(
+                    issue, voteCount,
+                    false, false);
+        });
     }
 
     @Override
     public Optional<IssueResponse> findById(long id, Long userId) {
         Optional<Issue> optionalIssue = issueRepository.findById(id);
-        if (optionalIssue.isEmpty()) return Optional.empty();
+        if (optionalIssue.isEmpty())
+            return Optional.empty();
 
         Issue issue = optionalIssue.get();
         long voteCount = voteRepository.countByIssueId(issue.getId());
         boolean hasUserVoted = voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
 
         Optional<Location> location = locationRepository.findById(issue.getLocationId());
-        if (location.isEmpty()) return Optional.empty();
+        if (location.isEmpty())
+            return Optional.empty();
 
         LocationDTO summary = LocationMapper.toSummary(location.get());
 
         Optional<Category> category = categoryRepository.findById(issue.getCategoryId());
 
-//        TODO: canUserVote is recommended to be always true but seems sus
-        return category.map(categoryResponse ->
-                IssueMapper.toResponse(
-                        issue, summary, categoryResponse.getName(), voteCount, hasUserVoted,
-                        true, true,
-                        issue.getUserId().equals(userId),
-                        issue.getUserId().equals(userId)
-                ));
+        // TODO: canUserVote is recommended to be always true but seems sus
+        return category.map(categoryResponse -> IssueMapper.toResponse(
+                issue, summary, categoryResponse.getName(), voteCount, hasUserVoted,
+                true, true,
+                issue.getUserId().equals(userId),
+                issue.getUserId().equals(userId)));
     }
 
     // #endregion
@@ -127,11 +134,12 @@ public class IssueServiceImpl implements IssueService {
     @Override
     public IssueResponse createIssue(Long userId, CreateIssueRequest issueRequest) {
 
-//        TODO: change the exception to custom ?
+        // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
-//        TODO: maybe remove unnecessary validation since fetching entities validates it
+        // TODO: maybe remove unnecessary validation since fetching entities validates
+        // it
         validateReferences(issueRequest.locationId(), issueRequest.categoryId());
 
         Issue issue = IssueMapper.toIssue(userId, issueRequest);
@@ -151,8 +159,7 @@ public class IssueServiceImpl implements IssueService {
                 category.get().getName(),
                 0,
                 false,
-                true, true, true, true
-        );
+                true, true, true, true);
     }
 
     @Transactional
@@ -171,10 +178,9 @@ public class IssueServiceImpl implements IssueService {
     @Transactional
     @Override
     public IssueUpdateResponse updateIssue(long id, Long userId, UpdateIssueRequest issueRequest) {
-        Issue existing = issueRepository.findById(id).
-                orElseThrow(() -> notFound(id));
+        Issue existing = issueRepository.findById(id).orElseThrow(() -> notFound(id));
 
-//        TODO: change the exception to custom ?
+        // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
@@ -183,14 +189,13 @@ public class IssueServiceImpl implements IssueService {
         return IssueMapper.toResponse(updated);
     }
 
-    //    TODO: use delete flag to soft delete ?
+    // TODO: use delete flag to soft delete ?
     @Transactional
     @Override
     public void deleteIssue(long id, Long userId) {
-        Issue issue = issueRepository.findById(id).
-                orElseThrow(() -> notFound(id));
+        Issue issue = issueRepository.findById(id).orElseThrow(() -> notFound(id));
 
-//        TODO: change the exception to custom ?
+        // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
@@ -199,7 +204,7 @@ public class IssueServiceImpl implements IssueService {
         issueRepository.deleteById(id);
     }
 
-    //    TODO: use delete flag to soft delete ?
+    // TODO: use delete flag to soft delete ?
     @Transactional
     @Override
     public void deleteAllIssuesByUser(long userId) {
@@ -208,7 +213,8 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getId)
                 .toList();
 
-        if (issueIds.isEmpty()) return;
+        if (issueIds.isEmpty())
+            return;
 
         commentService.deleteAllCommentsByIssueIds(issueIds);
         voteService.deleteAllVotesByIssueIds(issueIds);
@@ -217,9 +223,9 @@ public class IssueServiceImpl implements IssueService {
 
     // #endregion
 
-//    ------------------------------
-//    Helpers
-//    ------------------------------
+    // ------------------------------
+    // Helpers
+    // ------------------------------
 
     private void validateReferences(long locationId, long categoryId) {
 
