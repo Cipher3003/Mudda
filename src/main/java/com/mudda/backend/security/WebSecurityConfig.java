@@ -36,6 +36,8 @@ public class WebSecurityConfig {
                                         "/v3/api-docs/**",
                                         "/v3/api-docs")
                                 .permitAll()
+                                .requestMatchers("/", "/index.html")
+                                .permitAll()
                                 .requestMatchers("/seed.html")
                                 .permitAll()
                                 .requestMatchers("/api/v1/seed/**")
