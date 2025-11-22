@@ -19,7 +19,7 @@ public class RoleController {
     // #region Queries (Read Operations)
 
     @GetMapping
-    public ResponseEntity<List<RoleResponse>> getAll(@RequestParam String name) {
+    public ResponseEntity<List<RoleResponse>> getAll(@RequestParam(required = false) String name) {
         return ResponseEntity.ok(roleService.findAllRoles(name));
     }
 

@@ -1,7 +1,6 @@
 package com.mudda.backend.location;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.locationtech.jts.geom.Point;
 
 import java.time.Instant;
 
@@ -20,6 +19,6 @@ public record LocationResponse(
         String city,
         String state,
         @JsonProperty("created_at") Instant createdAt,
-        Point coordinate
+        CoordinateDTO coordinate
 ) {
 }
