@@ -18,7 +18,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -125,6 +127,50 @@ public class IssueServiceImpl implements IssueService {
                 issue.getUserId().equals(userId)));
     }
 
+    // Reference: https://sud-gajula.medium.com/handling-geo-spatial-data-in-postgres-with-h3-05838fb77fd8
+    @Override
+    public IssueClusterResponse findAllIssueClusters(IssueClusterRequest clusterRequest) {
+        double centerLat = (clusterRequest.minLatitude() + clusterRequest.maxLatitude()) / 2;
+        double cellSize = getCellSize(clusterRequest.zoomLevel(), centerLat);
+
+        List<IssueClusterQueryResult> issueClusters = issueRepository.getIssueClusters(
+                clusterRequest.minLatitude(), clusterRequest.maxLatitude(),
+                clusterRequest.minLongitude(), clusterRequest.maxLongitude(),
+                cellSize);
+
+        if (issueClusters == null || issueClusters.isEmpty()) 
+            return new IssueClusterResponse(List.of());
+
+        Map<String, List<IssueClusterQueryResult>> grouped = issueClusters.stream()
+                .collect(Collectors
+                        .groupingBy(cluster -> cluster.cellX() + "_" + cluster.cellY()));
+
+        List<IssueClusterDTO> clusters = new ArrayList<>(grouped.size());
+
+        for (List<IssueClusterQueryResult> group : grouped.values()) {
+            Map<String, Long> categoryCounts = group.stream()
+                    .collect(Collectors
+                            .toMap(
+                                    IssueClusterQueryResult::category,
+                                    IssueClusterQueryResult::count));
+
+            String topCategory = categoryCounts.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse("unknown");
+
+            IssueClusterQueryResult firstCluster = group.get(0);
+            clusters.add(
+                    new IssueClusterDTO(
+                            firstCluster.centerLatitude(),
+                            firstCluster.centerLongitude(),
+                            topCategory,
+                            categoryCounts));
+        }
+
+        return new IssueClusterResponse(clusters);
+    }
+
     // #endregion
 
     // #region Commands (Write Operations)
@@ -221,6 +267,27 @@ public class IssueServiceImpl implements IssueService {
 
     private EntityNotFoundException notFound(long id) {
         return new EntityNotFoundException("Issue not found with id: %d".formatted(id));
+    }
+
+    private double getCellSize(int zoomLevel, double centerLat) {
+        double meters;
+
+        if (zoomLevel >= 17)
+            meters = 10;
+        else if (zoomLevel >= 15)
+            meters = 50;
+        else if (zoomLevel >= 13)
+            meters = 200;
+        else if (zoomLevel >= 10)
+            meters = 1000;
+        else
+            meters = 5000;
+
+        return metersToDegrees(meters, centerLat);
+    }
+
+    private double metersToDegrees(double meters, double latitude) {
+        return meters / (111_320 * Math.cos(Math.toRadians(latitude)));
     }
 
 }

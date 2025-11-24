@@ -38,15 +38,13 @@ public class IssueController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sortBy", defaultValue = "CREATED_AT") IssueSortBy sort,
-            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction
-    ) {
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction) {
 
         Pageable pageable = PageRequest.of(
                 page, size,
                 direction.equalsIgnoreCase("desc")
                         ? Sort.by(sort.getFieldName()).descending()
-                        : Sort.by(sort.getFieldName()).ascending()
-        );
+                        : Sort.by(sort.getFieldName()).ascending());
 
         Long userId = SecurityUtil.getUserIdOrNull();
 
@@ -61,6 +59,13 @@ public class IssueController {
                 .findById(id, userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/clusters")
+    public ResponseEntity<IssueClusterResponse> getIssueClusters(
+            @Valid IssueClusterRequest clusterRequest) {
+
+        return ResponseEntity.ok(issueService.findAllIssueClusters(clusterRequest));
     }
 
     // #endregion
@@ -78,8 +83,7 @@ public class IssueController {
     @PutMapping("/{id}")
     public ResponseEntity<IssueUpdateResponse> updateIssue(
             @PathVariable(name = "id") long id,
-            @Valid @RequestBody UpdateIssueRequest issueRequest
-    ) {
+            @Valid @RequestBody UpdateIssueRequest issueRequest) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
         return ResponseEntity.ok(issueService.updateIssue(id, userId, issueRequest));
