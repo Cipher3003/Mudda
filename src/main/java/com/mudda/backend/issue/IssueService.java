@@ -12,6 +12,8 @@ public interface IssueService {
 
     Optional<IssueResponse> findById(long id, Long userId);
 
+    IssueClusterResponse findAllIssueClusters(IssueClusterRequest clusterRequest);
+
     IssueResponse createIssue(Long userId, CreateIssueRequest issueRequest);
 
     List<Long> createIssues(List<Long> userIds, List<CreateIssueRequest> issueRequests);
