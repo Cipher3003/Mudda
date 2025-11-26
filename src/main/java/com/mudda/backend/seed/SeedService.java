@@ -98,14 +98,14 @@ public class SeedService {
             // You may need to adjust them if your entity definitions specify custom
             // sequence names.
             List<String> sequenceNames = List.of(
-                    "comment_likes_seq",
-                    "comments_comment_id_seq",
-                    "votes_vote_id_seq",
-                    "issues_issue_id_seq",
-                    "users_user_id_seq",
-                    "locations_location_id_seq",
-                    "categories_category_id_seq",
-                    "roles_role_id_seq");
+                    "comment_likes_id_seq",
+                    "comments_id_seq",
+                    "votes_id_seq",
+                    "issues_id_seq",
+                    "users_id_seq",
+                    "locations_id_seq",
+                    "categories_id_seq",
+                    "roles_id_seq");
 
             for (String sequenceName : sequenceNames) {
                 try {
