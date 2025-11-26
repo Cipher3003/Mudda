@@ -16,7 +16,8 @@ import java.time.Instant;
 public class Vote {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "votes_seq")
+    @SequenceGenerator(name = "votes_seq", sequenceName = "votes_id_seq", allocationSize = 50)
     @Column(name = "vote_id", updatable = false, nullable = false)
     private Long voteId;
 
@@ -36,11 +37,13 @@ public class Vote {
         this.createdAt = Instant.now();
     }
 
-//    ----- Domain Constructor -----
+    // ----- Domain Constructor -----
 
     public Vote(Long issueId, Long userId) {
-        if (issueId == null) throw new IllegalArgumentException("Issue Id cannot be null");
-        if (userId == null) throw new IllegalArgumentException("User Id cannot be null");
+        if (issueId == null)
+            throw new IllegalArgumentException("Issue Id cannot be null");
+        if (userId == null)
+            throw new IllegalArgumentException("User Id cannot be null");
 
         this.issueId = issueId;
         this.userId = userId;
@@ -51,7 +54,7 @@ public class Vote {
         return new Vote(issueId, userId);
     }
 
-    //    TODO: remove unused methods
+    // TODO: remove unused methods
     // Domain methods for business logic
     public boolean isVotedBy(Long userId) {
         return this.userId.equals(userId);

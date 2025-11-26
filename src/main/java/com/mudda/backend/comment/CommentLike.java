@@ -13,7 +13,12 @@ import lombok.*;
 public class CommentLike {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_likes_seq")
+    @SequenceGenerator(
+        name = "comment_likes_seq", 
+        sequenceName = "comment_likes_id_seq", 
+        allocationSize = 50
+    )
     private Long id;
 
     @Column(nullable = false)
@@ -30,7 +35,7 @@ public class CommentLike {
         createdAt = Instant.now();
     }
 
-//    ----- Domain Constructor -----
+    // ----- Domain Constructor -----
 
     public CommentLike(Long commentId, Long userId) {
         if (commentId == null || userId == null)

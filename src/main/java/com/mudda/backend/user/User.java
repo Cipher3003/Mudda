@@ -11,7 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
-
+import jakarta.persistence.SequenceGenerator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +24,8 @@ import lombok.Setter;
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
+    @SequenceGenerator(name = "users_seq", sequenceName = "users_id_seq", allocationSize = 50)
     private Long userId;
 
     @Column(nullable = false, unique = true)
@@ -68,11 +69,11 @@ public class User {
         updatedAt = Instant.now();
     }
 
-//    ----- Domain Constructor -----
+    // ----- Domain Constructor -----
 
     public User(String userName, String name, String phoneNumber,
-                LocalDate dateOfBirth, String email,
-                String hashedPassword, String profileImageUrl, Long roleId) {
+            LocalDate dateOfBirth, String email,
+            String hashedPassword, String profileImageUrl, Long roleId) {
         this.userName = userName;
         this.name = name;
         this.phoneNumber = phoneNumber;
@@ -83,7 +84,7 @@ public class User {
         this.roleId = roleId;
     }
 
-//    ----- Domain Behaviour -------
+    // ----- Domain Behaviour -------
 
     public void updateDetails(String phoneNumber, String profileImageUrl) {
         if (phoneNumber == null || phoneNumber.isBlank())

@@ -15,7 +15,8 @@ import java.time.Instant;
 @Table(name = "roles")
 public class Role {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "roles_seq")
+    @SequenceGenerator(name = "roles_seq", sequenceName = "roles_id_seq", allocationSize = 50)
     private Long roleId;
 
     @Column(nullable = false, unique = true)
