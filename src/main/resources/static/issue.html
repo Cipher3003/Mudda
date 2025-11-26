@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mudda — Issue Details</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 20px;
+        }
+
+        img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .actions button {
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        .comment {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .reply {
+            margin-left: 20px;
+            padding: 8px;
+            border-left: 3px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2 id="title"></h2>
+    <img id="image">
+
+    <p><b>Category:</b> <span id="category"></span></p>
+    <p><b>Location:</b> <span id="location"></span></p>
+    <p><b>Status:</b> <span id="status"></span></p>
+    <p><b>Severity:</b> <span id="severity"></span></p>
+    <p><b>Votes:</b> <span id="votes"></span></p>
+
+    <div class="actions" id="actions"></div>
+
+    <p><b>Description:</b></p>
+    <p id="description"></p>
+
+    <hr>
+
+    <h3>Comments</h3>
+    <div id="comments"></div>
+
+    <script>
+        const issueId = new URLSearchParams(window.location.search).get("id");
+        const auth = localStorage.getItem("auth");
+
+        // ---------- LOAD ISSUE DETAILS ----------
+        fetch(`/api/v1/issues/${issueId}`, {
+            headers: auth ? { "Authorization": auth } : {}
+        })
+            .then(r => r.json())
+            .then(issue => {
+                document.getElementById("title").innerText = issue.title;
+                document.getElementById("description").innerText = issue.description;
+                document.getElementById("category").innerText = issue.category;
+                document.getElementById("location").innerText = issue.locationSummary.city + ", " + issue.locationSummary.state;
+                document.getElementById("status").innerText = issue.status;
+                document.getElementById("severity").innerText = issue.severity_score;
+                document.getElementById("votes").innerText = issue.vote_count;
+                document.getElementById("image").src = issue.media_urls?.[0] || "/placeholder.png";
+
+                const actions = document.getElementById("actions");
+
+                if (issue.can_user_vote) {
+                    actions.innerHTML += `
+            <button onclick="toggleVote()">
+                ${issue.has_user_voted ? "Unvote" : "Vote"}
+            </button>
+        `;
+                }
+
+                if (issue.can_user_edit) {
+                    actions.innerHTML += `<button onclick="alert('Edit works')">Edit</button>`;
+                }
+
+                if (issue.can_user_delete) {
+                    actions.innerHTML += `<button onclick="deleteIssue()">Delete</button>`;
+                }
+
+                if (issue.can_user_comment) {
+                    actions.innerHTML += `<button onclick="alert('Comment form here')">Comment</button>`;
+                }
+            });
+
+        // ---------- LOAD COMMENTS ----------
+        fetch(`/api/v1/issues/${issueId}/comments`, {
+            headers: auth ? { "Authorization": auth } : {}
+        })
+            .then(r => r.json())
+            .then(page => {
+                const container = document.getElementById("comments");
+                page.content.forEach(c => {
+                    const div = document.createElement("div");
+                    div.className = "comment";
+                    div.innerHTML = `
+            <p>${c.text}</p>
+            ${c.canDelete ? `<button>Delete</button>` : ``}
+            <hr>
+        `;
+                    container.appendChild(div);
+                });
+            });
+
+        // ---------- ACTIONS ----------
+        function toggleVote() {
+            fetch(`/api/v1/votes/${issueId}`, {
+                method: "POST",
+                headers: { "Authorization": auth }
+            }).then(() => location.reload());
+        }
+
+        function deleteIssue() {
+            fetch(`/api/v1/issues/${issueId}`, {
+                method: "DELETE",
+                headers: { "Authorization": auth }
+            }).then(() => window.location.href = "/home.html");
+        }
+    </script>
+
+</body>
+
+</html>

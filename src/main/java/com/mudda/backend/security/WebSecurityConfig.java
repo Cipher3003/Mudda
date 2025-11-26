@@ -36,7 +36,12 @@ public class WebSecurityConfig {
                                         "/v3/api-docs/**",
                                         "/v3/api-docs")
                                 .permitAll()
-                                .requestMatchers("/", "/index.html")
+                                .requestMatchers(
+                                        "/",
+                                        "/index.html",
+                                        "/home.html",
+                                        "/issue.html",
+                                        "/login.html")
                                 .permitAll()
                                 .requestMatchers("/seed.html")
                                 .permitAll()
@@ -62,8 +67,7 @@ public class WebSecurityConfig {
                                 .permitAll()
                                 // Everything Else Needs Login
                                 .anyRequest()
-                                .authenticated()
-                )
+                                .authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, e) -> {
                             System.err.println("AUTH ERROR -> " + e.getMessage());
@@ -72,8 +76,7 @@ public class WebSecurityConfig {
                         .accessDeniedHandler((request, response, e) -> {
                             System.err.println("ACCESS DENIED -> " + e.getMessage());
                             response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
-                        })
-                )
+                        }))
                 .userDetailsService(userDetailsService)
                 .httpBasic(Customizer.withDefaults());
 
