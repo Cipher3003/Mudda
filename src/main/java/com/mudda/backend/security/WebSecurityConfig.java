@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
@@ -34,6 +36,13 @@ public class WebSecurityConfig {
                                         "/v3/api-docs/**",
                                         "/v3/api-docs")
                                 .permitAll()
+                                .requestMatchers(
+                                        "/",
+                                        "/index.html",
+                                        "/home.html",
+                                        "/issue.html",
+                                        "/login.html")
+                                .permitAll()
                                 .requestMatchers("/seed.html")
                                 .permitAll()
                                 .requestMatchers("/api/v1/seed/**")
@@ -56,10 +65,18 @@ public class WebSecurityConfig {
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/locations/**")
                                 .permitAll()
-                                //
                                 // Everything Else Needs Login
                                 .anyRequest()
                                 .authenticated())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, e) -> {
+                            System.err.println("AUTH ERROR -> " + e.getMessage());
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+                        })
+                        .accessDeniedHandler((request, response, e) -> {
+                            System.err.println("ACCESS DENIED -> " + e.getMessage());
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                        }))
                 .userDetailsService(userDetailsService)
                 .httpBasic(Customizer.withDefaults());
 

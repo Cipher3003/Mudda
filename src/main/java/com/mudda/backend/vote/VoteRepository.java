@@ -2,6 +2,7 @@ package com.mudda.backend.vote;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,10 +14,20 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     boolean existsByIssueIdAndUserId(long issueId, long userId);
 
-    @Query("SELECT COUNT(v) " +
-            "FROM Vote v " +
-            "WHERE v.issueId = :issueId")
+    @Query("""
+            SELECT COUNT(v)
+            FROM Vote v
+            WHERE v.issueId = :issueId
+            """)
     long countByIssueId(long issueId);
+
+    @Query("""
+            SELECT v.issueId, COUNT(v)
+            FROM Vote v
+            WHERE v.issueId IN :issueIds
+            GROUP BY v.issueId
+            """)
+    List<Object[]> countByIssueIdIn(@Param("issueIds") List<Long> issueIds);
 
     void deleteByUserId(long userId);
 

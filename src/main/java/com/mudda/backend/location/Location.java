@@ -15,7 +15,8 @@ import org.locationtech.jts.geom.Point;
 @Table(name = "locations")
 public class Location {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq")
+    @SequenceGenerator(name = "locations_seq", sequenceName = "locations_id_seq", allocationSize = 50)
     private Long locationId;
 
     @Column(nullable = false)
@@ -45,7 +46,7 @@ public class Location {
         createdAt = Instant.now();
     }
 
-//    ----- Domain Constructor -----
+    // ----- Domain Constructor -----
 
     public Location(String addressLine, String pinCode, String city, String state, Point coordinate) {
 
@@ -67,12 +68,16 @@ public class Location {
         this.coordinate = coordinate;
     }
 
-//    ----- Domain Behaviour -------
+    // ----- Domain Behaviour -------
 
     public void updateDetails(String addressLine, String pinCode, String city, String state) {
-        if (addressLine != null && !addressLine.isBlank()) setAddressLine(addressLine);
-        if (pinCode != null && !pinCode.isBlank()) setPinCode(pinCode);
-        if (city != null && !city.isBlank()) setCity(city);
-        if (state != null && !state.isBlank()) setState(state);
+        if (addressLine != null && !addressLine.isBlank())
+            setAddressLine(addressLine);
+        if (pinCode != null && !pinCode.isBlank())
+            setPinCode(pinCode);
+        if (city != null && !city.isBlank())
+            setCity(city);
+        if (state != null && !state.isBlank())
+            setState(state);
     }
 }

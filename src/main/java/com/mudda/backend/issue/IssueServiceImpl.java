@@ -53,9 +53,13 @@ public class IssueServiceImpl implements IssueService {
     // #region Queries (Read Operations)
 
     @Override
-    public Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, Long userId) {
+    public Page<IssueSummaryResponse> findAllIssues(
+            IssueFilterRequest filterRequest,
+            Pageable pageable,
+            Long userId) {
 
-        List<Long> locationIds = locationRepository.findByCityAndState(filterRequest.city(), filterRequest.state())
+        List<Long> locationIds = locationRepository
+                .findByCityAndState(filterRequest.city(), filterRequest.state())
                 .stream()
                 .map(Location::getLocationId)
                 .toList();
@@ -78,57 +82,75 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getId)
                 .toList();
 
-        if (userId != null) {
+        Map<Long, Long> voteCountMap = voteRepository
+                .countByIssueIdIn(issueIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0], // issueId
+                        row -> (Long) row[1] // count
+                ));
 
-            // TODO: maybe use Vote entity's own check vote casted by user to filter this
-            // set even more
-            Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
-                    .map(Vote::getIssueId).collect(Collectors.toSet());
+        boolean isAuthenticated = userId != null;
 
-            // TODO: canUserVote is recommended to be always true but seems sus
-            return issuePage.map(issue -> {
-                long voteCount = voteRepository.countByIssueId(issue.getId());
-                return IssueMapper.toSummary(
-                        issue, voteCount,
-                        issuesVotedByUser.contains(issue.getId()), true);
-            });
-        }
+        // TODO: maybe use Vote entity's own check vote casted by user to filter this
+        // set even more
+        Set<Long> issuesVotedByUser = isAuthenticated
+                ? voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
+                        .map(Vote::getIssueId).collect(Collectors.toSet())
+                : Set.of();
 
         return issuePage.map(issue -> {
-            long voteCount = voteRepository.countByIssueId(issue.getId());
+            long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
+
+            boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
+
             return IssueMapper.toSummary(
-                    issue, voteCount,
-                    false, false);
+                    issue,
+                    voteCount,
+                    hasUserVoted,
+                    isAuthenticated // canUserVote
+            );
         });
     }
 
     @Override
     public Optional<IssueResponse> findById(long id, Long userId) {
-        Optional<Issue> optionalIssue = issueRepository.findById(id);
-        if (optionalIssue.isEmpty())
+        Issue issue = issueRepository.findById(id).orElse(null);
+        if (issue == null)
             return Optional.empty();
 
-        Issue issue = optionalIssue.get();
         long voteCount = voteRepository.countByIssueId(issue.getId());
-        boolean hasUserVoted = voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
 
-        Optional<Location> location = locationRepository.findById(issue.getLocationId());
-        if (location.isEmpty())
+        Location location = locationRepository.findById(issue.getLocationId()).orElse(null);
+        if (location == null)
             return Optional.empty();
 
-        LocationDTO summary = LocationMapper.toSummary(location.get());
+        LocationDTO summary = LocationMapper.toSummary(location);
 
-        Optional<Category> category = categoryRepository.findById(issue.getCategoryId());
+        return categoryRepository.findById(issue.getCategoryId())
+                .map(category -> {
 
-        // TODO: canUserVote is recommended to be always true but seems sus
-        return category.map(categoryResponse -> IssueMapper.toResponse(
-                issue, summary, categoryResponse.getName(), voteCount, hasUserVoted,
-                true, true,
-                issue.getUserId().equals(userId),
-                issue.getUserId().equals(userId)));
+                    boolean isAuthenticated = userId != null;
+                    boolean isOwner = isAuthenticated && issue.getUserId().equals(userId);
+                    boolean hasUserVoted = isAuthenticated
+                            && voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
+
+                    return IssueMapper.toResponse(
+                            issue,
+                            summary,
+                            category.getName(),
+                            voteCount,
+                            hasUserVoted,
+                            isAuthenticated, // canUserVote
+                            isAuthenticated, // canUserComment
+                            isOwner, // canEdit
+                            isOwner // canDelete
+                    );
+                });
     }
 
-    // Reference: https://sud-gajula.medium.com/handling-geo-spatial-data-in-postgres-with-h3-05838fb77fd8
+    // Reference:
+    // https://sud-gajula.medium.com/handling-geo-spatial-data-in-postgres-with-h3-05838fb77fd8
     @Override
     public IssueClusterResponse findAllIssueClusters(IssueClusterRequest clusterRequest) {
         double centerLat = (clusterRequest.minLatitude() + clusterRequest.maxLatitude()) / 2;
@@ -139,7 +161,7 @@ public class IssueServiceImpl implements IssueService {
                 clusterRequest.minLongitude(), clusterRequest.maxLongitude(),
                 cellSize);
 
-        if (issueClusters == null || issueClusters.isEmpty()) 
+        if (issueClusters == null || issueClusters.isEmpty())
             return new IssueClusterResponse(List.of());
 
         Map<String, List<IssueClusterQueryResult>> grouped = issueClusters.stream()

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Login</h2>
+    <input id="username" placeholder="Username"><br>
+    <input id="password" type="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+
+    <p id="msg"></p>
+
+    <script>
+        function login() {
+            const u = document.getElementById("username").value;
+            const p = document.getElementById("password").value;
+
+            // store credentials for Basic Auth
+            localStorage.setItem("auth", "Basic " + btoa(u + ":" + p));
+            // headers: { "Authorization": localStorage.getItem("auth") }
+
+            document.getElementById("msg").innerText = "Logged in! You can now use the app.";
+        }
+    </script>
+
+</body>
+
+</html>
