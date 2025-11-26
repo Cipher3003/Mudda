@@ -10,7 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
-
+import jakarta.persistence.SequenceGenerator;
 import lombok.*;
 
 import java.time.Instant;
@@ -28,7 +28,8 @@ import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 public class Issue {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "issues_seq")
+    @SequenceGenerator(name = "issues_seq", sequenceName = "issues_id_seq", allocationSize = 50)
     @Column(name = "issue_id", updatable = false, nullable = false)
     private Long id;
 
