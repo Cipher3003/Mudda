@@ -9,11 +9,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-//    TODO: upgrade to JWT
+    // TODO: upgrade to JWT
 
     private final CustomUserDetailsService userDetailsService;
 
@@ -27,13 +29,12 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         (requests) -> requests
-//                                Public Reads
+                                // Public Reads
                                 .requestMatchers(
                                         "/swagger-ui.html",
                                         "/swagger-ui/**",
                                         "/v3/api-docs/**",
-                                        "/v3/api-docs"
-                                )
+                                        "/v3/api-docs")
                                 .permitAll()
                                 .requestMatchers("/media_url.html")
                                 .permitAll()
@@ -53,10 +54,19 @@ public class WebSecurityConfig {
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/locations/**")
                                 .permitAll()
-//
-//                                Everything Else Needs Login
+                                // Everything Else Needs Login
                                 .anyRequest()
                                 .authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, e) -> {
+                            System.err.println("AUTH ERROR -> " + e.getMessage());
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+                        })
+                        .accessDeniedHandler((request, response, e) -> {
+                            System.err.println("ACCESS DENIED -> " + e.getMessage());
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                        })
                 )
                 .userDetailsService(userDetailsService)
                 .httpBasic(Customizer.withDefaults());
