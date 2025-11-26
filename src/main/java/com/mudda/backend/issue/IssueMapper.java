@@ -51,7 +51,7 @@ public class IssueMapper {
     }
 
     public static IssueSummaryResponse toSummary(Issue issue, long voteCount,
-                                                 boolean hasUserLiked, boolean canUserVote
+                                                 boolean hasUserVoted, boolean canUserVote
     ) {
         return new IssueSummaryResponse(
                 issue.getId(),
@@ -60,7 +60,7 @@ public class IssueMapper {
                 voteCount,
                 issue.getMediaUrls(),
                 issue.getCreatedAt(),
-                hasUserLiked,
+                hasUserVoted,
                 canUserVote
         );
     }
