@@ -1,0 +1,42 @@
+name: Build and Upload to S3
+
+on:
+  workflow_dispatch:  
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write      
+      contents: read        
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build project with Maven
+        run: ./mvnw clean package -DskipTests=true
+
+      - name: Set Version Name Variable
+        id: vars
+        run: |
+          VERSION=$(date +'%Y%m%d-%H%M%S')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials 
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::878126142459:role/backend-s3-access
+          aws-region: us-east-1
+
+      - name: Upload JAR to S3 with Versioning
+        run: |
+          JAR_FILE=$(ls target/*.jar)
+          aws s3 cp "$JAR_FILE" s3://mudda-backend-executable/app-${VERSION}.jar
