@@ -1,4 +1,4 @@
-name: Build and Upload to S3
+name: Deploy executable
 
 on:
   workflow_dispatch:  
@@ -21,8 +21,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
       - name: Build project with Maven
-        run: ./mvnw clean package -DskipTests=true
+        run: ./mvnw clean package 
 
       - name: Set Version Name Variable
         id: vars
