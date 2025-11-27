@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.mudda.backend.dto.SignupRequest;
 import com.mudda.backend.role.Role;
-import com.mudda.backend.role.RoleRepository;
+import com.mudda.backend.role.RoleService;
 import com.mudda.backend.user.CreateUserRequest;
 import com.mudda.backend.user.UserDetailResponse;
 import com.mudda.backend.user.UserService;
@@ -33,20 +33,20 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final UserService userService;
-    private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
     public AuthController(AuthenticationManager authenticationManager,
             CustomUserDetailsService userDetailsService,
             JwtUtil jwtUtil,
             UserRepository userRepository,
             UserService userService,
-            RoleRepository roleRepository) {
+            RoleService roleService) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.userService = userService;
-        this.roleRepository = roleRepository;
+        this.roleService = roleService;
     }
 
     @PostMapping("/login")
@@ -57,7 +57,9 @@ public class AuthController {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        User user = userRepository.findByUserName(request.getUsername()).orElseThrow();
+        User user = userRepository.findByUserName(request.getUsername())
+                .or(() -> userRepository.findByEmail(request.getUsername()))
+                .orElseThrow();
 
         return ResponseEntity.ok(new AuthResponse(
                 jwt,
@@ -70,8 +72,8 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<UserDetailResponse> signup(@Valid @RequestBody SignupRequest request) {
-        Role userRole = roleRepository.findByName("USER")
-                .orElseThrow(() -> new IllegalStateException("Default role 'USER' not found."));
+        // Ensure "USER" role exists, creating it if necessary
+        var userRole = roleService.getOrCreateRole("USER");
 
         CreateUserRequest createUserRequest = new CreateUserRequest(
                 request.userName(),
@@ -80,7 +82,7 @@ public class AuthController {
                 request.dateOfBirth(),
                 request.phoneNumber(),
                 request.password(),
-                userRole.getRoleId(),
+                userRole.roleId(),
                 request.profileImageUrl()
         );
 

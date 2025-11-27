@@ -17,6 +17,9 @@ public class SecurityUtil {
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser"))
             return null;
 
-        return (Long) auth.getPrincipal();
+        if (auth.getPrincipal() instanceof CustomUserDetails) {
+            return ((CustomUserDetails) auth.getPrincipal()).getUserId();
+        }
+        return null;
     }
 }

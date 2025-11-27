@@ -72,5 +72,16 @@ public class RoleServiceImpl implements RoleService {
         roleRepository.deleteById(id);
     }
 
+    @Transactional
+    @Override
+    public RoleResponse getOrCreateRole(String name) {
+        return roleRepository.findByName(name)
+                .map(RoleResponse::from)
+                .orElseGet(() -> {
+                    Role saved = roleRepository.save(new Role(name));
+                    return RoleResponse.from(saved);
+                });
+    }
+
     // #endregion
 }

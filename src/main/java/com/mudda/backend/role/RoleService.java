@@ -15,4 +15,6 @@ public interface RoleService {
 
     void deleteRole(long id);
 
+    RoleResponse getOrCreateRole(String name);
+
 }

@@ -43,8 +43,8 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
-    private String hashedPassword;
+    @Column(name = "hashed_password", nullable = false)
+    private String password;
 
     @Column
     private String profileImageUrl;
@@ -73,13 +73,13 @@ public class User {
 
     public User(String userName, String name, String phoneNumber,
             LocalDate dateOfBirth, String email,
-            String hashedPassword, String profileImageUrl, Long roleId) {
+            String password, String profileImageUrl, Long roleId) {
         this.userName = userName;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.dateOfBirth = dateOfBirth;
         this.email = email;
-        this.hashedPassword = hashedPassword;
+        this.password = password;
         this.profileImageUrl = profileImageUrl;
         this.roleId = roleId;
     }
