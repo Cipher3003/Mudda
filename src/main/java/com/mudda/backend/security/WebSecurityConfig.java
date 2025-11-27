@@ -3,11 +3,15 @@ package com.mudda.backend.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -15,12 +19,13 @@ import jakarta.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    // TODO: upgrade to JWT
-
     private final CustomUserDetailsService userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public WebSecurityConfig(CustomUserDetailsService userDetailsService) {
+    public WebSecurityConfig(CustomUserDetailsService userDetailsService,
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
@@ -47,27 +52,18 @@ public class WebSecurityConfig {
                                 .permitAll()
                                 .requestMatchers("/api/v1/seed/**")
                                 .permitAll()
-                                .requestMatchers("/media_url.html")
-                                .permitAll()
-                                .requestMatchers("/api/v1/votes/**")
-                                .permitAll()
-                                .requestMatchers("/api/v1/roles/**")
-                                .permitAll()
-                                .requestMatchers("/api/v1/users/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/amazon/images/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/issues/categories/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/comments/**")
-                                .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/issues/**")
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/locations/**")
                                 .permitAll()
+                                // Auth Endpoints
+                                .requestMatchers("/api/v1/auth/**")
+                                .permitAll()
                                 // Everything Else Needs Login
                                 .anyRequest()
                                 .authenticated())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, e) -> {
                             System.err.println("AUTH ERROR -> " + e.getMessage());
@@ -78,8 +74,13 @@ public class WebSecurityConfig {
                             response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
                         }))
                 .userDetailsService(userDetailsService)
-                .httpBasic(Customizer.withDefaults());
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }

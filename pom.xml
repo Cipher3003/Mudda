@@ -119,16 +119,6 @@
         <!-- Spring OpenAPI -->
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.3.0</version> <!-- stable release available in Maven Central -->
-        </dependency>
-
-        <!-- Faker -->
-        <!-- https://mvnrepository.com/artifact/com.github.javafaker/javafaker -->        
-        <dependency>
-            <groupId>net.datafaker</groupId>
-            <artifactId>datafaker</artifactId>
-            <version>2.5.3</version>
         </dependency>
 
     </dependencies>
