@@ -1,45 +1,50 @@
-name: Deploy executable
+name: Deploy to Elastic Beanstalk 
 
 on:
-  workflow_dispatch:  
+  workflow_dispatch:
+
+permissions:
+  id-token: write   
+  contents: read
 
 jobs:
-  build-and-upload:
+  deploy:
     runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write      
-      contents: read        
-
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v3
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Make mvnw executable
-        run: chmod +x mvnw
+      - name: Build with Maven
+        run: chmod +x mvnw && ./mvnw clean package -DskipTests
 
-      - name: Build project with Maven
-        run: ./mvnw clean package 
-
-      - name: Set Version Name Variable
-        id: vars
-        run: |
-          VERSION=$(date +'%Y%m%d-%H%M%S')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Configure AWS credentials 
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::878126142459:role/backend-s3-access
-          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Upload JAR to S3 with Versioning
+      - name: Upload jar to S3
         run: |
-          JAR_FILE=$(ls target/*.jar)
-          aws s3 cp "$JAR_FILE" s3://mudda-backend-executable/app-${VERSION}.jar
+          FILE_NAME=backend-${{ github.run_number }}.jar
+          aws s3 cp target/*.jar s3://${{ secrets.S3_BUCKET }}/$FILE_NAME
+          echo "artifact=$FILE_NAME" >> $GITHUB_ENV
+
+      - name: Create Elastic Beanstalk App Version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name "${{ secrets.EB_APP_NAME }}" \
+            --version-label "v-${{ github.run_number }}" \
+            --source-bundle S3Bucket="${{ secrets.S3_BUCKET }}",S3Key="$artifact"
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name "${{ secrets.EB_ENV_NAME }}" \
+            --version-label "v-${{ github.run_number }}"
