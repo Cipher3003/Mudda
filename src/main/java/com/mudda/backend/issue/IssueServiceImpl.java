@@ -37,11 +37,11 @@ public class IssueServiceImpl implements IssueService {
     private final CategoryRepository categoryRepository;
 
     public IssueServiceImpl(IssueRepository issueRepository,
-            CommentService commentService,
-            VoteRepository voteRepository,
-            VoteService voteService,
-            LocationRepository locationRepository,
-            CategoryRepository categoryRepository) {
+                            CommentService commentService,
+                            VoteRepository voteRepository,
+                            VoteService voteService,
+                            LocationRepository locationRepository,
+                            CategoryRepository categoryRepository) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteRepository = voteRepository;
@@ -96,7 +96,7 @@ public class IssueServiceImpl implements IssueService {
         // set even more
         Set<Long> issuesVotedByUser = isAuthenticated
                 ? voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
-                        .map(Vote::getIssueId).collect(Collectors.toSet())
+                .map(Vote::getIssueId).collect(Collectors.toSet())
                 : Set.of();
 
         return issuePage.map(issue -> {
@@ -241,6 +241,12 @@ public class IssueServiceImpl implements IssueService {
                         .toList());
 
         return issues.stream().map(Issue::getId).toList();
+    }
+
+    @Transactional
+    @Override
+    public void saveIssues(List<Issue> issues) {
+        issueRepository.saveAll(issues);
     }
 
     @Transactional

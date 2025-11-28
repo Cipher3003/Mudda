@@ -13,6 +13,8 @@ public interface RoleService {
 
     List<Long> createRoles(List<CreateRoleRequest> roleRequests);
 
+    void saveRoles(List<Role> roles);
+
     void deleteRole(long id);
 
 }

@@ -12,6 +12,8 @@ public interface LocationService {
 
     List<Long> createLocations(List<CreateLocationRequest> locationRequests);
 
+    void saveLocations(List<Location> locations);
+
     LocationResponse updateLocation(Long id, UpdateLocationRequest locationRequest);
 
     void deleteLocation(Long id);

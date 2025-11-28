@@ -115,6 +115,12 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
+    public void saveUsers(List<User> users) {
+        userRepository.saveAll(users);
+    }
+
+    @Transactional
+    @Override
     public UserSummaryResponse updateUser(long id, UpdateUserRequest userRequest) {
         if (userRepository.existsByPhoneNumber(userRequest.phoneNumber()))
             throw new IllegalArgumentException("Phone Number: %s is already being used"

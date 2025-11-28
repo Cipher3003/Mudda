@@ -10,6 +10,8 @@ public interface CommentLikeService {
 
     long countByCommentId(long commentId);
 
+    void saveCommentLikes(List<CommentLike> commentLikes);
+
     void deleteAllByCommentId(List<Long> replyIds);
 
     void deleteByCommentId(long commentId);

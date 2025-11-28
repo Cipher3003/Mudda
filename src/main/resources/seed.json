@@ -1,0 +1,2288 @@
+{
+  "roles": [
+    {
+      "name": "Citizen"
+    },
+    {
+      "name": "Administrator"
+    }
+  ],
+  "users": [
+    {
+      "userName": "citizen_john",
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "dateOfBirth": "1995-04-15",
+      "phoneNumber": "+919876543210",
+      "password": "hashed_password_1",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "admin_alice",
+      "name": "Alice Smith",
+      "email": "alice.smith@gov.org",
+      "dateOfBirth": "1988-11-20",
+      "phoneNumber": "+15551234567",
+      "password": "hashed_password_2",
+      "roleId": 2,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_chris",
+      "name": "Chris Johnson",
+      "email": "chris.j@mail.com",
+      "dateOfBirth": "2000-01-01",
+      "phoneNumber": "8005550101",
+      "password": "hashed_password_3",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_pat",
+      "name": "Patricia Williams",
+      "email": "patricia.w@inbox.net",
+      "dateOfBirth": "1975-07-28",
+      "phoneNumber": "+447700900101",
+      "password": "hashed_password_4",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_mike",
+      "name": "Michael Brown",
+      "email": "mike.b@web.de",
+      "dateOfBirth": "1999-03-10",
+      "phoneNumber": "07001020304",
+      "password": "hashed_password_5",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_sara",
+      "name": "Sarah Miller",
+      "email": "sara.m@fastmail.com",
+      "dateOfBirth": "1992-05-18",
+      "phoneNumber": "9998887776",
+      "password": "hashed_password_6",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_david",
+      "name": "David Garcia",
+      "email": "david.g@test.org",
+      "dateOfBirth": "1985-09-22",
+      "phoneNumber": "+33612345678",
+      "password": "hashed_password_7",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_linda",
+      "name": "Linda Rodriguez",
+      "email": "linda.r@proton.me",
+      "dateOfBirth": "1970-12-03",
+      "phoneNumber": "+61412345678",
+      "password": "hashed_password_8",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_paul",
+      "name": "Paul Martinez",
+      "email": "paul.m@mailprovider.net",
+      "dateOfBirth": "1980-02-14",
+      "phoneNumber": "02081112222",
+      "password": "hashed_password_9",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_nancy",
+      "name": "Nancy Hernandez",
+      "email": "nancy.h@service.com",
+      "dateOfBirth": "1996-10-05",
+      "phoneNumber": "+4915112345678",
+      "password": "hashed_password_10",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_peter",
+      "name": "Peter Lopez",
+      "email": "peter.l@email.biz",
+      "dateOfBirth": "1991-06-25",
+      "phoneNumber": "9876512340",
+      "password": "hashed_password_11",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_karen",
+      "name": "Karen Gonzalez",
+      "email": "karen.g@inbox.com",
+      "dateOfBirth": "1984-08-12",
+      "phoneNumber": "1234567890",
+      "password": "hashed_password_12",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_mark",
+      "name": "Mark Wilson",
+      "email": "mark.w@mail.org",
+      "dateOfBirth": "1978-04-01",
+      "phoneNumber": "5551112222",
+      "password": "hashed_password_13",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_susan",
+      "name": "Susan Anderson",
+      "email": "susan.a@quickmail.net",
+      "dateOfBirth": "1993-01-30",
+      "phoneNumber": "+917778889990",
+      "password": "hashed_password_14",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_jeff",
+      "name": "Jeffrey Thomas",
+      "email": "jeff.t@mailservice.com",
+      "dateOfBirth": "1987-11-09",
+      "phoneNumber": "+447890123456",
+      "password": "hashed_password_15",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_eliza",
+      "name": "Elizabeth Taylor",
+      "email": "eliza.t@testmail.biz",
+      "dateOfBirth": "1998-05-27",
+      "phoneNumber": "0404123456",
+      "password": "hashed_password_16",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_george",
+      "name": "George Moore",
+      "email": "george.m@examplemail.org",
+      "dateOfBirth": "1972-03-19",
+      "phoneNumber": "+34600112233",
+      "password": "hashed_password_17",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_jessica",
+      "name": "Jessica Lee",
+      "email": "jessica.l@mailbox.net",
+      "dateOfBirth": "1994-10-08",
+      "phoneNumber": "9991234567",
+      "password": "hashed_password_18",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "userName": "user_steven",
+      "name": "Steven Clark",
+      "email": "steven.c@mailhost.com",
+      "dateOfBirth": "1982-07-17",
+      "phoneNumber": "+6590001234",
+      "password": "hashed_password_19",
+      "roleId": 1,
+      "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
+    },
+    {
+      "userName": "user_anna",
+      "name": "Anna Hall",
+      "email": "anna.h@mail.co",
+      "dateOfBirth": "1990-09-02",
+      "phoneNumber": "8887776665",
+      "password": "hashed_password_20",
+      "roleId": 1,
+      "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    }
+  ],
+  "locations": [
+    {
+      "addressLine": "123 Main Street, Sector 15",
+      "pinCode": "122001",
+      "city": "Gurugram",
+      "state": "Haryana",
+      "coordinate": {
+        "y": 28.4595,
+        "x": 77.0266
+      }
+    },
+    {
+      "addressLine": "45/A Park Avenue, Block C",
+      "pinCode": "110001",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "coordinate": {
+        "y": 28.6139,
+        "x": 77.2090
+      }
+    },
+    {
+      "addressLine": "Opposite City Mall, Near Railway Station",
+      "pinCode": "400001",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 19.0760,
+        "x": 72.8777
+      }
+    },
+    {
+      "addressLine": "Old Madras Road, Kaggadasapura",
+      "pinCode": "560093",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "coordinate": {
+        "y": 12.9716,
+        "x": 77.5946
+      }
+    },
+    {
+      "addressLine": "2nd Cross, Indira Nagar",
+      "pinCode": "560038",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "coordinate": {
+        "y": 13.0827,
+        "x": 80.2707
+      }
+    },
+    {
+      "addressLine": "Lal Bazaar Street, Central Business District",
+      "pinCode": "700001",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "coordinate": {
+        "y": 22.5726,
+        "x": 88.3639
+      }
+    },
+    {
+      "addressLine": "Noida Sector 62, Near Metro Station",
+      "pinCode": "201301",
+      "city": "Noida",
+      "state": "Uttar Pradesh",
+      "coordinate": {
+        "y": 28.6272,
+        "x": 77.3630
+      }
+    },
+    {
+      "addressLine": "Gachibowli, Financial District",
+      "pinCode": "500032",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "coordinate": {
+        "y": 17.4375,
+        "x": 78.4485
+      }
+    },
+    {
+      "addressLine": "Mylapore, S. S. Colony",
+      "pinCode": "600004",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "coordinate": {
+        "y": 13.0827,
+        "x": 80.2707
+      }
+    },
+    {
+      "addressLine": "Magarpatta City, Hadapsar",
+      "pinCode": "411013",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 18.5204,
+        "x": 73.8567
+      }
+    },
+    {
+      "addressLine": "Amrita Shergill Marg, Lutyens' Delhi",
+      "pinCode": "110003",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "coordinate": {
+        "y": 28.5830,
+        "x": 77.2180
+      }
+    },
+    {
+      "addressLine": "Versova Beach Road",
+      "pinCode": "400061",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 19.1333,
+        "x": 72.8122
+      }
+    },
+    {
+      "addressLine": "Sarjapur Road, Whitefield",
+      "pinCode": "560066",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "coordinate": {
+        "y": 12.9352,
+        "x": 77.6245
+      }
+    },
+    {
+      "addressLine": "Tollygunge, Golf Green",
+      "pinCode": "700095",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "coordinate": {
+        "y": 22.4830,
+        "x": 88.3582
+      }
+    },
+    {
+      "addressLine": "Greater Noida West, Tech Zone 4",
+      "pinCode": "201308",
+      "city": "Greater Noida",
+      "state": "Uttar Pradesh",
+      "coordinate": {
+        "y": 28.6080,
+        "x": 77.4000
+      }
+    },
+    {
+      "addressLine": "Banjara Hills, Road No. 12",
+      "pinCode": "500034",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "coordinate": {
+        "y": 17.4124,
+        "x": 78.4485
+      }
+    },
+    {
+      "addressLine": "Anna Nagar East, 7th Main Road",
+      "pinCode": "600102",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "coordinate": {
+        "y": 13.0827,
+        "x": 80.2707
+      }
+    },
+    {
+      "addressLine": "Viman Nagar, Phoenix Road",
+      "pinCode": "411014",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 18.5204,
+        "x": 73.8567
+      }
+    },
+    {
+      "addressLine": "DLF Phase 3, Cyber City",
+      "pinCode": "122002",
+      "city": "Gurugram",
+      "state": "Haryana",
+      "coordinate": {
+        "y": 28.4595,
+        "x": 77.0266
+      }
+    },
+    {
+      "addressLine": "Hauz Khas Village, Near Deer Park",
+      "pinCode": "110016",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "coordinate": {
+        "y": 28.5574,
+        "x": 77.2090
+      }
+    },
+    {
+      "addressLine": "Bandra Kurla Complex (BKC)",
+      "pinCode": "400051",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 19.0760,
+        "x": 72.8777
+      }
+    },
+    {
+      "addressLine": "Koramangala 4th Block",
+      "pinCode": "560034",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "coordinate": {
+        "y": 12.9352,
+        "x": 77.6245
+      }
+    },
+    {
+      "addressLine": "Gariahat Road, Dakshinapan Market",
+      "pinCode": "700029",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "coordinate": {
+        "y": 22.5184,
+        "x": 88.3752
+      }
+    },
+    {
+      "addressLine": "Sector 18, Atta Market",
+      "pinCode": "201301",
+      "city": "Noida",
+      "state": "Uttar Pradesh",
+      "coordinate": {
+        "y": 28.5838,
+        "x": 77.3134
+      }
+    },
+    {
+      "addressLine": "Jubilee Hills, Film Nagar",
+      "pinCode": "500033",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "coordinate": {
+        "y": 17.4375,
+        "x": 78.4485
+      }
+    },
+    {
+      "addressLine": "T Nagar, Ranganathan Street",
+      "pinCode": "600017",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "coordinate": {
+        "y": 13.0827,
+        "x": 80.2707
+      }
+    },
+    {
+      "addressLine": "Kothrud, Karve Road",
+      "pinCode": "411038",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 18.5167,
+        "x": 73.8567
+      }
+    },
+    {
+      "addressLine": "Sohna Road, Badshahpur",
+      "pinCode": "122101",
+      "city": "Gurugram",
+      "state": "Haryana",
+      "coordinate": {
+        "y": 28.3768,
+        "x": 77.0396
+      }
+    },
+    {
+      "addressLine": "Lajpat Nagar IV, Near Central Market",
+      "pinCode": "110024",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "coordinate": {
+        "y": 28.5670,
+        "x": 77.2410
+      }
+    },
+    {
+      "addressLine": "Juhu Tara Road, Opposite PVR",
+      "pinCode": "400049",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 19.1060,
+        "x": 72.8277
+      }
+    },
+    {
+      "addressLine": "Electronic City Phase 1",
+      "pinCode": "560100",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "coordinate": {
+        "y": 12.8428,
+        "x": 77.6631
+      }
+    },
+    {
+      "addressLine": "Salt Lake Sector V, Near Nicco Park",
+      "pinCode": "700091",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "coordinate": {
+        "y": 22.5726,
+        "x": 88.3639
+      }
+    },
+    {
+      "addressLine": "Knowledge Park 2",
+      "pinCode": "201310",
+      "city": "Greater Noida",
+      "state": "Uttar Pradesh",
+      "coordinate": {
+        "y": 28.4727,
+        "x": 77.5020
+      }
+    },
+    {
+      "addressLine": "Himayat Nagar, Street No. 1",
+      "pinCode": "500029",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "coordinate": {
+        "y": 17.4375,
+        "x": 78.4485
+      }
+    },
+    {
+      "addressLine": "Nungambakkam High Road",
+      "pinCode": "600034",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "coordinate": {
+        "y": 13.0827,
+        "x": 80.2707
+      }
+    },
+    {
+      "addressLine": "Pimple Saudagar, Near Rahatani Road",
+      "pinCode": "411027",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 18.6253,
+        "x": 73.8058
+      }
+    },
+    {
+      "addressLine": "Udyog Vihar Phase V",
+      "pinCode": "122016",
+      "city": "Gurugram",
+      "state": "Haryana",
+      "coordinate": {
+        "y": 28.4839,
+        "x": 77.0163
+      }
+    },
+    {
+      "addressLine": "Chandni Chowk, Near Red Fort",
+      "pinCode": "110006",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "coordinate": {
+        "y": 28.6508,
+        "x": 77.2307
+      }
+    },
+    {
+      "addressLine": "Malad West, Link Road",
+      "pinCode": "400064",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 19.1834,
+        "x": 72.8468
+      }
+    },
+    {
+      "addressLine": "Jayanagar 4th Block",
+      "pinCode": "560041",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "coordinate": {
+        "y": 12.9352,
+        "x": 77.6245
+      }
+    },
+    {
+      "addressLine": "Howrah Bridge Approach Road",
+      "pinCode": "711101",
+      "city": "Howrah",
+      "state": "West Bengal",
+      "coordinate": {
+        "y": 22.5852,
+        "x": 88.3496
+      }
+    },
+    {
+      "addressLine": "Pari Chowk, near Alpha 1",
+      "pinCode": "201308",
+      "city": "Greater Noida",
+      "state": "Uttar Pradesh",
+      "coordinate": {
+        "y": 28.4756,
+        "x": 77.5020
+      }
+    },
+    {
+      "addressLine": "Kukatpally Housing Board Colony",
+      "pinCode": "500072",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "coordinate": {
+        "y": 17.4375,
+        "x": 78.4485
+      }
+    },
+    {
+      "addressLine": "Adyar, Gandhi Nagar",
+      "pinCode": "600020",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "coordinate": {
+        "y": 13.0827,
+        "x": 80.2707
+      }
+    },
+    {
+      "addressLine": "Hinjewadi Phase 3, IT Park",
+      "pinCode": "411057",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 18.5204,
+        "x": 73.8567
+      }
+    },
+    {
+      "addressLine": "Sector 56, Near HUDA Market",
+      "pinCode": "122011",
+      "city": "Gurugram",
+      "state": "Haryana",
+      "coordinate": {
+        "y": 28.4239,
+        "x": 77.0673
+      }
+    },
+    {
+      "addressLine": "Dwarka Sector 7, Ramphal Chowk",
+      "pinCode": "110075",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "coordinate": {
+        "y": 28.5910,
+        "x": 77.0700
+      }
+    },
+    {
+      "addressLine": "Andheri East, MIDC Road",
+      "pinCode": "400093",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 19.1167,
+        "x": 72.8533
+      }
+    },
+    {
+      "addressLine": "Yelahanka New Town",
+      "pinCode": "560064",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "coordinate": {
+        "y": 13.1068,
+        "x": 77.5946
+      }
+    },
+    {
+      "addressLine": "New Alipore, Durgapur Bridge",
+      "pinCode": "700053",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "coordinate": {
+        "y": 22.5205,
+        "x": 88.3090
+      }
+    },
+    {
+      "addressLine": "Yamuna Expressway, Sector 18",
+      "pinCode": "201306",
+      "city": "Greater Noida",
+      "state": "Uttar Pradesh",
+      "coordinate": {
+        "y": 28.6080,
+        "x": 77.4000
+      }
+    },
+    {
+      "addressLine": "Madhapur, HITEC City",
+      "pinCode": "500081",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "coordinate": {
+        "y": 17.4375,
+        "x": 78.4485
+      }
+    },
+    {
+      "addressLine": "Velachery Main Road",
+      "pinCode": "600042",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "coordinate": {
+        "y": 13.0827,
+        "x": 80.2707
+      }
+    },
+    {
+      "addressLine": "Baner, Near Balewadi High Street",
+      "pinCode": "411045",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "coordinate": {
+        "y": 18.5204,
+        "x": 73.8567
+      }
+    },
+    {
+      "addressLine": "Golf Course Road, Sector 42",
+      "pinCode": "122002",
+      "city": "Gurugram",
+      "state": "Haryana",
+      "coordinate": {
+        "y": 28.4595,
+        "x": 77.0266
+      }
+    },
+    {
+      "addressLine": "Connaught Place, Radial Road 6",
+      "pinCode": "110001",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "coordinate": {
+        "y": 28.6324,
+        "x": 77.2180
+      }
+    }
+  ],
+  "categories": [
+    {
+      "name": "Roads & Infrastructure"
+    },
+    {
+      "name": "Sanitation & Waste"
+    },
+    {
+      "name": "Public Safety & Security"
+    },
+    {
+      "name": "Environment & Green Spaces"
+    },
+    {
+      "name": "Water & Drainage"
+    }
+  ],
+  "issues": [
+    {
+      "title": "Massive Potholes on Main Street",
+      "description": "The entire stretch of Main Street is riddled with deep potholes, causing severe traffic jams and damage to vehicles. Urgent repair needed.",
+      "location_id": 1,
+      "category_id": 1,
+      "user_id": 3,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Garbage Dump near Residential Area",
+      "description": "An unauthorized garbage dump has appeared near the Sector 15 housing complex, leading to foul smells and health hazards.",
+      "location_id": 1,
+      "category_id": 2,
+      "user_id": 4,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1631174721289-6656e7f3353c?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1495556650867-99590cea3657?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Street Lights Not Working for a Week",
+      "description": "The streetlights on Park Avenue, Block C, have been non-functional for the past seven days, increasing security risks at night.",
+      "location_id": 2,
+      "category_id": 3,
+      "user_id": 5,
+      "media_urls": [
+        "https://plus.unsplash.com/premium_photo-1663036928694-d218b69cc123?q=80&w=892&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Illegal Tree Cutting in Aarey Colony",
+      "description": "Witnessed illegal felling of several trees near Versova Beach Road. Please investigate and take action.",
+      "location_id": 12,
+      "category_id": 4,
+      "user_id": 6,
+      "media_urls": [
+        "https://plus.unsplash.com/premium_photo-1661963600977-5fc312f6a60e?q=80&w=1300&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Blocked Storm Drains causing Waterlogging",
+      "description": "Heavy rains last night caused severe waterlogging due to blocked storm drains near the station entrance.",
+      "location_id": 3,
+      "category_id": 5,
+      "user_id": 7,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1600336153113-d66c79de3e91?q=80&w=435&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Broken Footpath on Sarjapur Road",
+      "description": "The footpath outside the tech park is completely broken, forcing pedestrians to walk on the main road.",
+      "location_id": 13,
+      "category_id": 1,
+      "user_id": 8,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1601026909629-bad5e1122bc6?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1. 0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1587763483696-6d41d2de6084?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Irregular Waste Collection in Tollygunge",
+      "description": "Waste collection hasn't happened in three days, and bins are overflowing onto the street.",
+      "location_id": 14,
+      "category_id": 2,
+      "user_id": 9,
+      "media_urls": []
+    },
+    {
+      "title": "Vandalism and Graffiti at Local Park",
+      "description": "The children's play area in the local park has been heavily vandalized with graffiti.",
+      "location_id": 22,
+      "category_id": 3,
+      "user_id": 10,
+      "media_urls": [
+        "https://plus.unsplash.com/premium_photo-1693000474956-1a5d8a85befc?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Air Pollution from Construction Site",
+      "description": "A nearby construction site is operating without proper dust control measures, causing high air pollution.",
+      "location_id": 7,
+      "category_id": 4,
+      "user_id": 11,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1607432750402-48f85c94f63a?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Low Water Pressure in Gachibowli",
+      "description": "Water pressure has been consistently low in the mornings and evenings for the past month.",
+      "location_id": 8,
+      "category_id": 5,
+      "user_id": 12,
+      "media_urls": []
+    },
+    {
+      "title": "Damaged Road near Mylapore Temple",
+      "description": "A large section of the road near the temple is severely damaged and needs immediate resurfacing.",
+      "location_id": 9,
+      "category_id": 1,
+      "user_id": 13,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Uncollected Commercial Waste in Magarpatta",
+      "description": "Commercial waste is piling up on the roadside near the main gate of Magarpatta City.",
+      "location_id": 10,
+      "category_id": 2,
+      "user_id": 14,
+      "media_urls": []
+    },
+    {
+      "title": "Missing Manhole Cover near Lutyens' Delhi",
+      "description": "A manhole cover is missing, creating a major hazard for pedestrians and vehicles.",
+      "location_id": 11,
+      "category_id": 3,
+      "user_id": 15,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1624662153875-0f303ddd5456?q=80&w=1258&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Dry Lake Bed in Greater Noida West",
+      "description": "The local lake has completely dried up, severely impacting the ecosystem.",
+      "location_id": 15,
+      "category_id": 4,
+      "user_id": 16,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1693563920446-3e77e164827c?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Sewage Overflow on Banjara Hills Road",
+      "description": "Sewage water is overflowing onto the street from a damaged pipeline.",
+      "location_id": 16,
+      "category_id": 5,
+      "user_id": 17,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1534862262637-373c120dcbcc?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Poor Quality Repair Work on Anna Nagar Road",
+      "description": "The recently repaired patch of road is already cracking and eroding.",
+      "location_id": 17,
+      "category_id": 1,
+      "user_id": 18,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Open Defecation near Viman Nagar Slums",
+      "description": "Open defecation is still happening in the open area near the slums, posing a serious health threat.",
+      "location_id": 18,
+      "category_id": 2,
+      "user_id": 19,
+      "media_urls": []
+    },
+    {
+      "title": "Excessive Noise Pollution at DLF Phase 3",
+      "description": "Construction work is happening late at night, causing excessive noise pollution and disturbing residents.",
+      "location_id": 19,
+      "category_id": 3,
+      "user_id": 20,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1624662153875-0f303ddd5456?q=80&w=1258&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Lack of Green Cover in Hauz Khas Village",
+      "description": "Many planted saplings have died due to lack of maintenance and watering.",
+      "location_id": 20,
+      "category_id": 4,
+      "user_id": 3,
+      "media_urls": []
+    },
+    {
+      "title": "Leaking Water Main at BKC Intersection",
+      "description": "A major water main has been leaking heavily for over 48 hours, wasting a lot of water.",
+      "location_id": 21,
+      "category_id": 5,
+      "user_id": 4,
+      "media_urls": [
+        "https://plus.unsplash.com/premium_photo-1698183571181-6c351868f447?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Road Crumbling near Koramangala Park",
+      "description": "A significant portion of the road near the park is collapsing, making it dangerous for heavy vehicles.",
+      "location_id": 22,
+      "category_id": 1,
+      "user_id": 5,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Market Waste Dumping in Gariahat Road",
+      "description": "Vendors are routinely dumping vegetable and fruit waste directly onto the street after market hours.",
+      "location_id": 23,
+      "category_id": 2,
+      "user_id": 6,
+      "media_urls": [
+        "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Chain Snatching Incident Reported in Sector 18",
+      "description": "Reported a rise in chain snatching incidents near the crowded Atta Market area.",
+      "location_id": 24,
+      "category_id": 3,
+      "user_id": 7,
+      "media_urls": []
+    },
+    {
+      "title": "Smog and Air Quality Deterioration in Jubilee Hills",
+      "description": "Air quality has visibly deteriorated, with thick smog covering the area every morning.",
+      "location_id": 25,
+      "category_id": 4,
+      "user_id": 8,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1747224317423-c4d8bd95b04e?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Dirty Drinking Water Supply in T Nagar",
+      "description": "The tap water has been cloudy and often contains sediment. Afraid to drink or cook with it.",
+      "location_id": 26,
+      "category_id": 5,
+      "user_id": 9,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1703221924332-209896a38be1?q=80&w=435&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Damaged Flyover Expansion Joint in Kothrud",
+      "description": "A large gap has appeared in a flyover expansion joint, posing a structural and safety risk.",
+      "location_id": 27,
+      "category_id": 1,
+      "user_id": 10,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Industrial Effluent Dumping near Sohna Road",
+      "description": "An illegal pipeline is dumping chemical-smelling industrial effluent into a nearby drain.",
+      "location_id": 28,
+      "category_id": 2,
+      "user_id": 11,
+      "media_urls": [
+        "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Unruly Auto-rickshaw Drivers in Lajpat Nagar",
+      "description": "Auto drivers are consistently overcharging and refusing short-distance fares.",
+      "location_id": 29,
+      "category_id": 3,
+      "user_id": 12,
+      "media_urls": []
+    },
+    {
+      "title": "Park Trees Dying from Pest Infestation",
+      "description": "Several mature trees in the local park are visibly infected with a pest and are rapidly dying.",
+      "location_id": 30,
+      "category_id": 4,
+      "user_id": 13,
+      "media_urls": [
+        "https://plus.unsplash.com/premium_photo-1764166601214-ec907468697a?q=80&w=404&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Broken Water Pipe Flooding Juhu Road",
+      "description": "A major water pipe burst and is now flooding the entire road, making it impassable.",
+      "location_id": 30,
+      "category_id": 5,
+      "user_id": 14,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1637433926928-de69093ea8e0?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Missing Guardrail on Elevated Road",
+      "description": "A section of the guardrail on the elevated road in Electronic City is missing after an accident.",
+      "location_id": 31,
+      "category_id": 1,
+      "user_id": 15,
+      "media_urls": []
+    },
+    {
+      "title": "Medical Waste Found near Salt Lake Sector V",
+      "description": "Used syringes and medical waste were found illegally dumped in a public area.",
+      "location_id": 32,
+      "category_id": 2,
+      "user_id": 16,
+      "media_urls": [
+        "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Lack of Police Patrols in Knowledge Park",
+      "description": "The area feels unsafe after dark due to a visible lack of police patrolling.",
+      "location_id": 33,
+      "category_id": 3,
+      "user_id": 17,
+      "media_urls": []
+    },
+    {
+      "title": "Pollution of Musi River Tributary",
+      "description": "The tributary passing through Himayat Nagar is heavily polluted with trash and chemical runoff.",
+      "location_id": 34,
+      "category_id": 4,
+      "user_id": 18,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1623271531577-645d595d8459?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1612510158990-a675aa31b009?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Inconsistent Water Supply in Nungambakkam",
+      "description": "Water supply is erratic, often cutting off without warning for several hours a day.",
+      "location_id": 35,
+      "category_id": 5,
+      "user_id": 19,
+      "media_urls": []
+    },
+    {
+      "title": "Cracked Bridge Surface on Rahatani Road",
+      "description": "The surface of the small bridge on Rahatani Road has large cracks that are widening.",
+      "location_id": 36,
+      "category_id": 1,
+      "user_id": 20,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Stray Dog Menace in Udyog Vihar",
+      "description": "A large pack of stray dogs is harassing people and posing a risk to children and two-wheelers.",
+      "location_id": 37,
+      "category_id": 3,
+      "user_id": 3,
+      "media_urls": []
+    },
+    {
+      "title": "Historic Building Facade Crumbling in Chandni Chowk",
+      "description": "The facade of a very old, historic building is visibly crumbling and pieces are falling onto the street.",
+      "location_id": 38,
+      "category_id": 1,
+      "user_id": 4,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1601026909629-bad5e1122bc6?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1. 0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1587763483696-6d41d2de6084?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Water Taps Left Running at Public Standpost",
+      "description": "The public water standpost has damaged taps that constantly run, wasting water.",
+      "location_id": 39,
+      "category_id": 5,
+      "user_id": 5,
+      "media_urls": [
+        "https://plus.unsplash.com/premium_photo-1676231363860-b6ad0de309af?q=80&w=435&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Overgrown Weeds and Shrubs in Jayanagar Park",
+      "description": "The local park is severely overgrown, making paths unusable and becoming a snake habitat.",
+      "location_id": 40,
+      "category_id": 4,
+      "user_id": 6,
+      "media_urls": []
+    },
+    {
+      "title": "Broken Street Sign near Howrah Bridge",
+      "description": "A major street sign has been knocked over and is lying in the middle of the pavement.",
+      "location_id": 41,
+      "category_id": 1,
+      "user_id": 7,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Unsafe Electricity Box near Pari Chowk",
+      "description": "An open and sparking electricity distribution box is located at a busy public crossing.",
+      "location_id": 42,
+      "category_id": 3,
+      "user_id": 8,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1603164814730-9c966910e83a?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Plastic Waste Clogging Kukatpally Canals",
+      "description": "The water canals in the area are completely clogged with plastic bottles and bags.",
+      "location_id": 43,
+      "category_id": 2,
+      "user_id": 9,
+      "media_urls": []
+    },
+    {
+      "title": "Bumpy and Uneven Road Surface in Adyar",
+      "description": "The road surface is extremely bumpy and uneven, causing discomfort and slow movement.",
+      "location_id": 44,
+      "category_id": 1,
+      "user_id": 10,
+      "media_urls": []
+    },
+    {
+      "title": "Severe Water Scarcity in Hinjewadi Phase 3",
+      "description": "The area is experiencing a severe water shortage with supply only for 2 hours every other day.",
+      "location_id": 45,
+      "category_id": 5,
+      "user_id": 11,
+      "media_urls": []
+    },
+    {
+      "title": "Abandoned Vehicles on Sector 56 Streets",
+      "description": "Multiple old, abandoned cars are left on the streets, taking up valuable parking space and becoming junk.",
+      "location_id": 46,
+      "category_id": 3,
+      "user_id": 12,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1702603135052-1f7c6ff866ec?q=80&w=1033&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Damaged Road Median near Dwarka Ramphal Chowk",
+      "description": "A large portion of the road median is broken, allowing dangerous U-turns and causing accidents.",
+      "location_id": 47,
+      "category_id": 1,
+      "user_id": 13,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Potholes and Muddy Roads in Andheri East",
+      "description": "The roads in the MIDC area are full of deep potholes and become a muddy mess during rains.",
+      "location_id": 48,
+      "category_id": 1,
+      "user_id": 14,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Illegal Dumping of Construction Debris in Yelahanka",
+      "description": "Construction companies are illegally dumping debris in the outskirts of Yelahanka New Town.",
+      "location_id": 49,
+      "category_id": 2,
+      "user_id": 15,
+      "media_urls": [
+        "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Pollution of Tolly Nullah (Canal) near New Alipore",
+      "description": "The canal running through the area is visibly black and smells strongly of sewage and chemicals.",
+      "location_id": 50,
+      "category_id": 4,
+      "user_id": 16,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1605027538720-37afa8b9fc39?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Unlit Sections of Yamuna Expressway",
+      "description": "Several long stretches of the Yamuna Expressway lack working streetlights, making night driving very hazardous.",
+      "location_id": 51,
+      "category_id": 3,
+      "user_id": 17,
+      "media_urls": []
+    },
+    {
+      "title": "Overflowing Public Bins in HITEC City",
+      "description": "The public garbage bins near the office buildings are constantly overflowing, attracting pests.",
+      "location_id": 52,
+      "category_id": 2,
+      "user_id": 18,
+      "media_urls": [
+        "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Leaking Public Water Tank in Velachery",
+      "description": "The overhead water storage tank near the main road has a major leak, wasting water and damaging the street below.",
+      "location_id": 53,
+      "category_id": 5,
+      "user_id": 19,
+      "media_urls": [
+        "https://plus.unsplash.com/premium_photo-1676231363860-b6ad0de309af?q=80&w=435&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Encroachment of Footpaths by Vendors in Baner",
+      "description": "Footpaths are completely taken over by street vendors, forcing pedestrians onto the main road.",
+      "location_id": 54,
+      "category_id": 3,
+      "user_id": 20,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1611854064186-d8dccbccb031?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Unmaintained Green Median on Golf Course Road",
+      "description": "The green median strip is full of dry weeds and construction debris, not maintained as a green space.",
+      "location_id": 55,
+      "category_id": 4,
+      "user_id": 3,
+      "media_urls": []
+    },
+    {
+      "title": "Badly Designed Speed Breakers in Connaught Place",
+      "description": "The speed breakers on Radial Road 6 are too sharp and unmarked, causing vehicle damage and accidents.",
+      "location_id": 56,
+      "category_id": 1,
+      "user_id": 4,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Sewage Backup in Gurugram Sector 15",
+      "description": "The main sewer line has backed up, causing sewage to flow into basements and onto the street.",
+      "location_id": 1,
+      "category_id": 5,
+      "user_id": 5,
+      "media_urls": []
+    },
+    {
+      "title": "Broken Sidewalk and Tripping Hazard",
+      "description": "A large section of the sidewalk near the City Mall is uneven and cracked, posing a tripping hazard.",
+      "location_id": 3,
+      "category_id": 1,
+      "user_id": 6,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Frequent Power Outages in Kaggadasapura",
+      "description": "The locality is experiencing 4-5 power outages daily, disrupting work and daily life.",
+      "location_id": 4,
+      "category_id": 3,
+      "user_id": 7,
+      "media_urls": []
+    },
+    {
+      "title": "Potholes and Flooding on Indira Nagar Bypass",
+      "description": "The bypass road is heavily damaged and floods severely even during light rain.",
+      "location_id": 5,
+      "category_id": 1,
+      "user_id": 8,
+      "media_urls": [
+        "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ]
+    },
+    {
+      "title": "Stray Cattle Nuisance in Lal Bazaar Street",
+      "description": "Stray cattle roam freely, causing traffic disruption and leaving dung on the road.",
+      "location_id": 6,
+      "category_id": 3,
+      "user_id": 9,
+      "media_urls": []
+    }
+  ],
+  "comments": [
+    {
+      "text": "I agree! This is absolutely horrible, my car suspension is ruined.",
+      "issueId": 1,
+      "userId": 3,
+      "parentId": null
+    },
+    {
+      "text": "I live right next to it, the smell is unbearable, especially in the afternoon. Please help!",
+      "issueId": 2,
+      "userId": 4,
+      "parentId": null
+    },
+    {
+      "text": "This is a major security concern for women returning home late from work.",
+      "issueId": 3,
+      "userId": 5,
+      "parentId": null
+    },
+    {
+      "text": "I saw the same last night. They were cutting the trees in the dark.",
+      "issueId": 4,
+      "userId": 6,
+      "parentId": null
+    },
+    {
+      "text": "The entire street was a river. We couldn't leave our building.",
+      "issueId": 5,
+      "userId": 7,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 1: Yes, the repairs were done poorly. The patch failed within a week.",
+      "issueId": 1,
+      "userId": 8,
+      "parentId": 1
+    },
+    {
+      "text": "This happens every monsoon. The BMC needs to clean the drains *before* the rains.",
+      "issueId": 5,
+      "userId": 9,
+      "parentId": null
+    },
+    {
+      "text": "The local MLA was supposed to inaugurate a new footpath last month, what happened?",
+      "issueId": 6,
+      "userId": 10,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 3: I also filed a complaint with the police but no action has been taken yet.",
+      "issueId": 3,
+      "userId": 11,
+      "parentId": 3
+    },
+    {
+      "text": "The stench is so strong that I can't open my windows anymore.",
+      "issueId": 2,
+      "userId": 12,
+      "parentId": 2
+    },
+    {
+      "text": "I've almost tripped here twice. It's a lawsuit waiting to happen.",
+      "issueId": 6,
+      "userId": 13,
+      "parentId": 8
+    },
+    {
+      "text": "This is shocking. Who is responsible for monitoring these sites?",
+      "issueId": 9,
+      "userId": 14,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 12: I've also emailed the environment department with the construction company name.",
+      "issueId": 9,
+      "userId": 15,
+      "parentId": 12
+    },
+    {
+      "text": "We are getting water that smells like sewage. Is this linked to the low pressure?",
+      "issueId": 10,
+      "userId": 16,
+      "parentId": null
+    },
+    {
+      "text": "I saw a child almost fall into this! It needs to be barricaded immediately.",
+      "issueId": 13,
+      "userId": 17,
+      "parentId": null
+    },
+    {
+      "text": "It's sad to see this historic pond vanish. Where will the local birds go?",
+      "issueId": 14,
+      "userId": 18,
+      "parentId": null
+    },
+    {
+      "text": "My vehicle got stuck in the flowing sewage. It's truly a nightmare.",
+      "issueId": 15,
+      "userId": 19,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 15: I put a traffic cone over it, but someone moved it. We need a permanent fix.",
+      "issueId": 13,
+      "userId": 20,
+      "parentId": 15
+    },
+    {
+      "text": "The contractors clearly used substandard materials. This is corruption.",
+      "issueId": 16,
+      "userId": 3,
+      "parentId": null
+    },
+    {
+      "text": "This is a disgrace for a major city. Where are the public toilets?",
+      "issueId": 17,
+      "userId": 4,
+      "parentId": null
+    },
+    {
+      "text": "The noise is non-stop from 11 PM to 4 AM. I can't sleep.",
+      "issueId": 18,
+      "userId": 5,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 21: I recorded a video last night, will upload it to this issue.",
+      "issueId": 18,
+      "userId": 6,
+      "parentId": 21
+    },
+    {
+      "text": "This is not just waste, this is bio-hazard! The person responsible must be penalized.",
+      "issueId": 32,
+      "userId": 7,
+      "parentId": null
+    },
+    {
+      "text": "The wastage of water is incredible. This needs to be prioritized over everything else.",
+      "issueId": 20,
+      "userId": 8,
+      "parentId": null
+    },
+    {
+      "text": "I drive by this section daily. It's only a matter of time before it collapses.",
+      "issueId": 21,
+      "userId": 9,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 25: The municipality needs to check the structural integrity of the flyover.",
+      "issueId": 21,
+      "userId": 10,
+      "parentId": 25
+    },
+    {
+      "text": "The smell of rotting produce is terrible. It attracts rats and insects.",
+      "issueId": 22,
+      "userId": 11,
+      "parentId": null
+    },
+    {
+      "text": "We need more police booths and CCTV cameras in the area.",
+      "issueId": 23,
+      "userId": 12,
+      "parentId": null
+    },
+    {
+      "text": "I feel throat irritation every morning. This is severely affecting our health.",
+      "issueId": 24,
+      "userId": 13,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 28: Yes, better street lighting is also needed.",
+      "issueId": 23,
+      "userId": 14,
+      "parentId": 28
+    },
+    {
+      "text": "The water is brownish-yellow. I had to buy bottled water for my family.",
+      "issueId": 25,
+      "userId": 15,
+      "parentId": null
+    },
+    {
+      "text": "This crack has been growing over the last three months. It's highly worrying.",
+      "issueId": 26,
+      "userId": 16,
+      "parentId": null
+    },
+    {
+      "text": "The stench from that drain is unbearable. Who can we report this to?",
+      "issueId": 27,
+      "userId": 17,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 33: Contact the Pollution Control Board immediately!",
+      "issueId": 27,
+      "userId": 18,
+      "parentId": 33
+    },
+    {
+      "text": "They harass women and senior citizens. There should be a fixed rate card.",
+      "issueId": 28,
+      "userId": 19,
+      "parentId": null
+    },
+    {
+      "text": "I've been watering the saplings near my gate, but the city ones are all dead.",
+      "issueId": 19,
+      "userId": 20,
+      "parentId": null
+    },
+    {
+      "text": "The entire road has turned into a shallow pool. It's a traffic mess.",
+      "issueId": 30,
+      "userId": 3,
+      "parentId": null
+    },
+    {
+      "text": "Someone needs to cordon off the missing guardrail before a major accident occurs.",
+      "issueId": 31,
+      "userId": 4,
+      "parentId": null
+    },
+    {
+      "text": "This is terrible. The sewage is literally flowing onto the road now.",
+      "issueId": 57,
+      "userId": 5,
+      "parentId": null
+    },
+    {
+      "text": "The dogs are aggressive. They chased me on my scooter last week.",
+      "issueId": 37,
+      "userId": 6,
+      "parentId": null
+    },
+    {
+      "text": "That building is over 100 years old. It needs immediate restoration and support.",
+      "issueId": 38,
+      "userId": 7,
+      "parentId": null
+    },
+    {
+      "text": "It's shocking to see so much water wasted when other parts of the city are dry.",
+      "issueId": 39,
+      "userId": 8,
+      "parentId": null
+    },
+    {
+      "text": "I saw a snake in the overgrown shrubs yesterday! It's too dangerous to let children play.",
+      "issueId": 40,
+      "userId": 9,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 40: We've called the local dog catcher multiple times, no response.",
+      "issueId": 37,
+      "userId": 10,
+      "parentId": 40
+    },
+    {
+      "text": "The road is one-way, but people are using the broken median for illegal U-turns.",
+      "issueId": 47,
+      "userId": 11,
+      "parentId": null
+    },
+    {
+      "text": "It's a huge traffic bottleneck during peak hours.",
+      "issueId": 41,
+      "userId": 12,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 43: That's a huge problem. It's a clear environmental disaster.",
+      "issueId": 40,
+      "userId": 13,
+      "parentId": 43
+    },
+    {
+      "text": "Someone must have hit the pole. Needs to be replaced and bolted down properly.",
+      "issueId": 41,
+      "userId": 14,
+      "parentId": 46
+    },
+    {
+      "text": "The sparking is terrifying. It's right where children walk to school.",
+      "issueId": 42,
+      "userId": 15,
+      "parentId": null
+    },
+    {
+      "text": "The entire canal system is choked. They need a massive cleaning drive.",
+      "issueId": 43,
+      "userId": 16,
+      "parentId": null
+    },
+    {
+      "text": "I hate driving on this stretch, my teeth chatter from the bumps.",
+      "issueId": 44,
+      "userId": 17,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 50: This issue is critical. Businesses here are suffering greatly.",
+      "issueId": 45,
+      "userId": 18,
+      "parentId": null
+    },
+    {
+      "text": "We need the police to start towing these abandoned vehicles to clear up parking.",
+      "issueId": 46,
+      "userId": 19,
+      "parentId": null
+    },
+    {
+      "text": "The authorities need to send water tankers immediately to this area.",
+      "issueId": 45,
+      "userId": 20,
+      "parentId": 52
+    },
+    {
+      "text": "This is a serious safety violation. Someone could be electrocuted.",
+      "issueId": 42,
+      "userId": 3,
+      "parentId": 49
+    },
+    {
+      "text": "I saw the workers dump the debris at night near the lake. It was a massive truck.",
+      "issueId": 49,
+      "userId": 4,
+      "parentId": null
+    },
+    {
+      "text": "The road is not passable during the rain. It looks like a quarry.",
+      "issueId": 48,
+      "userId": 5,
+      "parentId": null
+    },
+    {
+      "text": "The air quality is so bad near the canal, I get a headache just walking past.",
+      "issueId": 50,
+      "userId": 6,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 56: I have footage on my dashcam showing the dumping.",
+      "issueId": 49,
+      "userId": 7,
+      "parentId": 56
+    },
+    {
+      "text": "Driving on this road at night is a huge risk. Visibility is zero.",
+      "issueId": 51,
+      "userId": 8,
+      "parentId": null
+    },
+    {
+      "text": "It's attracting huge rats and dogs. The whole area is getting dirty.",
+      "issueId": 52,
+      "userId": 9,
+      "parentId": null
+    },
+    {
+      "text": "This has been leaking for months! The water department needs to be held accountable.",
+      "issueId": 53,
+      "userId": 10,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 60: I saw the same leak near the post office. It's a city-wide problem.",
+      "issueId": 53,
+      "userId": 11,
+      "parentId": 60
+    },
+    {
+      "text": "I can't even walk to the local store because the entire sidewalk is blocked.",
+      "issueId": 54,
+      "userId": 12,
+      "parentId": null
+    },
+    {
+      "text": "They promised to plant native trees here, but it's just a dumping ground now.",
+      "issueId": 55,
+      "userId": 13,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 63: The vendors are also throwing their waste on the road now.",
+      "issueId": 54,
+      "userId": 14,
+      "parentId": 62
+    },
+    {
+      "text": "I saw a taxi hit its undercarriage on one of these unmarked bumps yesterday.",
+      "issueId": 56,
+      "userId": 15,
+      "parentId": null
+    },
+    {
+      "text": "This is an emergency. The sewage is corrosive and damaging property.",
+      "issueId": 57,
+      "userId": 16,
+      "parentId": 39
+    },
+    {
+      "text": "I fell here last week and sprained my ankle. This is very dangerous.",
+      "issueId": 58,
+      "userId": 17,
+      "parentId": null
+    },
+    {
+      "text": "It's impossible to work from home with constant power cuts every hour.",
+      "issueId": 59,
+      "userId": 18,
+      "parentId": null
+    },
+    {
+      "text": "The new bypass is worse than the old road now. It's a joke.",
+      "issueId": 60,
+      "userId": 19,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 69: The waterlogging is the real problem, it hides the potholes.",
+      "issueId": 60,
+      "userId": 20,
+      "parentId": 69
+    },
+    {
+      "text": "The traffic department needs to intervene and remove the cattle immediately.",
+      "issueId": 61,
+      "userId": 3,
+      "parentId": null
+    },
+    {
+      "text": "I was mugged right under one of the broken streetlights. This is scary.",
+      "issueId": 3,
+      "userId": 1,
+      "parentId": null
+    },
+    {
+      "text": "We need better enforcement of waste management rules in all markets.",
+      "issueId": 22,
+      "userId": 2,
+      "parentId": 27
+    },
+    {
+      "text": "Reply to Comment 72: I'm so sorry that happened! Did you file an FIR?",
+      "issueId": 3,
+      "userId": 4,
+      "parentId": 72
+    },
+    {
+      "text": "The council must allocate funds for heritage structure maintenance.",
+      "issueId": 38,
+      "userId": 5,
+      "parentId": 41
+    },
+    {
+      "text": "Reply to Comment 74: Yes, I did. The police said they'd increase patrols, but nothing changed.",
+      "issueId": 3,
+      "userId": 1,
+      "parentId": 74
+    },
+    {
+      "text": "This is what happens when maintenance is ignored for years.",
+      "issueId": 58,
+      "userId": 6,
+      "parentId": 67
+    },
+    {
+      "text": "The corporation promised a cattle pound. Where is it?",
+      "issueId": 61,
+      "userId": 7,
+      "parentId": 71
+    },
+    {
+      "text": "The contractors should be blacklisted for such shoddy work on the road.",
+      "issueId": 16,
+      "userId": 8,
+      "parentId": 19
+    },
+    {
+      "text": "I have a video of the water flowing into a nearby office building.",
+      "issueId": 5,
+      "userId": 9,
+      "parentId": 7
+    },
+    {
+      "text": "The entire neighborhood is suffering from low pressure. We need a permanent solution.",
+      "issueId": 10,
+      "userId": 10,
+      "parentId": 14
+    },
+    {
+      "text": "Reply to Comment 79: This is a common issue with local infrastructure projects.",
+      "issueId": 16,
+      "userId": 11,
+      "parentId": 79
+    },
+    {
+      "text": "We've had to call pest control multiple times because of the filth near the dump.",
+      "issueId": 2,
+      "userId": 12,
+      "parentId": 10
+    },
+    {
+      "text": "I'm worried about the spread of dengue and malaria due to the stagnant water.",
+      "issueId": 5,
+      "userId": 13,
+      "parentId": 80
+    },
+    {
+      "text": "The corporation needs to install proper dust netting and wet the site regularly.",
+      "issueId": 9,
+      "userId": 14,
+      "parentId": 13
+    },
+    {
+      "text": "This is a daily risk for two-wheeler riders. The pothole is too deep.",
+      "issueId": 1,
+      "userId": 15,
+      "parentId": 6
+    },
+    {
+      "text": "Reply to Comment 85: My bike tire burst after hitting it last week.",
+      "issueId": 1,
+      "userId": 16,
+      "parentId": 85
+    },
+    {
+      "text": "This is totally unacceptable. Where is the civic body's oversight?",
+      "issueId": 48,
+      "userId": 17,
+      "parentId": 57
+    },
+    {
+      "text": "We need the environmental police to investigate the source of this illegal effluent.",
+      "issueId": 27,
+      "userId": 18,
+      "parentId": 34
+    },
+    {
+      "text": "Reply to Comment 88: I think it's coming from a nearby textile factory.",
+      "issueId": 27,
+      "userId": 19,
+      "parentId": 88
+    },
+    {
+      "text": "The lack of lighting on the expressway makes it a high-risk area for accidents.",
+      "issueId": 51,
+      "userId": 20,
+      "parentId": 59
+    },
+    {
+      "text": "I saw the vendor's cartel threatening the municipal staff when they tried to clear the footpath.",
+      "issueId": 54,
+      "userId": 1,
+      "parentId": 64
+    },
+    {
+      "text": "We need more recycling options to reduce the load on public bins.",
+      "issueId": 52,
+      "userId": 2,
+      "parentId": 60
+    },
+    {
+      "text": "The sewage is backing up into my ground-floor apartment. This is an absolute disaster.",
+      "issueId": 57,
+      "userId": 3,
+      "parentId": 66
+    },
+    {
+      "text": "Reply to Comment 93: You need to call the disaster management helpline.",
+      "issueId": 57,
+      "userId": 4,
+      "parentId": 93
+    },
+    {
+      "text": "This road hasn't been properly surfaced in years. The city needs better infrastructure.",
+      "issueId": 44,
+      "userId": 5,
+      "parentId": 51
+    },
+    {
+      "text": "I saw someone throw a lit cigarette near the dry weeds. It's a fire hazard.",
+      "issueId": 55,
+      "userId": 6,
+      "parentId": 63
+    },
+    {
+      "text": "Reply to Comment 95: We need to file a joint petition for a full resurfacing project.",
+      "issueId": 44,
+      "userId": 7,
+      "parentId": 95
+    },
+    {
+      "text": "The water main leak is undermining the foundation of the nearby building.",
+      "issueId": 20,
+      "userId": 8,
+      "parentId": 24
+    },
+    {
+      "text": "The water looks fine in the evening, but it's very muddy in the morning.",
+      "issueId": 25,
+      "userId": 9,
+      "parentId": 31
+    },
+    {
+      "text": "I'm cancelling my gym membership because I'm afraid to walk home after dark.",
+      "issueId": 23,
+      "userId": 10,
+      "parentId": 30
+    },
+    {
+      "text": "We must save our green spaces. This illegal felling must be stopped.",
+      "issueId": 4,
+      "userId": 11,
+      "parentId": 4
+    },
+    {
+      "text": "Reply to Comment 101: The local activist group is planning a protest against the felling.",
+      "issueId": 4,
+      "userId": 12,
+      "parentId": 101
+    },
+    {
+      "text": "The corporation needs to install proper reflective paint and signage on these speed breakers.",
+      "issueId": 56,
+      "userId": 13,
+      "parentId": 65
+    },
+    {
+      "text": "My son's school bus had to take a major detour because of the water logging.",
+      "issueId": 60,
+      "userId": 14,
+      "parentId": 70
+    },
+    {
+      "text": "Reply to Comment 104: This is becoming a yearly problem that is not being solved.",
+      "issueId": 60,
+      "userId": 15,
+      "parentId": 104
+    },
+    {
+      "text": "The lack of water is affecting daily life and hygiene. We need better water management.",
+      "issueId": 45,
+      "userId": 16,
+      "parentId": 54
+    },
+    {
+      "text": "We should use a crowdsourcing app to map all the potholes and send the data to the PWD.",
+      "issueId": 1,
+      "userId": 17,
+      "parentId": 86
+    },
+    {
+      "text": "It's the poor drainage system, not just the roads. Both need work.",
+      "issueId": 60,
+      "userId": 18,
+      "parentId": 105
+    },
+    {
+      "text": "I reported the dry lake to the forest department months ago. No response.",
+      "issueId": 14,
+      "userId": 19,
+      "parentId": 16
+    },
+    {
+      "text": "This is a disaster waiting to happen. The crack is widening daily.",
+      "issueId": 26,
+      "userId": 20,
+      "parentId": 32
+    },
+    {
+      "text": "Reply to Comment 110: Someone should report this directly to the Chief Engineer of PWD.",
+      "issueId": 26,
+      "userId": 1,
+      "parentId": 110
+    },
+    {
+      "text": "We need dedicated police officers patrolling the park, not just occasional rounds.",
+      "issueId": 8,
+      "userId": 2,
+      "parentId": null
+    },
+    {
+      "text": "The garbage collectors are demanding extra money to take the trash from our area.",
+      "issueId": 7,
+      "userId": 3,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 113: That's blatant corruption! Report them to the vigilance department.",
+      "issueId": 7,
+      "userId": 4,
+      "parentId": 113
+    },
+    {
+      "text": "The entire area is prone to waterlogging because of the clogged drains.",
+      "issueId": 5,
+      "userId": 5,
+      "parentId": 84
+    },
+    {
+      "text": "The air pollution is visible and can be felt on the throat and lungs.",
+      "issueId": 9,
+      "userId": 6,
+      "parentId": 84
+    },
+    {
+      "text": "Reply to Comment 115: They need to clean the drains manually, the machines can't handle the solid waste.",
+      "issueId": 5,
+      "userId": 7,
+      "parentId": 115
+    },
+    {
+      "text": "The trees are dying from an unknown disease, not just lack of water. Needs expert review.",
+      "issueId": 30,
+      "userId": 8,
+      "parentId": 36
+    },
+    {
+      "text": "I saw the perpetrators; they were teenagers from a nearby college. Needs proper intervention.",
+      "issueId": 8,
+      "userId": 9,
+      "parentId": 112
+    },
+    {
+      "text": "The stench from the raw sewage is making it difficult for residents to cook or eat.",
+      "issueId": 15,
+      "userId": 10,
+      "parentId": 17
+    },
+    {
+      "text": "Reply to Comment 120: We need the water board to repair the pipeline immediately.",
+      "issueId": 15,
+      "userId": 11,
+      "parentId": 120
+    },
+    {
+      "text": "I've started carrying pepper spray because of the increase in incidents.",
+      "issueId": 23,
+      "userId": 12,
+      "parentId": 100
+    },
+    {
+      "text": "The government should install rainwater harvesting systems in the area.",
+      "issueId": 14,
+      "userId": 13,
+      "parentId": 109
+    },
+    {
+      "text": "We need to identify the exact point of the water tank leak and fix it.",
+      "issueId": 53,
+      "userId": 14,
+      "parentId": 61
+    },
+    {
+      "text": "The illegal U-turns are causing minor fender-benders almost daily.",
+      "issueId": 47,
+      "userId": 15,
+      "parentId": 45
+    },
+    {
+      "text": "Reply to Comment 125: We need police presence here for a few days to deter the U-turns.",
+      "issueId": 47,
+      "userId": 16,
+      "parentId": 125
+    },
+    {
+      "text": "The encroachment is forcing mothers with strollers and elderly people to walk on the main road.",
+      "issueId": 54,
+      "userId": 17,
+      "parentId": 91
+    },
+    {
+      "text": "The cattle pose a threat at night as they are hard to spot on the dark road.",
+      "issueId": 61,
+      "userId": 18,
+      "parentId": 78
+    },
+    {
+      "text": "I've created a WhatsApp group to coordinate efforts on this issue.",
+      "issueId": 1,
+      "userId": 19,
+      "parentId": 107
+    },
+    {
+      "text": "Reply to Comment 129: Great initiative! Send me the link.",
+      "issueId": 1,
+      "userId": 20,
+      "parentId": 129
+    },
+    {
+      "text": "The air pollution has been consistently in the 'severe' category for weeks.",
+      "issueId": 24,
+      "userId": 1,
+      "parentId": 29
+    },
+    {
+      "text": "We need stricter fines for illegal waste dumping, especially construction debris.",
+      "issueId": 49,
+      "userId": 2,
+      "parentId": 58
+    },
+    {
+      "text": "The canal water is toxic. Nothing can survive in it.",
+      "issueId": 50,
+      "userId": 3,
+      "parentId": 50
+    },
+    {
+      "text": "I'm worried about the risk of Dengue fever due to stagnant water in the potholes.",
+      "issueId": 48,
+      "userId": 4,
+      "parentId": 87
+    },
+    {
+      "text": "Reply to Comment 134: We need fogging operations to start immediately.",
+      "issueId": 48,
+      "userId": 5,
+      "parentId": 134
+    },
+    {
+      "text": "The area is turning into a slum with all the trash and illegal dumping.",
+      "issueId": 49,
+      "userId": 6,
+      "parentId": 132
+    },
+    {
+      "text": "This is a critical link road. It needs durable, all-weather repair.",
+      "issueId": 44,
+      "userId": 7,
+      "parentId": 97
+    },
+    {
+      "text": "The lack of security in this area is a big problem. We need more foot patrols.",
+      "issueId": 33,
+      "userId": 8,
+      "parentId": null
+    },
+    {
+      "text": "The water has a metallic taste. We suspect heavy metal contamination.",
+      "issueId": 25,
+      "userId": 9,
+      "parentId": 99
+    },
+    {
+      "text": "Reply to Comment 139: You need to get the water tested by an accredited lab.",
+      "issueId": 25,
+      "userId": 10,
+      "parentId": 139
+    },
+    {
+      "text": "The authorities should look into undergrounding the electricity wires.",
+      "issueId": 42,
+      "userId": 11,
+      "parentId": 55
+    },
+    {
+      "text": "The issue of water wastage is criminal when half the city faces shortage.",
+      "issueId": 39,
+      "userId": 12,
+      "parentId": 42
+    },
+    {
+      "text": "We should pressure the local councilor to address this broken sidewalk.",
+      "issueId": 58,
+      "userId": 13,
+      "parentId": 77
+    },
+    {
+      "text": "This power outage is damaging my appliances. Who is responsible for compensation?",
+      "issueId": 59,
+      "userId": 14,
+      "parentId": 68
+    },
+    {
+      "text": "The tree infestation is spreading to private property as well.",
+      "issueId": 30,
+      "userId": 15,
+      "parentId": 118
+    },
+    {
+      "text": "Reply to Comment 145: The city needs to hire an arborist for a proper assessment.",
+      "issueId": 30,
+      "userId": 16,
+      "parentId": 145
+    },
+    {
+      "text": "The authorities should use high-quality road materials to prevent potholes.",
+      "issueId": 1,
+      "userId": 17,
+      "parentId": 130
+    },
+    {
+      "text": "The poor road design and unmarked bumps are causing a lot of accidents.",
+      "issueId": 56,
+      "userId": 18,
+      "parentId": 103
+    },
+    {
+      "text": "The civic issues in this city are getting out of hand. We need better governance.",
+      "issueId": 1,
+      "userId": 19,
+      "parentId": 147
+    },
+    {
+      "text": "The green median should be maintained with drought-resistant native plants.",
+      "issueId": 55,
+      "userId": 20,
+      "parentId": 96
+    }
+  ]
+}

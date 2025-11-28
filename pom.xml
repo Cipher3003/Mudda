@@ -124,11 +124,19 @@
         </dependency>
 
         <!-- Faker -->
-        <!-- https://mvnrepository.com/artifact/com.github.javafaker/javafaker -->        
+        <!-- https://mvnrepository.com/artifact/com.github.javafaker/javafaker -->
         <dependency>
             <groupId>net.datafaker</groupId>
             <artifactId>datafaker</artifactId>
             <version>2.5.3</version>
+        </dependency>
+
+        <!-- GSON -->
+        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.2</version>
         </dependency>
 
     </dependencies>

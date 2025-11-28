@@ -28,12 +28,17 @@ public class CommentLikeServiceImpl implements CommentLikeService {
     @Transactional
     @Override
     public CommentLikeResponse userLikesOnComment(long commentId, long userId) {
-        CommentLike commentLike = new CommentLike(commentId,userId);
+        CommentLike commentLike = new CommentLike(commentId, userId);
         likeRepository.save(commentLike);
 
         long likesCount = likeRepository.countByCommentId(commentId);
 
         return new CommentLikeResponse(true, likesCount);
+    }
+
+    @Override
+    public void saveCommentLikes(List<CommentLike> commentLikes) {
+        likeRepository.saveAll(commentLikes);
     }
 
     @Transactional

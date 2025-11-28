@@ -68,6 +68,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
+    public void saveCategories(List<Category> categories) {
+        categoryRepository.saveAll(categories);
+    }
+
+    @Transactional
+    @Override
     public void deleteCategory(long id) {
         categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id " + id));

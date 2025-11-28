@@ -14,6 +14,8 @@ public interface VoteService {
 
     VoteResponse create(long issueId, Long userId);
 
+    void saveVotes(List<Vote> votes);
+
     void deleteVote(long id);
 
     void deleteAllVotesByIssueId(long issueId);
