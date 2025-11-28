@@ -21,6 +21,7 @@ public record IssueSeed(
         int categoryId,
         @SerializedName("user_id")
         int userId,
+        @SerializedName("media_urls")
         List<String> mediaUrls
 ) {
 
