@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import io.github.cdimascio.dotenv.Dotenv;
 
 @OpenAPIDefinition(info = @Info(
         title = "Mudda API",
@@ -16,6 +17,18 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 public class BackendApplication {
 
     public static void main(String[] args) {
+
+        Dotenv dotenv = Dotenv.configure()
+                .directory(".") // project root
+                .ignoreIfMalformed()
+                .ignoreIfMissing()
+                .load();
+
+        // Set all environment variables from .env as system properties
+        dotenv.entries().forEach(entry -> {
+            System.setProperty(entry.getKey(), entry.getValue());
+        });
+        
         SpringApplication.run(BackendApplication.class, args);
     }
 }
