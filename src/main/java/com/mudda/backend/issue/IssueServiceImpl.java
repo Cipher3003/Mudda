@@ -7,6 +7,8 @@ import com.mudda.backend.location.Location;
 import com.mudda.backend.location.LocationDTO;
 import com.mudda.backend.location.LocationMapper;
 import com.mudda.backend.location.LocationRepository;
+import com.mudda.backend.user.User;
+import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.utils.EntityValidator;
 import com.mudda.backend.vote.Vote;
 import com.mudda.backend.vote.VoteRepository;
@@ -35,28 +37,25 @@ public class IssueServiceImpl implements IssueService {
     private final VoteService voteService;
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
-    public IssueServiceImpl(IssueRepository issueRepository,
-                            CommentService commentService,
-                            VoteRepository voteRepository,
-                            VoteService voteService,
-                            LocationRepository locationRepository,
-                            CategoryRepository categoryRepository) {
+    public IssueServiceImpl(
+            IssueRepository issueRepository, CommentService commentService, VoteRepository voteRepository,
+            VoteService voteService, LocationRepository locationRepository, CategoryRepository categoryRepository,
+            UserRepository userRepository) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteRepository = voteRepository;
         this.voteService = voteService;
         this.locationRepository = locationRepository;
         this.categoryRepository = categoryRepository;
+        this.userRepository = userRepository;
     }
 
     // #region Queries (Read Operations)
 
     @Override
-    public Page<IssueSummaryResponse> findAllIssues(
-            IssueFilterRequest filterRequest,
-            Pageable pageable,
-            Long userId) {
+    public Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, Long userId) {
 
         List<Long> locationIds = locationRepository
                 .findByCityAndState(filterRequest.city(), filterRequest.state())
@@ -82,8 +81,16 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getId)
                 .toList();
 
-        Map<Long, Long> voteCountMap = voteRepository
-                .countByIssueIdIn(issueIds)
+        Set<Long> authorIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getUserId)
+                .collect(Collectors.toSet());
+
+        Map<Long, User> usersMap = userRepository.findAllById(authorIds)
+                .stream()
+                .collect(Collectors.toMap(User::getUserId, user -> user));
+
+        Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
                 .stream()
                 .collect(Collectors.toMap(
                         row -> (Long) row[0], // issueId
@@ -95,52 +102,59 @@ public class IssueServiceImpl implements IssueService {
         // TODO: maybe use Vote entity's own check vote casted by user to filter this
         // set even more
         Set<Long> issuesVotedByUser = isAuthenticated
-                ? voteRepository.findByUserIdAndIssueIdIn(userId, issueIds).stream()
-                .map(Vote::getIssueId).collect(Collectors.toSet())
+                ? voteRepository.findByUserIdAndIssueIdIn(userId, issueIds)
+                        .stream()
+                        .map(Vote::getIssueId)
+                        .collect(Collectors.toSet())
                 : Set.of();
 
         return issuePage.map(issue -> {
+
+            User user = usersMap.getOrDefault(issue.getUserId(), null);
+            if (user == null)
+                throw new IllegalStateException("User not found for issue: " + issue.getId());
+
             long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
 
             boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
 
+            // TODO: maybe prevent self voting
             return IssueMapper.toSummary(
-                    issue,
-                    voteCount,
-                    hasUserVoted,
-                    isAuthenticated // canUserVote
+                    issue, user, voteCount, hasUserVoted, isAuthenticated // canUserVote
             );
         });
     }
 
     @Override
     public Optional<IssueResponse> findById(long id, Long userId) {
+
         Issue issue = issueRepository.findById(id).orElse(null);
         if (issue == null)
             return Optional.empty();
 
-        long voteCount = voteRepository.countByIssueId(issue.getId());
+        User author = userRepository.findById(issue.getUserId()).orElse(null);
+        if (author == null)
+            return Optional.empty();
 
         Location location = locationRepository.findById(issue.getLocationId()).orElse(null);
         if (location == null)
             return Optional.empty();
 
-        LocationDTO summary = LocationMapper.toSummary(location);
+        LocationDTO locationSummary = LocationMapper.toSummary(location);
 
         return categoryRepository.findById(issue.getCategoryId())
                 .map(category -> {
 
                     boolean isAuthenticated = userId != null;
                     boolean isOwner = isAuthenticated && issue.getUserId().equals(userId);
+
                     boolean hasUserVoted = isAuthenticated
                             && voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
 
+                    long voteCount = voteRepository.countByIssueId(issue.getId());
+
                     return IssueMapper.toResponse(
-                            issue,
-                            summary,
-                            category.getName(),
-                            voteCount,
-                            hasUserVoted,
+                            issue, author, locationSummary, category.getName(), voteCount, hasUserVoted,
                             isAuthenticated, // canUserVote
                             isAuthenticated, // canUserComment
                             isOwner, // canEdit
@@ -157,37 +171,28 @@ public class IssueServiceImpl implements IssueService {
         double cellSize = getCellSize(clusterRequest.zoomLevel(), centerLat);
 
         List<IssueClusterQueryResult> issueClusters = issueRepository.getIssueClusters(
-                clusterRequest.minLatitude(), clusterRequest.maxLatitude(),
-                clusterRequest.minLongitude(), clusterRequest.maxLongitude(),
-                cellSize);
+                clusterRequest.minLatitude(), clusterRequest.maxLatitude(), clusterRequest.minLongitude(),
+                clusterRequest.maxLongitude(), cellSize);
 
         if (issueClusters == null || issueClusters.isEmpty())
             return new IssueClusterResponse(List.of());
 
         Map<String, List<IssueClusterQueryResult>> grouped = issueClusters.stream()
-                .collect(Collectors
-                        .groupingBy(cluster -> cluster.cellX() + "_" + cluster.cellY()));
+                .collect(Collectors.groupingBy(cluster -> cluster.cellX() + "_" + cluster.cellY()));
 
         List<IssueClusterDTO> clusters = new ArrayList<>(grouped.size());
 
         for (List<IssueClusterQueryResult> group : grouped.values()) {
-            Map<String, Long> categoryCounts = group.stream()
-                    .collect(Collectors
-                            .toMap(
-                                    IssueClusterQueryResult::category,
-                                    IssueClusterQueryResult::count));
+            Map<String, Long> categoryCounts = group.stream().collect(Collectors.toMap(
+                    IssueClusterQueryResult::category, IssueClusterQueryResult::count));
 
-            String topCategory = categoryCounts.entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .map(Map.Entry::getKey)
-                    .orElse("unknown");
+            String topCategory = categoryCounts.entrySet().stream().max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey).orElse("unknown");
 
             IssueClusterQueryResult firstCluster = group.get(0);
             clusters.add(
                     new IssueClusterDTO(
-                            firstCluster.centerLatitude(),
-                            firstCluster.centerLongitude(),
-                            topCategory,
+                            firstCluster.centerLatitude(), firstCluster.centerLongitude(), topCategory,
                             categoryCounts));
         }
 
@@ -210,6 +215,10 @@ public class IssueServiceImpl implements IssueService {
         // it
         validateReferences(issueRequest.locationId(), issueRequest.categoryId());
 
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null)
+            throw new IllegalArgumentException("User not found for creating Issue");
+
         Issue issue = IssueMapper.toIssue(userId, issueRequest);
 
         Optional<Location> location = locationRepository.findById(issue.getLocationId());
@@ -222,12 +231,8 @@ public class IssueServiceImpl implements IssueService {
 
         Issue saved = issueRepository.save(issue);
         return IssueMapper.toResponse(
-                saved,
-                LocationMapper.toSummary(location.get()),
-                category.get().getName(),
-                0,
-                false,
-                true, true, true, true);
+                saved, user, LocationMapper.toSummary(location.get()), category.get().getName(), 0, false, true, true,
+                true, true);
     }
 
     @Transactional
@@ -252,11 +257,16 @@ public class IssueServiceImpl implements IssueService {
     @Transactional
     @Override
     public IssueUpdateResponse updateIssue(long id, Long userId, UpdateIssueRequest issueRequest) {
-        Issue existing = issueRepository.findById(id).orElseThrow(() -> notFound(id));
 
         // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
+        Issue existing = issueRepository.findById(id).orElseThrow(() -> notFound(id));
+
+        boolean isOwner = existing.getUserId().equals(userId);
+        if (!isOwner)
+            throw new IllegalStateException("Only author can update their posted issue");
 
         existing.updateDetails(issueRequest.title(), issueRequest.description(), issueRequest.status());
         Issue updated = issueRepository.save(existing);
@@ -267,11 +277,16 @@ public class IssueServiceImpl implements IssueService {
     @Transactional
     @Override
     public void deleteIssue(long id, Long userId) {
-        Issue issue = issueRepository.findById(id).orElseThrow(() -> notFound(id));
 
         // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
+        Issue issue = issueRepository.findById(id).orElseThrow(() -> notFound(id));
+
+        boolean isOwner = issue.getUserId().equals(userId);
+        if (!isOwner)
+            throw new IllegalStateException("Only author can delete their posted issue");
 
         commentService.deleteAllCommentsByIssueId(issue.getId());
         voteService.deleteAllVotesByIssueId(issue.getId());
@@ -282,10 +297,7 @@ public class IssueServiceImpl implements IssueService {
     @Transactional
     @Override
     public void deleteAllIssuesByUser(long userId) {
-        List<Long> issueIds = issueRepository.findByUserId(userId)
-                .stream()
-                .map(Issue::getId)
-                .toList();
+        List<Long> issueIds = issueRepository.findByUserId(userId).stream().map(Issue::getId).toList();
 
         if (issueIds.isEmpty())
             return;
