@@ -237,12 +237,16 @@ public class IssueServiceImpl implements IssueService {
     @Transactional
     @Override
     public IssueUpdateResponse updateIssue(long id, Long userId, UpdateIssueRequest issueRequest) {
-        Issue existing = issueRepository.findById(id).orElseThrow(() -> notFound(id));
 
         // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
-        // TODO: validate if the user is owner
+
+        Issue existing = issueRepository.findById(id).orElseThrow(() -> notFound(id));
+
+        boolean isOwner = existing.getUserId().equals(userId);
+        if (!isOwner)
+            throw new IllegalStateException("Only author can update their posted issue");
 
         existing.updateDetails(issueRequest.title(), issueRequest.description(), issueRequest.status());
         Issue updated = issueRepository.save(existing);
@@ -253,11 +257,16 @@ public class IssueServiceImpl implements IssueService {
     @Transactional
     @Override
     public void deleteIssue(long id, Long userId) {
-        Issue issue = issueRepository.findById(id).orElseThrow(() -> notFound(id));
 
         // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+
+        Issue issue = issueRepository.findById(id).orElseThrow(() -> notFound(id));
+
+        boolean isOwner = issue.getUserId().equals(userId);
+        if (!isOwner)
+            throw new IllegalStateException("Only author can delete their posted issue");
 
         commentService.deleteAllCommentsByIssueId(issue.getId());
         voteService.deleteAllVotesByIssueId(issue.getId());
