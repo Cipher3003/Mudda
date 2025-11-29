@@ -1,18 +1,32 @@
 package com.mudda.backend.seed;
 
+import com.google.gson.Gson;
+import com.mudda.backend.category.CategorySeed;
 import com.mudda.backend.category.CategoryService;
 import com.mudda.backend.category.CreateCategoryRequest;
+import com.mudda.backend.comment.CommentLike;
+import com.mudda.backend.comment.CommentLikeSeed;
+import com.mudda.backend.comment.CommentLikeService;
+import com.mudda.backend.comment.CommentSeed;
 import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.comment.CreateCommentRequest;
 import com.mudda.backend.issue.CreateIssueRequest;
+import com.mudda.backend.issue.IssueSeed;
 import com.mudda.backend.issue.IssueService;
 import com.mudda.backend.location.CoordinateDTO;
 import com.mudda.backend.location.CreateLocationRequest;
+import com.mudda.backend.location.LocationSeed;
 import com.mudda.backend.location.LocationService;
 import com.mudda.backend.role.CreateRoleRequest;
+import com.mudda.backend.role.RoleSeed;
 import com.mudda.backend.role.RoleService;
 import com.mudda.backend.user.CreateUserRequest;
+import com.mudda.backend.user.UserSeed;
 import com.mudda.backend.user.UserService;
+import com.mudda.backend.vote.Vote;
+import com.mudda.backend.vote.VoteSeed;
+import com.mudda.backend.vote.VoteService;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import net.datafaker.Faker;
@@ -20,6 +34,11 @@ import net.datafaker.providers.base.Text;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -41,20 +60,26 @@ public class SeedService {
     private final LocationService locationService;
     private final UserService userService;
     private final IssueService issueService;
+    private final VoteService voteService;
     private final CommentService commentService;
+    private final CommentLikeService commentLikeService;
 
     public SeedService(RoleService roleService,
             CategoryService categoryService,
             LocationService locationService,
             UserService userService,
+            VoteService voteService,
             IssueService issueService,
-            CommentService commentService) {
+            CommentService commentService,
+            CommentLikeService commentLikeService) {
         this.roleService = roleService;
         this.categoryService = categoryService;
         this.locationService = locationService;
         this.userService = userService;
+        this.voteService = voteService;
         this.issueService = issueService;
         this.commentService = commentService;
+        this.commentLikeService = commentLikeService;
     }
 
     /**
@@ -175,6 +200,84 @@ public class SeedService {
             feedback.add("No entities requested for generation.");
         else if (feedback.stream().noneMatch(msg -> msg.startsWith("ERROR:")))
             feedback.add("All requested entities generated successfully.");
+
+        return feedback;
+    }
+
+    @Transactional
+    public List<String> seedDatabaseFromJson() {
+        Gson gson = new Gson();
+        List<String> feedback = new ArrayList<>();
+
+        try (InputStream stream = SeedService.class.getClassLoader().getResourceAsStream("seed.json")) {
+            if (stream == null) {
+                feedback.add("Error: seed.json not found in classpath");
+                return feedback;
+            }
+
+            try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                SeedData seedData = gson.fromJson(reader, SeedData.class);
+
+                roleService.saveRoles(seedData.roles().stream().map(RoleSeed::toRole).toList());
+                feedback.add("Roles seeded: " + seedData.roles().size());
+
+                userService.saveUsers(seedData.users().stream().map(UserSeed::toUser).toList());
+                feedback.add("Users seeded: " + seedData.users().size());
+
+                locationService.saveLocations(seedData.locations().stream().map(LocationSeed::toLocation).toList());
+                feedback.add("Locations seeded: " + seedData.locations().size());
+
+                categoryService.saveCategories(seedData.categories().stream().map(CategorySeed::toCategory).toList());
+                feedback.add("Categories seeded: " + seedData.categories().size());
+
+                issueService.saveIssues(seedData.issues().stream().map(IssueSeed::toIssue).toList());
+                feedback.add("Issues seeded: " + seedData.issues().size());
+
+                commentService.saveComments(seedData.comments().stream().map(CommentSeed::toComment).toList());
+                feedback.add("Comments seeded: " + seedData.comments().size());
+
+                int userCount = seedData.users().size();
+
+                List<Vote> votesList = new ArrayList<>();
+
+                for (int issueId = 1; issueId <= seedData.issues().size(); issueId++) {
+                    int voteCount = random.nextInt(1, userCount);
+
+                    for (int voteId = 0; voteId < voteCount; voteId++) {
+                        votesList.add(VoteSeed.toVote(new VoteSeed(
+                                issueId,
+                                random.nextInt(1, userCount + 1)
+                        )));
+                    }
+                }
+
+                voteService.saveVotes(votesList);
+                feedback.add("Votes generated: " + votesList.size());
+
+                List<CommentLike> commentLikes = new ArrayList<>();
+
+                for (int commentId = 1; commentId <= seedData.comments().size(); commentId++) {
+                    int likes = random.nextInt(1, userCount);
+
+                    for (int likeId = 0; likeId < likes; likeId++) {
+                        commentLikes.add(CommentLikeSeed
+                                .toCommentLike(new CommentLikeSeed(
+                                        commentId,
+                                        random.nextInt(1, userCount + 1)
+                                )));
+                    }
+                }
+
+                commentLikeService.saveCommentLikes(commentLikes);
+                feedback.add("Comment Likes generated: " + commentLikes.size());
+
+                feedback.add("Json seeding completed successfully");
+
+            }
+        } catch (IOException e) {
+            feedback.add("Error during JSON seeding: "+e.getMessage());
+            e.printStackTrace();
+        }
 
         return feedback;
     }

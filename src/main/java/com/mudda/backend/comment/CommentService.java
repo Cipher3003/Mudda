@@ -22,6 +22,8 @@ public interface CommentService {
 
     List<Long> createReplies(List<Long> parentIds, List<Long> userIds, List<Long> issueIds, List<CreateCommentRequest> createCommentRequests);
 
+    void saveComments(List<Comment> comments);
+
     CommentResponse updateComment(long id, String text);
 
     void deleteComment(long id);

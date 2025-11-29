@@ -17,8 +17,7 @@ public class VoteServiceImpl implements VoteService {
     private final IssueRepository issueRepository;
 
     public VoteServiceImpl(VoteRepository voteRepository,
-                           IssueRepository issueRepository
-    ) {
+            IssueRepository issueRepository) {
         this.voteRepository = voteRepository;
         this.issueRepository = issueRepository;
     }
@@ -43,7 +42,7 @@ public class VoteServiceImpl implements VoteService {
     @Override
     public VoteResponse create(long issueId, Long userId) {
 
-//        TODO: change the exception to custom ?
+        // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
@@ -55,6 +54,11 @@ public class VoteServiceImpl implements VoteService {
         long voteCount = voteRepository.countByIssueId(issueId);
 
         return VoteResponse.from(voteCount, true);
+    }
+
+    @Override
+    public void saveVotes(List<Vote> votes) {
+        voteRepository.saveAll(votes);
     }
 
     @Transactional
@@ -79,7 +83,7 @@ public class VoteServiceImpl implements VoteService {
     @Override
     public VoteResponse deleteVoteByIssueIdAndUserId(long issueId, Long userId) {
 
-//        TODO: change the exception to custom ?
+        // TODO: change the exception to custom ?
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
@@ -99,9 +103,9 @@ public class VoteServiceImpl implements VoteService {
 
     // #endregion
 
-//    ------------------------------
-//    Helpers
-//    ------------------------------
+    // ------------------------------
+    // Helpers
+    // ------------------------------
 
     private void validateReferences(long issueId) {
 

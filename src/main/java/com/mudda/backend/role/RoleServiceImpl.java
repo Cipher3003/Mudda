@@ -65,6 +65,12 @@ public class RoleServiceImpl implements RoleService {
                 .toList();
     }
 
+    @Transactional
+    @Override
+    public void saveRoles(List<Role> roles) {
+        roleRepository.saveAll(roles);
+    }
+
     @Override
     public void deleteRole(long id) {
         if (!roleRepository.existsById(id))

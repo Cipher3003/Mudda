@@ -1,6 +1,7 @@
 package com.mudda.backend.issue;
 
 import com.mudda.backend.location.LocationDTO;
+import com.mudda.backend.user.User;
 
 public class IssueMapper {
 
@@ -11,21 +12,19 @@ public class IssueMapper {
                 userId,
                 issueRequest.locationId(),
                 issueRequest.categoryId(),
-                issueRequest.mediaUrls()
-        );
+                issueRequest.mediaUrls());
     }
 
-    public static IssueResponse toResponse(Issue issue, LocationDTO locationSummary,
-                                           String category, long voteCount, boolean hasUserLiked,
-                                           boolean canUserVote, boolean canUserComment,
-                                           boolean canUserEdit, boolean canUserDelete
-    ) {
+    public static IssueResponse toResponse(Issue issue, User user, LocationDTO locationSummary,
+            String category, long voteCount, boolean hasUserLiked,
+            boolean canUserVote, boolean canUserComment,
+            boolean canUserEdit, boolean canUserDelete) {
         return new IssueResponse(
+                // Issue details
                 issue.getId(),
                 issue.getTitle(),
                 issue.getDescription(),
                 issue.getStatus(),
-                issue.getUserId(),
                 locationSummary,
                 category,
                 voteCount,
@@ -33,6 +32,11 @@ public class IssueMapper {
                 issue.getSeverityScore(),
                 issue.getCreatedAt(),
                 issue.getUpdatedAt(),
+                // Author details
+                user.getUserId(),
+                user.getUserName(),
+                user.getProfileImageUrl(),
+                // Flags
                 hasUserLiked,
                 canUserVote,
                 canUserComment,
@@ -46,13 +50,11 @@ public class IssueMapper {
                 issue.getId(),
                 issue.getTitle(),
                 issue.getDescription(),
-                issue.getStatus()
-        );
+                issue.getStatus());
     }
 
-    public static IssueSummaryResponse toSummary(Issue issue, long voteCount,
-                                                 boolean hasUserVoted, boolean canUserVote
-    ) {
+    public static IssueSummaryResponse toSummary(Issue issue, User user, long voteCount,
+            boolean hasUserVoted, boolean canUserVote) {
         return new IssueSummaryResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -60,8 +62,12 @@ public class IssueMapper {
                 voteCount,
                 issue.getMediaUrls(),
                 issue.getCreatedAt(),
+                // Author details
+                user.getUserId(),
+                user.getUserName(),
+                user.getProfileImageUrl(),
+                // Flags
                 hasUserVoted,
-                canUserVote
-        );
+                canUserVote);
     }
 }

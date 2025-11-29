@@ -214,6 +214,12 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
+    public void saveComments(List<Comment> comments) {
+        commentRepository.saveAll(comments);
+    }
+
+    @Transactional
+    @Override
     public CommentResponse updateComment(long id, String text) {
         if (text == null || text.isBlank())
             throw new IllegalArgumentException("Comment text cannot be empty.");

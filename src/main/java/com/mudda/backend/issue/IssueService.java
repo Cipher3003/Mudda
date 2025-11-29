@@ -18,6 +18,8 @@ public interface IssueService {
 
     List<Long> createIssues(List<Long> userIds, List<CreateIssueRequest> issueRequests);
 
+    void saveIssues(List<Issue> issues);
+
     IssueUpdateResponse updateIssue(long id, Long userId, UpdateIssueRequest issueRequest);
 
     /**

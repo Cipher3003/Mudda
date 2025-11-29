@@ -18,9 +18,13 @@ public class SeedController {
 
     @PostMapping
     public ResponseEntity<List<String>> generateTestData(
-            @RequestBody @Valid CreateSeedRequest seedRequest
-    ) {
+            @RequestBody @Valid CreateSeedRequest seedRequest) {
         return ResponseEntity.ok(seedService.seedDatabase(seedRequest));
+    }
+
+    @PostMapping("/json")
+    public ResponseEntity<List<String>> seedJsonData() {
+        return ResponseEntity.ok(seedService.seedDatabaseFromJson());
     }
 
     @DeleteMapping("/clear")

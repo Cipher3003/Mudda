@@ -1,0 +1,118 @@
+{
+  "roles": [
+    {
+      "name": "Citizen"
+    },
+    {
+      "name": "Administrator"
+    }
+  ],
+  "users": [
+    {
+      "userName": "citizen_john",
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "dateOfBirth": "1995-04-15",
+      "phoneNumber": "+919876543210",
+      "password": "hashed_password_1",
+      "roleId": 1,
+      "profileImageUrl": "https://images.example.com/profiles/citizen_john.jpg"
+    },
+    {
+      "userName": "admin_alice",
+      "name": "Alice Smith",
+      "email": "alice.smith@gov.org",
+      "dateOfBirth": "1988-11-20",
+      "phoneNumber": "+15551234567",
+      "password": "hashed_password_2",
+      "roleId": 2,
+      "profileImageUrl": "https://images.example.com/profiles/admin_alice.jpg"
+    }
+  ],
+  "locations": [
+    {
+      "addressLine": "123 Main Street, Sector 15",
+      "pinCode": "122001",
+      "city": "Gurugram",
+      "state": "Haryana",
+      "coordinate": {
+        "y": 28.4595,
+        "x": 77.0266
+      }
+    },
+    {
+      "addressLine": "45/A Park Avenue, Block C",
+      "pinCode": "110001",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "coordinate": {
+        "y": 28.6139,
+        "x": 77.2090
+      }
+    }
+  ],
+  "categories": [
+    {
+      "name": "Roads & Infrastructure"
+    },
+    {
+      "name": "Sanitation & Waste"
+    },
+    {
+      "name": "Public Safety & Security"
+    },
+    {
+      "name": "Environment & Green Spaces"
+    },
+    {
+      "name": "Water & Drainage"
+    }
+  ],
+  "issues": [
+    {
+      "title": "Massive Potholes on Main Street",
+      "description": "The entire stretch of Main Street is riddled with deep potholes, causing severe traffic jams and damage to vehicles. Urgent repair needed.",
+      "locationId": 1,
+      "categoryId": 1,
+      "mediaUrls": [
+        "https://media.example.com/issue/1/photo1.jpg"
+      ]
+    },
+    {
+      "title": "Garbage Dump near Residential Area",
+      "description": "An unauthorized garbage dump has appeared near the Sector 15 housing complex, leading to foul smells and health hazards.",
+      "locationId": 1,
+      "categoryId": 2,
+      "mediaUrls": [
+        "https://media.example.com/issue/2/photo1.jpg",
+        "https://media.example.com/issue/2/video1.mp4"
+      ]
+    }
+  ],
+  "comments": [
+    {
+      "text": "I agree! This is absolutely horrible, my car suspension is ruined.",
+      "issueId": 1,
+      "userId": 3,
+      "parentId": null
+    },
+    {
+      "text": "I live right next to it, the smell is unbearable, especially in the afternoon. Please help!",
+      "issueId": 2,
+      "userId": 4,
+      "parentId": null
+    },
+    {
+      "text": "Reply to Comment 33: Contact the Pollution Control Board immediately!",
+      "issueId": 27,
+      "userId": 18,
+      "parentId": 33
+    },
+    {
+      "text": "Reply to Comment 1: Yes, the repairs were done poorly. The patch failed within a week.",
+      "issueId": 1,
+      "userId": 8,
+      "parentId": 1
+    }
+  ]
+}
