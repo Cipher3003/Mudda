@@ -63,7 +63,7 @@ public class IssueController {
 
     @GetMapping("/clusters")
     public ResponseEntity<IssueClusterResponse> getIssueClusters(
-            @Valid IssueClusterRequest clusterRequest) {
+            @Valid @ModelAttribute IssueClusterRequest clusterRequest) {
 
         return ResponseEntity.ok(issueService.findAllIssueClusters(clusterRequest));
     }
