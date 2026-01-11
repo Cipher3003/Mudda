@@ -75,6 +75,15 @@
             <scope>test</scope>
         </dependency>
 
+        <!--	Java-Mail	-->
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+            <version>4.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Hibernate Spatial support for PostGIS -->
         <dependency>
             <groupId>org.hibernate</groupId>
