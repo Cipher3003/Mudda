@@ -1,7 +1,7 @@
 package com.mudda.backend.issue;
 
 import com.mudda.backend.location.LocationDTO;
-import com.mudda.backend.user.User;
+import com.mudda.backend.user.MuddaUser;
 
 public class IssueMapper {
 
@@ -15,10 +15,10 @@ public class IssueMapper {
                 issueRequest.mediaUrls());
     }
 
-    public static IssueResponse toResponse(Issue issue, User user, LocationDTO locationSummary,
-            String category, long voteCount, boolean hasUserLiked,
-            boolean canUserVote, boolean canUserComment,
-            boolean canUserEdit, boolean canUserDelete) {
+    public static IssueResponse toResponse(Issue issue, MuddaUser muddaUser, LocationDTO locationSummary,
+                                           String category, long voteCount, boolean hasUserLiked,
+                                           boolean canUserVote, boolean canUserComment,
+                                           boolean canUserEdit, boolean canUserDelete) {
         return new IssueResponse(
                 // Issue details
                 issue.getId(),
@@ -33,9 +33,9 @@ public class IssueMapper {
                 issue.getCreatedAt(),
                 issue.getUpdatedAt(),
                 // Author details
-                user.getUserId(),
-                user.getUserName(),
-                user.getProfileImageUrl(),
+                muddaUser.getUserId(),
+                muddaUser.getUserName(),
+                muddaUser.getProfileImageUrl(),
                 // Flags
                 hasUserLiked,
                 canUserVote,
@@ -53,8 +53,8 @@ public class IssueMapper {
                 issue.getStatus());
     }
 
-    public static IssueSummaryResponse toSummary(Issue issue, User user, long voteCount,
-            boolean hasUserVoted, boolean canUserVote) {
+    public static IssueSummaryResponse toSummary(Issue issue, MuddaUser muddaUser, long voteCount,
+                                                 boolean hasUserVoted, boolean canUserVote) {
         return new IssueSummaryResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -63,9 +63,9 @@ public class IssueMapper {
                 issue.getMediaUrls(),
                 issue.getCreatedAt(),
                 // Author details
-                user.getUserId(),
-                user.getUserName(),
-                user.getProfileImageUrl(),
+                muddaUser.getUserId(),
+                muddaUser.getUserName(),
+                muddaUser.getProfileImageUrl(),
                 // Flags
                 hasUserVoted,
                 canUserVote);

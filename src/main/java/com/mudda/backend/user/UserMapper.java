@@ -2,8 +2,8 @@ package com.mudda.backend.user;
 
 public class UserMapper {
 
-    public static User toUser(CreateUserRequest userRequest) {
-        return new User(
+    public static MuddaUser toUser(CreateUserRequest userRequest) {
+        return new MuddaUser(
                 userRequest.userName(),
                 userRequest.name(),
                 userRequest.phoneNumber(),
@@ -15,24 +15,24 @@ public class UserMapper {
         );
     }
 
-    public static UserSummaryResponse toSummary(User user) {
+    public static UserSummaryResponse toSummary(MuddaUser muddaUser) {
         return new UserSummaryResponse(
-                user.getUserId(),
-                user.getUserName(),
-                user.getProfileImageUrl());
+                muddaUser.getUserId(),
+                muddaUser.getUserName(),
+                muddaUser.getProfileImageUrl());
     }
 
-    public static UserDetailResponse toDetail(User user, String role) {
+    public static UserDetailResponse toDetail(MuddaUser muddaUser, String role) {
         return new UserDetailResponse(
-                user.getUserId(),
-                user.getUserName(),
-                user.getName(),
-                user.getPhoneNumber(),
-                user.getEmail(),
-                user.getProfileImageUrl(),
-                user.getRoleId(),
+                muddaUser.getUserId(),
+                muddaUser.getUserName(),
+                muddaUser.getName(),
+                muddaUser.getPhoneNumber(),
+                muddaUser.getEmail(),
+                muddaUser.getProfileImageUrl(),
+                muddaUser.getRoleId(),
                 role,
-                user.getCreatedAt()
+                muddaUser.getCreatedAt()
         );
     }
 }
