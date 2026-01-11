@@ -3,8 +3,6 @@ package com.mudda.backend.user;
 import com.mudda.backend.comment.CommentLikeService;
 import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.issue.IssueService;
-import com.mudda.backend.role.Role;
-import com.mudda.backend.role.RoleRepository;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
@@ -20,7 +18,6 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final IssueService issueService;
     private final CommentService commentService;
@@ -29,7 +26,6 @@ public class UserServiceImpl implements UserService {
 
     public UserServiceImpl(
             UserRepository userRepository,
-            RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
             IssueService issueService,
             CommentService commentService,
@@ -38,7 +34,6 @@ public class UserServiceImpl implements UserService {
     ) {
         this.issueService = issueService;
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.commentService = commentService;
         this.commentLikeService = commentLikeService;
@@ -52,7 +47,7 @@ public class UserServiceImpl implements UserService {
 
         Specification<MuddaUser> specification = UserSpecifications
                 .hasName(filterRequest.name())
-                .and(UserSpecifications.hasRoleId(filterRequest.roleId()))
+                .and(UserSpecifications.hasRole(filterRequest.role()))
                 .and(UserSpecifications.createdAfter(filterRequest.createdAfter()))
                 .and(UserSpecifications.createdBefore(filterRequest.createdBefore()));
 
@@ -62,12 +57,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<UserDetailResponse> findById(long id) {
 
-        Optional<MuddaUser> optionalUser = userRepository.findById(id);
-        if (optionalUser.isEmpty()) return Optional.empty();
-        MuddaUser muddaUser = optionalUser.get();
-
-        Optional<Role> role = roleRepository.findById(muddaUser.getRoleId());
-        return role.map(value -> UserMapper.toDetail(muddaUser, value.getName()));
+        return userRepository.findById(id)
+                .map(UserMapper::toDetail);
     }
 
     // #endregion
@@ -89,14 +80,9 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Phone Number: %s is already being used"
                     .formatted(userRequest.phoneNumber()));
 
-        Optional<Role> optionalRole = roleRepository.findById(userRequest.roleId());
-        if (optionalRole.isEmpty())
-            throw new IllegalArgumentException("Role with id: %d is not valid".
-                    formatted(userRequest.roleId()));
-
         MuddaUser muddaUser = UserMapper.toUser(userRequest);
-        muddaUser.setHashedPassword(passwordEncoder.encode(userRequest.password()));
-        return UserMapper.toDetail(userRepository.save(muddaUser), optionalRole.get().getName());
+        muddaUser.changePasswordHash(passwordEncoder.encode(userRequest.password()));
+        return UserMapper.toDetail(userRepository.save(muddaUser));
     }
 
     @Transactional

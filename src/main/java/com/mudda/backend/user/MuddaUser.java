@@ -3,22 +3,12 @@ package com.mudda.backend.user;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users")
@@ -49,8 +39,9 @@ public class MuddaUser {
     @Column
     private String profileImageUrl;
 
-    @Column(name = "role_id", nullable = false)
-    private Long roleId;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MuddaUserRole role;
 
     @Column(nullable = false)
     private Instant createdAt;
@@ -73,7 +64,7 @@ public class MuddaUser {
 
     public MuddaUser(String userName, String name, String phoneNumber,
                      LocalDate dateOfBirth, String email,
-                     String hashedPassword, String profileImageUrl, Long roleId) {
+                     String hashedPassword, String profileImageUrl, MuddaUserRole role) {
         this.userName = userName;
         this.name = name;
         this.phoneNumber = phoneNumber;
@@ -81,7 +72,7 @@ public class MuddaUser {
         this.email = email;
         this.hashedPassword = hashedPassword;
         this.profileImageUrl = profileImageUrl;
-        this.roleId = roleId;
+        this.role = role;
     }
 
     // ----- Domain Behaviour -------
@@ -92,8 +83,21 @@ public class MuddaUser {
         if (profileImageUrl == null || profileImageUrl.isBlank())
             throw new IllegalArgumentException("Profile Image Url cannot be empty");
 
-        setPhoneNumber(phoneNumber);
-        setProfileImageUrl(profileImageUrl);
+        changePhoneNumber(phoneNumber);
+        changeProfileImageUrl(profileImageUrl);
     }
 
+//    Setter
+
+    public void changePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void changePasswordHash(String hashedPassword) {
+        this.hashedPassword = hashedPassword;
+    }
+
+    public void changeProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 }
