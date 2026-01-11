@@ -22,9 +22,11 @@ public class UserSpecifications {
         };
     }
 
-    public static Specification<MuddaUser> hasRoleId(Long roleId) {
-        return (root, query, criteriaBuilder) ->
-                roleId == null ? null : criteriaBuilder.equal(root.get("roleId"), roleId);
+    public static Specification<MuddaUser> hasRole(MuddaUserRole role) {
+        return (root, query, criteriaBuilder) -> {
+            if (role == null) return criteriaBuilder.conjunction();
+            return criteriaBuilder.equal(root.get("role"), role);
+        };
     }
 
     public static Specification<MuddaUser> createdAfter(Instant date) {

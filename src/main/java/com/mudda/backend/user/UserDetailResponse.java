@@ -11,8 +11,7 @@ public record UserDetailResponse(
         @JsonProperty("phone_number") String phoneNumber,
         String email,
         @JsonProperty("profile_image_url") String profileImageUrl,
-        @JsonProperty("role_id") Long roleId,
-        String role,
+        MuddaUserRole role,
         @JsonProperty("created_at") Instant createdAt
 ) {
 }

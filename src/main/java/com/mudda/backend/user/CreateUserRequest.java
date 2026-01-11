@@ -14,7 +14,7 @@ public record CreateUserRequest(
                 message = "Phone number must be 10-15 digits and can start with +")
         String phoneNumber,
         @NotBlank String password,
-        @NotNull @Positive Long roleId,
+        @NotNull MuddaUserRole role,
         String profileImageUrl
 ) {
 }

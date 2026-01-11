@@ -11,7 +11,7 @@ public class UserMapper {
                 userRequest.email(),
                 userRequest.password(),
                 userRequest.profileImageUrl(),
-                userRequest.roleId()
+                userRequest.role()
         );
     }
 
@@ -22,7 +22,7 @@ public class UserMapper {
                 muddaUser.getProfileImageUrl());
     }
 
-    public static UserDetailResponse toDetail(MuddaUser muddaUser, String role) {
+    public static UserDetailResponse toDetail(MuddaUser muddaUser) {
         return new UserDetailResponse(
                 muddaUser.getUserId(),
                 muddaUser.getUserName(),
@@ -30,8 +30,7 @@ public class UserMapper {
                 muddaUser.getPhoneNumber(),
                 muddaUser.getEmail(),
                 muddaUser.getProfileImageUrl(),
-                muddaUser.getRoleId(),
-                role,
+                muddaUser.getRole(),
                 muddaUser.getCreatedAt()
         );
     }

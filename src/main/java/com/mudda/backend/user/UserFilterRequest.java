@@ -15,7 +15,7 @@ import java.time.Instant;
  */
 public record UserFilterRequest(
         String name,
-        @JsonProperty("role_id") Long roleId,
+        MuddaUserRole role,
 
         @JsonProperty("created_after")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

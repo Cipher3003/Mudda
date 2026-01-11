@@ -51,8 +51,6 @@ public class WebSecurityConfig {
                                 .permitAll()
                                 .requestMatchers("/api/v1/votes/**")
                                 .permitAll()
-                                .requestMatchers("/api/v1/roles/**")
-                                .permitAll()
                                 .requestMatchers("/api/v1/users/**")
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/amazon/images/**")
