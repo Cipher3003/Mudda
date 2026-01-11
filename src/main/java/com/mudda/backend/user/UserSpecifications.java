@@ -14,7 +14,7 @@ import java.time.Instant;
  */
 public class UserSpecifications {
 
-    public static Specification<User> hasName(String name) {
+    public static Specification<MuddaUser> hasName(String name) {
         return (root, query, criteriaBuilder) -> {
             if (name == null || name.isBlank()) return null;
             String pattern = "%" + name.trim().toLowerCase() + "%";
@@ -22,17 +22,17 @@ public class UserSpecifications {
         };
     }
 
-    public static Specification<User> hasRoleId(Long roleId) {
+    public static Specification<MuddaUser> hasRoleId(Long roleId) {
         return (root, query, criteriaBuilder) ->
                 roleId == null ? null : criteriaBuilder.equal(root.get("roleId"), roleId);
     }
 
-    public static Specification<User> createdAfter(Instant date) {
+    public static Specification<MuddaUser> createdAfter(Instant date) {
         return (root, query, criteriaBuilder) ->
                 date == null ? null : criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), date);
     }
 
-    public static Specification<User> createdBefore(Instant date) {
+    public static Specification<MuddaUser> createdBefore(Instant date) {
         return (root, query, criteriaBuilder) ->
                 date == null ? null : criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), date);
     }

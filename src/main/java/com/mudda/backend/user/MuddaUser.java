@@ -22,7 +22,7 @@ import lombok.Setter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users")
-public class User {
+public class MuddaUser {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
     @SequenceGenerator(name = "users_seq", sequenceName = "users_id_seq", allocationSize = 50)
@@ -71,9 +71,9 @@ public class User {
 
     // ----- Domain Constructor -----
 
-    public User(String userName, String name, String phoneNumber,
-            LocalDate dateOfBirth, String email,
-            String hashedPassword, String profileImageUrl, Long roleId) {
+    public MuddaUser(String userName, String name, String phoneNumber,
+                     LocalDate dateOfBirth, String email,
+                     String hashedPassword, String profileImageUrl, Long roleId) {
         this.userName = userName;
         this.name = name;
         this.phoneNumber = phoneNumber;

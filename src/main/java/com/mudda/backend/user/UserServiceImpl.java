@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserSummaryResponse> findAllUsers(UserFilterRequest filterRequest, Pageable pageable) {
 
-        Specification<User> specification = UserSpecifications
+        Specification<MuddaUser> specification = UserSpecifications
                 .hasName(filterRequest.name())
                 .and(UserSpecifications.hasRoleId(filterRequest.roleId()))
                 .and(UserSpecifications.createdAfter(filterRequest.createdAfter()))
@@ -62,12 +62,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<UserDetailResponse> findById(long id) {
 
-        Optional<User> optionalUser = userRepository.findById(id);
+        Optional<MuddaUser> optionalUser = userRepository.findById(id);
         if (optionalUser.isEmpty()) return Optional.empty();
-        User user = optionalUser.get();
+        MuddaUser muddaUser = optionalUser.get();
 
-        Optional<Role> role = roleRepository.findById(user.getRoleId());
-        return role.map(value -> UserMapper.toDetail(user, value.getName()));
+        Optional<Role> role = roleRepository.findById(muddaUser.getRoleId());
+        return role.map(value -> UserMapper.toDetail(muddaUser, value.getName()));
     }
 
     // #endregion
@@ -94,9 +94,9 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Role with id: %d is not valid".
                     formatted(userRequest.roleId()));
 
-        User user = UserMapper.toUser(userRequest);
-        user.setHashedPassword(passwordEncoder.encode(userRequest.password()));
-        return UserMapper.toDetail(userRepository.save(user), optionalRole.get().getName());
+        MuddaUser muddaUser = UserMapper.toUser(userRequest);
+        muddaUser.setHashedPassword(passwordEncoder.encode(userRequest.password()));
+        return UserMapper.toDetail(userRepository.save(muddaUser), optionalRole.get().getName());
     }
 
     @Transactional
@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Phone Number: %s is already being used"
                     .formatted(userRequest.phoneNumber()));
 
-        User existing = userRepository.findById(id).orElseThrow(() -> notFound(id));
+        MuddaUser existing = userRepository.findById(id).orElseThrow(() -> notFound(id));
 
         existing.updateDetails(userRequest.phoneNumber(), userRequest.profileImageUrl());
         return UserMapper.toSummary(userRepository.save(existing));

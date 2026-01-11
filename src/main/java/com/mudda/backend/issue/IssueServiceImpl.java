@@ -7,7 +7,7 @@ import com.mudda.backend.location.Location;
 import com.mudda.backend.location.LocationDTO;
 import com.mudda.backend.location.LocationMapper;
 import com.mudda.backend.location.LocationRepository;
-import com.mudda.backend.user.User;
+import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.utils.EntityValidator;
 import com.mudda.backend.vote.Vote;
@@ -85,9 +85,9 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getUserId)
                 .collect(Collectors.toSet());
 
-        Map<Long, User> usersMap = userRepository.findAllById(authorIds)
+        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
                 .stream()
-                .collect(Collectors.toMap(User::getUserId, user -> user));
+                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
 
         Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
                 .stream()
@@ -109,8 +109,8 @@ public class IssueServiceImpl implements IssueService {
 
         return issuePage.map(issue -> {
 
-            User user = usersMap.getOrDefault(issue.getUserId(), null);
-            if (user == null)
+            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
+            if (muddaUser == null)
                 throw new IllegalStateException("User not found for issue: " + issue.getId());
 
             long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
@@ -119,7 +119,7 @@ public class IssueServiceImpl implements IssueService {
 
             // TODO: maybe prevent self voting
             return IssueMapper.toSummary(
-                    issue, user, voteCount, hasUserVoted, isAuthenticated // canUserVote
+                    issue, muddaUser, voteCount, hasUserVoted, isAuthenticated // canUserVote
             );
         });
     }
@@ -131,7 +131,7 @@ public class IssueServiceImpl implements IssueService {
         if (issue == null)
             return Optional.empty();
 
-        User author = userRepository.findById(issue.getUserId()).orElse(null);
+        MuddaUser author = userRepository.findById(issue.getUserId()).orElse(null);
         if (author == null)
             return Optional.empty();
 
@@ -214,8 +214,8 @@ public class IssueServiceImpl implements IssueService {
         // it
         validateReferences(issueRequest.locationId(), issueRequest.categoryId());
 
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null)
+        MuddaUser muddaUser = userRepository.findById(userId).orElse(null);
+        if (muddaUser == null)
             throw new IllegalArgumentException("User not found for creating Issue");
 
         Issue issue = IssueMapper.toIssue(userId, issueRequest);
@@ -230,7 +230,7 @@ public class IssueServiceImpl implements IssueService {
 
         Issue saved = issueRepository.save(issue);
         return IssueMapper.toResponse(
-                saved, user, LocationMapper.toSummary(location.get()), category.get().getName(), 0, false, true, true,
+                saved, muddaUser, LocationMapper.toSummary(location.get()), category.get().getName(), 0, false, true, true,
                 true, true);
     }
 
