@@ -18,12 +18,12 @@ public record UserSeed(
         String dateOfBirth,
         String phoneNumber,
         String password,
-        int roleId,
+        MuddaUserRole role,
         String profileImageUrl
 ) {
 
-    public static User toUser(UserSeed seed) {
-        return new User(
+    public static MuddaUser toUser(UserSeed seed) {
+        return new MuddaUser(
                 seed.userName(),
                 seed.name(),
                 seed.phoneNumber(),
@@ -31,7 +31,7 @@ public record UserSeed(
                 seed.email(),
                 seed.password(),
                 seed.profileImageUrl(),
-                (long) seed.roleId()
+                seed.role()
         );
     }
 }
