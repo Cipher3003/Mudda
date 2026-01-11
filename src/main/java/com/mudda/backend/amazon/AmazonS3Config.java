@@ -10,6 +10,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
+// TODO: Update to aws sdk version 2
+
 @Configuration
 public class AmazonS3Config {
     @Getter
