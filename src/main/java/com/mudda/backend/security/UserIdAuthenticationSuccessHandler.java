@@ -38,7 +38,7 @@ public class UserIdAuthenticationSuccessHandler extends SavedRequestAwareAuthent
     ) throws ServletException, IOException {
 
         String userName = authentication.getName();
-        Long userId = userRepository.findByUserName(userName)
+        Long userId = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new EntityNotFoundException("User with userName: %s not found"
                         .formatted(userName)))
                 .getUserId();

@@ -2,13 +2,14 @@ package com.mudda.backend.user;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public interface UserService {
+public interface UserService extends UserDetailsService {
     Page<UserSummaryResponse> findAllUsers(UserFilterRequest filterRequest, Pageable pageable);
 
     Optional<UserDetailResponse> findById(long id);

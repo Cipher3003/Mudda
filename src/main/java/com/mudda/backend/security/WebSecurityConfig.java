@@ -1,5 +1,6 @@
 package com.mudda.backend.security;
 
+import com.mudda.backend.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,67 +18,94 @@ public class WebSecurityConfig {
 
     // TODO: upgrade to JWT
 
-    private final CustomUserDetailsService userDetailsService;
+    private final UserService userService;
 
-    public WebSecurityConfig(CustomUserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
+    public WebSecurityConfig(UserService userService) {
+        this.userService = userService;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        (requests) -> requests
-                                // Public Reads
-                                .requestMatchers(
-                                        "/swagger-ui.html",
-                                        "/swagger-ui/**",
-                                        "/v3/api-docs/**",
-                                        "/v3/api-docs")
-                                .permitAll()
-                                .requestMatchers(
-                                        "/",
-                                        "/index.html",
-                                        "/home.html",
-                                        "/issue.html",
-                                        "/login.html")
-                                .permitAll()
-                                .requestMatchers("/seed.html")
-                                .permitAll()
-                                .requestMatchers("/api/v1/seed/**")
-                                .permitAll()
-                                .requestMatchers("/media_url.html")
-                                .permitAll()
-                                .requestMatchers("/api/v1/votes/**")
-                                .permitAll()
-                                .requestMatchers("/api/v1/users/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/amazon/images/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/issues/categories/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/comments/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/issues/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/locations/**")
-                                .permitAll()
-                                // Everything Else Needs Login
-                                .anyRequest()
-                                .authenticated())
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, e) -> {
-                            System.err.println("AUTH ERROR -> " + e.getMessage());
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
-                        })
-                        .accessDeniedHandler((request, response, e) -> {
-                            System.err.println("ACCESS DENIED -> " + e.getMessage());
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
-                        }))
-                .userDetailsService(userDetailsService)
-                .httpBasic(Customizer.withDefaults());
+
+        disableCsrf(http);
+        configureAuthorization(http);
+        configureExceptionHandling(http);
+        configureAuthentication(http);
 
         return http.build();
     }
+
+    private void disableCsrf(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable);
+    }
+
+    private void configureAuthorization(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -> auth
+                // Swagger / Docs
+                .requestMatchers(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/v3/api-docs"
+                ).permitAll()
+
+//                Public HTML pages
+                .requestMatchers(
+                        "/",
+                        "/index.html",
+                        "/home.html",
+                        "/issue.html",
+                        "/seed.html",
+                        "/media_url.html",
+                        "/login.html"
+                ).permitAll()
+
+//                Public API endpoints
+                .requestMatchers(
+                        "/api/v1/seed/**",
+                        "/api/v1/votes/**",
+                        "/api/v1/users/**",
+                        "/login",
+                        "/register"
+                ).permitAll()
+
+//                Public GET endpoints
+                .requestMatchers(HttpMethod.GET,
+                        "/api/v1/amazon/images/**",
+                        "/api/v1/issues/categories/**",
+                        "/api/v1/comments/**",
+                        "/api/v1/issues/**",
+                        "/api/v1/locations/**"
+                ).permitAll()
+
+                // Everything Else Needs Login
+                .anyRequest().authenticated());
+    }
+
+    private void configureExceptionHandling(HttpSecurity http) throws Exception {
+        http.exceptionHandling(exception -> exception
+
+//                Not logged in
+                .authenticationEntryPoint((request, response, e) -> {
+                    System.err.println("AUTH ERROR -> " + e.getMessage());
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+                })
+
+//                Logged in but not allowed
+                .accessDeniedHandler((request, response, e) -> {
+                    System.err.println("ACCESS DENIED -> " + e.getMessage());
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                }));
+    }
+
+    private void configureAuthentication(HttpSecurity http) throws Exception {
+        http
+                .userDetailsService(userService)
+                .formLogin(form -> form
+                        .defaultSuccessUrl("/", true)
+                        .permitAll())
+                .logout(logout -> logout.
+                        logoutSuccessUrl("/login?logout"));
+    }
+
 }

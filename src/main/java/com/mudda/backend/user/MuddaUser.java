@@ -2,24 +2,32 @@ package com.mudda.backend.user;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Collections;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users")
-public class MuddaUser {
+public class MuddaUser implements UserDetails {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
     @SequenceGenerator(name = "users_seq", sequenceName = "users_id_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
     private Long userId;
 
     @Column(nullable = false, unique = true)
-    private String userName;
+    private String username;
 
     @Column(nullable = false)
     private String name;
@@ -44,6 +52,12 @@ public class MuddaUser {
     private MuddaUserRole role;
 
     @Column(nullable = false)
+    private Boolean locked;
+
+    @Column(nullable = false)
+    private Boolean enabled;
+
+    @Column(nullable = false)
     private Instant createdAt;
 
     @Column
@@ -62,10 +76,10 @@ public class MuddaUser {
 
     // ----- Domain Constructor -----
 
-    public MuddaUser(String userName, String name, String phoneNumber,
+    public MuddaUser(String username, String name, String phoneNumber,
                      LocalDate dateOfBirth, String email,
                      String hashedPassword, String profileImageUrl, MuddaUserRole role) {
-        this.userName = userName;
+        this.username = username;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.dateOfBirth = dateOfBirth;
@@ -99,5 +113,48 @@ public class MuddaUser {
 
     public void changeProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+
+
+//    Getter
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role.name());
+        return Collections.singleton(authority);
+    }
+
+    @Override
+    public String getPassword() {
+        return hashedPassword;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    //    TODO: dont know what to do with this
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    //    TODO: use custom fields and logic
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    //    TODO: dont know what to do with this
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    //    TODO: use custom fields and logic
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

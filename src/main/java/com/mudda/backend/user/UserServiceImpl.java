@@ -8,6 +8,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +73,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetailResponse createUser(CreateUserRequest userRequest) {
 
-        if (userRepository.existsByUserName(userRequest.userName()))
+        if (userRepository.existsByUsername(userRequest.userName()))
             throw new IllegalArgumentException("Username: %s is already taken"
                     .formatted(userRequest.userName()));
         if (userRepository.existsByEmail(userRequest.email()))
@@ -144,4 +146,10 @@ public class UserServiceImpl implements UserService {
         return new EntityNotFoundException("User not found with id: %d".formatted(id));
     }
 
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username).orElseThrow(() ->
+                new UsernameNotFoundException("User not found with username: %s".formatted(username)));
+    }
 }
