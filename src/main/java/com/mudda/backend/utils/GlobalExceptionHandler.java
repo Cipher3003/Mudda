@@ -2,17 +2,14 @@ package com.mudda.backend.utils;
 
 import com.mudda.backend.exceptions.*;
 import jakarta.persistence.EntityNotFoundException;
-
 import jakarta.persistence.OptimisticLockException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-
-import com.amazonaws.services.appintegrations.model.DuplicateResourceException;
-
-import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @RestControllerAdvice
@@ -112,6 +109,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_GATEWAY)
                 .body(e.getMessage());
+    }
+
+    //    TODO: should use custom exception with own message or change this exception
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<?> handleAuthenticationException(AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
 
 }

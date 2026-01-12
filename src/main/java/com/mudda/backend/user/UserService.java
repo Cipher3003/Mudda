@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public interface UserService extends UserDetailsService {
+public interface UserService {
     Page<UserSummaryResponse> findAllUsers(UserFilterRequest filterRequest, Pageable pageable);
 
     Optional<UserDetailResponse> findById(long id);

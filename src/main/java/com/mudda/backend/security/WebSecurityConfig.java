@@ -1,39 +1,49 @@
 package com.mudda.backend.security;
 
-import com.mudda.backend.user.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    // TODO: upgrade to JWT
+    private final UserDetailsService userDetailsService;
+    private final JwtAuthFilter jwtAuthFilter;
 
-    private final UserService userService;
-
-    public WebSecurityConfig(UserService userService) {
-        this.userService = userService;
+    public WebSecurityConfig(UserDetailsService userDetailsService,
+                             JwtAuthFilter jwtAuthFilter) {
+        this.userDetailsService = userDetailsService;
+        this.jwtAuthFilter = jwtAuthFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        disableCsrf(http);
-        configureAuthorization(http);
-        configureExceptionHandling(http);
-        configureAuthentication(http);
+        disableCsrf(http);  // CSRF not needed in jwt
+        configureAuthorization(http);   // add public and protected endpoints
+        configureExceptionHandling(http);   // Handles authentication and authorization error
+        configureSession(http); // Makes session stateless
+        configureAuthentication(http);  // Set userDetails, authenticationProvider, JwtFilter, httpBasic
 
         return http.build();
     }
+
 
     private void disableCsrf(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
@@ -65,8 +75,11 @@ public class WebSecurityConfig {
                         "/api/v1/seed/**",
                         "/api/v1/votes/**",
                         "/api/v1/users/**",
-                        "/login",
-                        "/register"
+                        "/auth/register",
+                        "/auth/login",
+                        "/auth/refresh",
+                        "/auth/logout", // TODO: should logout be authenticated ?
+                        "/auth/verify-email"
                 ).permitAll()
 
 //                Public GET endpoints
@@ -98,14 +111,37 @@ public class WebSecurityConfig {
                 }));
     }
 
+    private void configureSession(HttpSecurity http) throws Exception {
+        http.sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    }
+
     private void configureAuthentication(HttpSecurity http) throws Exception {
         http
-                .userDetailsService(userService)
-                .formLogin(form -> form
-                        .defaultSuccessUrl("/", true)
-                        .permitAll())
-                .logout(logout -> logout.
-                        logoutSuccessUrl("/login?logout"));
+                .userDetailsService(userDetailsService)
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(Customizer.withDefaults());
+    }
+
+    //    authentication provider configuration links UserDetailService and PasswordEncoder
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
+    //    Password encoder bean critical for secure password storage
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    //    Get the spring authentication manager (Should never create our own)
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
 }

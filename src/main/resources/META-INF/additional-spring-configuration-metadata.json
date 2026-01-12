@@ -19,6 +19,16 @@
       "name": "amazon.s3.secret-key",
       "type": "java.lang.String",
       "description": "The AWS secret key associated with the access key for authenticating requests to Amazon S3."
+    },
+    {
+      "name": "security.jwt.expiration-time-ms",
+      "type": "java.lang.Long",
+      "description": "The Time to Live for JWT token after creation in Milliseconds."
+    },
+    {
+      "name": "security.jwt.secret-key",
+      "type": "java.lang.String",
+      "description": "The JWT secret key used to sign and verify tokens."
     }
   ]
 }
