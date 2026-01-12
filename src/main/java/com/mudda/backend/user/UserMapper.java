@@ -18,14 +18,14 @@ public class UserMapper {
     public static UserSummaryResponse toSummary(MuddaUser muddaUser) {
         return new UserSummaryResponse(
                 muddaUser.getUserId(),
-                muddaUser.getUserName(),
+                muddaUser.getUsername(),
                 muddaUser.getProfileImageUrl());
     }
 
     public static UserDetailResponse toDetail(MuddaUser muddaUser) {
         return new UserDetailResponse(
                 muddaUser.getUserId(),
-                muddaUser.getUserName(),
+                muddaUser.getUsername(),
                 muddaUser.getName(),
                 muddaUser.getPhoneNumber(),
                 muddaUser.getEmail(),

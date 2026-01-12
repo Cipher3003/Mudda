@@ -34,7 +34,7 @@ public class IssueMapper {
                 issue.getUpdatedAt(),
                 // Author details
                 muddaUser.getUserId(),
-                muddaUser.getUserName(),
+                muddaUser.getUsername(),
                 muddaUser.getProfileImageUrl(),
                 // Flags
                 hasUserLiked,
@@ -64,7 +64,7 @@ public class IssueMapper {
                 issue.getCreatedAt(),
                 // Author details
                 muddaUser.getUserId(),
-                muddaUser.getUserName(),
+                muddaUser.getUsername(),
                 muddaUser.getProfileImageUrl(),
                 // Flags
                 hasUserVoted,
