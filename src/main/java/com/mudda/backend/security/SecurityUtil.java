@@ -1,5 +1,6 @@
 package com.mudda.backend.security;
 
+import com.mudda.backend.user.MuddaUser;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -17,6 +18,11 @@ public class SecurityUtil {
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser"))
             return null;
 
-        return (Long) auth.getPrincipal();
+        Object principal = auth.getPrincipal();
+        if (principal instanceof MuddaUser muddaUser) {
+            return muddaUser.getUserId();
+        }
+
+        return null;
     }
 }

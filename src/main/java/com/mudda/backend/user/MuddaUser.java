@@ -87,6 +87,8 @@ public class MuddaUser implements UserDetails {
         this.hashedPassword = hashedPassword;
         this.profileImageUrl = profileImageUrl;
         this.role = role;
+        this.locked = false;
+        this.enabled = true;
     }
 
     // ----- Domain Behaviour -------
