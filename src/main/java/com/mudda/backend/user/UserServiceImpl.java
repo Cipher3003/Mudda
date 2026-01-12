@@ -89,19 +89,19 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public List<Long> createUsers(List<CreateUserRequest> userRequests) {
-        List<User> users = userRepository.saveAll(
+        List<MuddaUser> users = userRepository.saveAll(
                 userRequests
                         .stream()
                         .map(UserMapper::toUser)
                         .toList()
         );
 
-        return users.stream().map(User::getUserId).toList();
+        return users.stream().map(MuddaUser::getUserId).toList();
     }
 
     @Transactional
     @Override
-    public void saveUsers(List<User> users) {
+    public void saveUsers(List<MuddaUser> users) {
         userRepository.saveAll(users);
     }
 
