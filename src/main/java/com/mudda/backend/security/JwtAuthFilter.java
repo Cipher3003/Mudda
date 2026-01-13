@@ -37,6 +37,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/auth");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
@@ -46,7 +51,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = authHeader.substring(7);
+        String token = authHeader.substring(7).trim();
+
+        if (token.isBlank()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (token.chars().filter(ch -> ch == '.').count() != 2) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             String username = jwtService.extractUsername(token);
@@ -75,6 +90,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     "message":"Access token has expired"
                     }
                     """);
+            return;
         } catch (UsernameNotFoundException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=utf-8");
@@ -84,6 +100,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     "message":"User referenced by token does not exist"
                     }
                     """);
+            return; // overly defensive
         }
     }
 }
