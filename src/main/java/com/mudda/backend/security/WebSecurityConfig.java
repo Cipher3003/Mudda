@@ -79,8 +79,8 @@ public class WebSecurityConfig {
                         "/api/v1/users/**",
                         "/auth/register",
                         "/auth/login",
+                        "/auth/logout",
                         "/auth/refresh",
-                        "/auth/logout", // TODO: should logout be authenticated ?
                         "/auth/verify-email"
                 ).permitAll()
 

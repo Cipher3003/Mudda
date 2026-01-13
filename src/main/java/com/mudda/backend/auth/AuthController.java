@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,18 +62,18 @@ public class AuthController {
         return ResponseEntity.ok(authResponse);
     }
 
-    @PostMapping("/refresh")
-    public String refreshToken(@RequestBody CreateUserRequest registrationRequest) {
-        return userService.createUser(registrationRequest).toString();
+    @PostMapping("/logout")
+    public String logoutUser() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @PostMapping("/logout")
-    public String logoutUser(@RequestBody CreateUserRequest registrationRequest) {
-        return userService.createUser(registrationRequest).toString();
+    @PostMapping("/refresh")
+    public String refreshToken() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @PostMapping("/verify-email")
-    public String verifyUserEmail(@RequestBody CreateUserRequest registrationRequest) {
-        return userService.createUser(registrationRequest).toString();
+    public String verifyUserEmail() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
