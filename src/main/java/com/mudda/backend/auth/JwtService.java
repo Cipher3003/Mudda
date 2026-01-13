@@ -30,7 +30,7 @@ public class JwtService {
         this.jwtProperties = jwtProperties;
     }
 
-    public String generateToken(String username) {
+    public String generateAccessToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, username);
     }
