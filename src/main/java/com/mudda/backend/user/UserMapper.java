@@ -31,7 +31,9 @@ public class UserMapper {
                 muddaUser.getEmail(),
                 muddaUser.getProfileImageUrl(),
                 muddaUser.getRole(),
-                muddaUser.getCreatedAt()
+                muddaUser.getCreatedAt(),
+                muddaUser.isLocked(),
+                muddaUser.isEnabled()
         );
     }
 }

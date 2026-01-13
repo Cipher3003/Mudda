@@ -1,18 +1,15 @@
 package com.mudda.backend.user;
 
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
-
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
 @EqualsAndHashCode
@@ -51,11 +48,13 @@ public class MuddaUser implements UserDetails {
     @Enumerated(EnumType.STRING)
     private MuddaUserRole role;
 
+    @Setter
     @Column(nullable = false)
-    private Boolean locked;
+    private boolean locked = false;
 
+    @Setter
     @Column(nullable = false)
-    private Boolean enabled;
+    private boolean enabled = true;
 
     @Column(nullable = false)
     private Instant createdAt;
@@ -87,8 +86,6 @@ public class MuddaUser implements UserDetails {
         this.hashedPassword = hashedPassword;
         this.profileImageUrl = profileImageUrl;
         this.role = role;
-        this.locked = false;
-        this.enabled = true;
     }
 
     // ----- Domain Behaviour -------
@@ -117,8 +114,7 @@ public class MuddaUser implements UserDetails {
         this.profileImageUrl = profileImageUrl;
     }
 
-
-//    Getter
+    //    Getter
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -145,7 +141,7 @@ public class MuddaUser implements UserDetails {
     //    TODO: use custom fields and logic
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !locked;
     }
 
     //    TODO: dont know what to do with this
@@ -157,6 +153,6 @@ public class MuddaUser implements UserDetails {
     //    TODO: use custom fields and logic
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 }
