@@ -59,10 +59,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public Optional<UserDetailResponse> findById(long id) {
-
-        return userRepository.findById(id)
-                .map(UserMapper::toDetail);
+    public Optional<MuddaUser> findById(long id) {
+        return userRepository.findById(id);
     }
 
     // #endregion

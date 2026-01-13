@@ -43,6 +43,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDetailResponse> getUserById(@PathVariable(name = "id") long id) {
         return userService.findById(id)
+                .map(UserMapper::toDetail)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

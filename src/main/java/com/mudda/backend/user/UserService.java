@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface UserService {
     Page<UserSummaryResponse> findAllUsers(UserFilterRequest filterRequest, Pageable pageable);
 
-    Optional<UserDetailResponse> findById(long id);
+    Optional<MuddaUser> findById(long id);
 
     UserDetailResponse createUser(CreateUserRequest userRequest);
 
