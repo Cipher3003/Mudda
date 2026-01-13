@@ -9,13 +9,9 @@
 package com.mudda.backend.auth;
 
 import com.mudda.backend.user.CreateUserRequest;
-import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,16 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthController {
 
+    private final AuthService authService;
     private final UserService userService;
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
 
-    public AuthController(UserService userService,
-                          JwtService jwtService,
-                          AuthenticationManager authenticationManager) {
+    public AuthController(AuthService authService,
+                          UserService userService) {
+        this.authService = authService;
         this.userService = userService;
-        this.jwtService = jwtService;
-        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/register")
@@ -43,33 +36,21 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Registration successful.");
     }
 
+    //    Only login when both token expires
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
-
-        String accessToken = jwtService.generateToken(authRequest.username());
-        MuddaUser muddaUser = (MuddaUser) authentication.getPrincipal();
-
-        AuthenticatedUserResponse authenticatedUserResponse = new AuthenticatedUserResponse(
-                muddaUser.getUserId(), muddaUser.getUsername(), muddaUser.isEnabled());
-
-        AuthResponse authResponse = new AuthResponse(
-                accessToken, "Bearer",
-                jwtService.getAccessTokenExpirationTimeMs(), authenticatedUserResponse
-        );
-
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(AuthMapper.toAuthResponse(authService.login(authRequest)));
     }
 
     @PostMapping("/logout")
-    public String logoutUser() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void logoutUser(@RequestBody RefreshRequest refreshRequest) {
+        authService.logout(refreshRequest.refreshToken());
     }
 
+    //    Use to refresh access when expires
     @PostMapping("/refresh")
-    public String refreshToken() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshRequest refreshRequest) {
+        return ResponseEntity.ok(AuthMapper.toAuthResponse(authService.refresh(refreshRequest.refreshToken())));
     }
 
     @PostMapping("/verify-email")

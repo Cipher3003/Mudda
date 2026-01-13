@@ -19,6 +19,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -32,15 +33,22 @@ public class JwtService {
 
     public String generateAccessToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username);
-    }
-
-    private String createToken(Map<String, Object> claims, String username) {
         return Jwts.builder()
                 .claims(claims)
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationTimeMs()))
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessTtlMs()))
+                .signWith(getSignKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(String username) {
+        return Jwts.builder()
+                .claim("type", "REFRESH")
+                .subject(username)
+                .id(UUID.randomUUID().toString())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTtlMs()))
                 .signWith(getSignKey())
                 .compact();
     }
@@ -75,12 +83,26 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateAccessToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            String type = claims.get("type", String.class);
+            return type.equals("REFRESH") && !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public long getAccessTokenExpirationTimeMs() {
-        return jwtProperties.getExpirationTimeMs();
+        return jwtProperties.getAccessTtlMs();
+    }
+
+    public long getRefreshTokenExpirationTimeMs() {
+        return jwtProperties.getRefreshTtlMs();
     }
 }

@@ -1,19 +1,20 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : AuthResponse
+ * File    : AuthResult
  * Author  : Vikas Kumar
- * Created : 12-01-2026
+ * Created : 13-01-2026
  * ---------------------------------------------------------------
  */
 package com.mudda.backend.auth;
 
-public record AuthResponse(
+import com.mudda.backend.user.MuddaUser;
+
+public record AuthResult(
         String accessToken,
         String refreshToken,
-        String tokenType,
-        Long accessExpiresInMs,
-        Long refreshExpiresInMs,
-        AuthenticatedUserResponse user
+        long accessExpiresInMs,
+        long refreshExpiresInMs,
+        MuddaUser user
 ) {
 }
