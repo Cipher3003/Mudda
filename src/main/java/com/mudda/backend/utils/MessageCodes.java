@@ -10,4 +10,5 @@ public class MessageCodes {
     public static final String FILE_NOT_IMAGE = "file.not.image";
     public static final String AMAZON_ERROR = "amazon.error";
     public static final String AMAZON_CLIENT_ERROR = "amazon.client.error";
+    public static final String INVALID_REFRESH_TOKEN = "invalid.refresh.token";
 }

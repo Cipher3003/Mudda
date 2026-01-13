@@ -1,5 +1,6 @@
 package com.mudda.backend.utils;
 
+import com.mudda.backend.auth.InvalidRefreshTokenException;
 import com.mudda.backend.exceptions.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
@@ -93,6 +94,7 @@ public class GlobalExceptionHandler {
                 .body(e.getMessage());
     }
 
+    //    TODO: does not return localized exception
     @ExceptionHandler(S3ClientException.class)
     public ResponseEntity<?> handleS3Client(S3ClientException e) {
         String localizedMessage = messageUtil.getMessage(e.getErrorMessageCode(), e.getArgs());
@@ -115,6 +117,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> handleAuthenticationException(AuthenticationException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<?> handleInvalidRefreshToken(InvalidRefreshTokenException e) {
+        String localizedMessage = messageUtil.getMessage(e.getErrorMessageCode(), e.getArgs());
+        log.warn("InvalidRefreshTokenException : {}", localizedMessage);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(localizedMessage);
     }
 
 }
