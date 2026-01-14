@@ -29,6 +29,7 @@ public class VerificationTokenService {
     // #region Commands (Write Operations)
 
     //    TODO: modify messages to use message codes and util
+//    TODO: should delete all consumed tokens?
     @Transactional
     public VerificationToken consumeToken(String verificationToken, TokenType tokenType) {
         VerificationToken token = tokenRepository.findByToken(verificationToken)

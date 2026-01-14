@@ -10,6 +10,7 @@ package com.mudda.backend.token.refresh;
 
 import com.mudda.backend.auth.InvalidRefreshTokenException;
 import com.mudda.backend.token.TokenHasUtil;
+import com.mudda.backend.utils.MessageCodes;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +45,7 @@ public class RefreshTokenService {
 
         RefreshToken refreshToken = refreshTokenRepository.
                 findByTokenAndRevokedFalse(hashedToken)
-                .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
+                .orElseThrow(() -> new InvalidRefreshTokenException(MessageCodes.INVALID_REFRESH_TOKEN));
 
         refreshToken.revoke();
         refreshTokenRepository.save(refreshToken);

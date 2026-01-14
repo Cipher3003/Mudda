@@ -36,6 +36,7 @@ public class WebSecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
+    //    TODO: add CORS
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
