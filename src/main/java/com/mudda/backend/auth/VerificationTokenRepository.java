@@ -26,4 +26,6 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
              WHERE t.userId = :userId AND t.type = :type
             """)
     void deleteByUserIdAndType(long userId, TokenType type);
+
+    void deleteAllByUserId(long userId);
 }

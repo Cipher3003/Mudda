@@ -64,6 +64,11 @@ public class VerificationTokenService {
         return tokenRepository.save(token);
     }
 
+    @Transactional
+    public void deleteAllTokensByUserId(Long userId) {
+        tokenRepository.deleteAllByUserId(userId);
+    }
+
     // #endregion
 
 }
