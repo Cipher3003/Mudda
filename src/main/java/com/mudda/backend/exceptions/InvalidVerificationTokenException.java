@@ -12,7 +12,7 @@ import com.mudda.backend.utils.MessageCodes;
 
 public class InvalidVerificationTokenException extends LocalizedException {
 
-    public InvalidVerificationTokenException(Object... args) {
-        super(MessageCodes.INVALID_REFRESH_TOKEN, args);
+    public InvalidVerificationTokenException() {
+        super(MessageCodes.INVALID_VERIFICATION_TOKEN);
     }
 }

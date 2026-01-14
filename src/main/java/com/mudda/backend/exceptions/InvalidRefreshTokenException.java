@@ -9,12 +9,10 @@
 package com.mudda.backend.exceptions;
 
 import com.mudda.backend.utils.MessageCodes;
-import lombok.Getter;
 
-@Getter
 public class InvalidRefreshTokenException extends LocalizedException {
 
-    public InvalidRefreshTokenException(Object... args) {
-        super(MessageCodes.INVALID_REFRESH_TOKEN, args);
+    public InvalidRefreshTokenException() {
+        super(MessageCodes.INVALID_REFRESH_TOKEN);
     }
 }

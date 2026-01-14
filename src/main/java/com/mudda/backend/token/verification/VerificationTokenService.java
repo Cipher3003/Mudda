@@ -28,21 +28,20 @@ public class VerificationTokenService {
 
     // #region Commands (Write Operations)
 
-    //    TODO: modify messages to use message codes and util
-//    TODO: should delete all consumed tokens?
+    //    TODO: should delete all consumed tokens?
     @Transactional
     public VerificationToken consumeToken(String verificationToken, TokenType tokenType) {
         VerificationToken token = tokenRepository.findByToken(verificationToken)
-                .orElseThrow(() -> new InvalidVerificationTokenException("Token not found"));
+                .orElseThrow(InvalidVerificationTokenException::new);
 
         if (token.isUsed())
-            throw new InvalidVerificationTokenException("Token already used.");
+            throw new InvalidVerificationTokenException();
 
         if (token.getExpiryAt().isBefore(Instant.now()))
-            throw new InvalidVerificationTokenException("Token is expired.");
+            throw new InvalidVerificationTokenException();
 
         if (!token.getType().equals(tokenType))
-            throw new InvalidVerificationTokenException("Invalid token type.");
+            throw new InvalidVerificationTokenException();
 
         token.markUsed();
         tokenRepository.save(token);

@@ -14,7 +14,6 @@ import com.mudda.backend.token.refresh.RefreshToken;
 import com.mudda.backend.token.refresh.RefreshTokenService;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserService;
-import com.mudda.backend.utils.MessageCodes;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -56,7 +55,7 @@ public class AuthService {
     @Transactional
     public AuthResult refresh(String rawRefreshToken) {
         if (!jwtService.validateRefreshToken(rawRefreshToken))
-            throw new InvalidRefreshTokenException(MessageCodes.INVALID_REFRESH_TOKEN);
+            throw new InvalidRefreshTokenException();
 
         RefreshToken refreshToken = refreshTokenService.rotate(rawRefreshToken);
 
