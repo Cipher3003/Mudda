@@ -23,18 +23,6 @@ public class AccountController {
         this.accountService = accountService;
     }
 
-    @PostMapping("/verify-email")
-    public ResponseEntity<String> requestVerification(@RequestBody VerifyRequest verifyRequest) {
-        accountService.sendEmailVerificationLink(verifyRequest.email());
-        return ResponseEntity.ok("If account exists verification link has been sent to email.");
-    }
-
-    @GetMapping("/verify-email")
-    public ResponseEntity<String> verifyEmail(@RequestParam String verifyToken) {
-        accountService.verifyEmail(verifyToken);
-        return ResponseEntity.ok("Email verified successfully.");
-    }
-
     @DeleteMapping
     public ResponseEntity<Void> deleteAccount(Authentication authentication) {
         Long userId = ((MuddaUser) authentication.getPrincipal()).getUserId();
