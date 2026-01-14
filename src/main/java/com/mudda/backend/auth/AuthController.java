@@ -9,30 +9,26 @@
 package com.mudda.backend.auth;
 
 import com.mudda.backend.user.CreateUserRequest;
-import com.mudda.backend.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
-    private final UserService userService;
+    private final AccountService accountService;
 
     public AuthController(AuthService authService,
-                          UserService userService) {
+                          AccountService accountService) {
         this.authService = authService;
-        this.userService = userService;
+        this.accountService = accountService;
     }
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody CreateUserRequest registrationRequest) {
-        userService.createUser(registrationRequest);
+        accountService.register(registrationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body("Registration successful.");
     }
 
@@ -54,7 +50,14 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public String verifyUserEmail() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public ResponseEntity<String> requestVerification(@RequestBody VerifyRequest verifyRequest) {
+        accountService.sendEmailVerificationLink(verifyRequest.email());
+        return ResponseEntity.ok("If account exists verification link has been sent to email.");
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<String> verifyEmail(@RequestParam String verifyToken) {
+        accountService.verifyEmail(verifyToken);
+        return ResponseEntity.ok("Email verified successfully.");
     }
 }
