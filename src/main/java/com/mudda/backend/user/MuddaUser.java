@@ -54,7 +54,7 @@ public class MuddaUser implements UserDetails {
 
     @Setter
     @Column(nullable = false)
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     @Column(nullable = false)
     private Instant createdAt;
@@ -114,6 +114,10 @@ public class MuddaUser implements UserDetails {
         this.profileImageUrl = profileImageUrl;
     }
 
+    public void verify() {
+        this.enabled = true;
+    }
+
     //    Getter
 
     @Override
@@ -149,7 +153,6 @@ public class MuddaUser implements UserDetails {
         return true;
     }
 
-    //    TODO: use custom fields and logic
     @Override
     public boolean isEnabled() {
         return enabled;

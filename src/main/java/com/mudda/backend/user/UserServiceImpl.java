@@ -63,6 +63,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userRepository.findById(id);
     }
 
+    @Override
+    public Optional<MuddaUser> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
     // #endregion
 
     // #region Commands (Write Operations)
@@ -133,6 +138,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         issueService.deleteAllIssuesByUser(id);
 
         userRepository.deleteById(id);
+    }
+
+    @Transactional
+    @Override
+    public void verifyUser(Long userId) {
+        userRepository.findById(userId).ifPresent(user -> {
+            user.verify();
+            userRepository.save(user);
+        });
     }
 
     // #endregion

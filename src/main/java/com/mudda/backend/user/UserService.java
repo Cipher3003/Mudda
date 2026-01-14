@@ -13,6 +13,8 @@ public interface UserService {
 
     Optional<MuddaUser> findById(long id);
 
+    Optional<MuddaUser> findByEmail(String email);
+
     UserDetailResponse createUser(CreateUserRequest userRequest);
 
     List<Long> createUsers(List<CreateUserRequest> userRequests);
@@ -23,4 +25,5 @@ public interface UserService {
 
     void deleteUser(long id);
 
+    void verifyUser(Long userId);
 }

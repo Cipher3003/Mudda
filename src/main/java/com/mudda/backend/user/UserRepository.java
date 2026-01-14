@@ -11,6 +11,8 @@ public interface UserRepository extends JpaRepository<MuddaUser, Long>, JpaSpeci
 
     Optional<MuddaUser> findByUsername(String username);
 
+    Optional<MuddaUser> findByEmail(String email);
+
     boolean existsByUsername(String userName);
 
     boolean existsByEmail(String email);
