@@ -1,16 +1,11 @@
 package com.mudda.backend.exceptions;
 
-import lombok.Getter;
+import com.mudda.backend.utils.MessageCodes;
 
-@Getter
-public class FileSizeLimitExceededException extends RuntimeException {
-    private final String errorMessageCode;
-    private final Object[] args;
+public class FileSizeLimitExceededException extends LocalizedException {
 
-    public FileSizeLimitExceededException(String errorMessageCode, Object... args) {
-        super(errorMessageCode);
-        this.errorMessageCode = errorMessageCode;
-        this.args = args;
+    public FileSizeLimitExceededException(int fileSizeLimitMb) {
+        super(MessageCodes.FILE_SIZE_EXCEED_LIMIT, fileSizeLimitMb);
     }
 
 }

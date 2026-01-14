@@ -1,17 +1,11 @@
 package com.mudda.backend.exceptions;
 
-import lombok.Getter;
+import com.mudda.backend.utils.MessageCodes;
 
-@Getter
-public class FileConversionException extends RuntimeException {
+public class FileConversionException extends LocalizedException {
 
-    private final String errorMessageCode;
-    private final Object[] args;
-
-    public FileConversionException(String errorMessageCode, Object... args) {
-        super(errorMessageCode);
-        this.errorMessageCode = errorMessageCode;
-        this.args = args;
+    public FileConversionException() {
+        super(MessageCodes.FILE_CONVERSION_FAILED);
     }
 
 }

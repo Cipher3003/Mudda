@@ -1,16 +1,12 @@
 package com.mudda.backend.exceptions;
 
-import lombok.Getter;
+import com.mudda.backend.utils.MessageCodes;
 
-@Getter
-public class InvalidImageExtensionException extends RuntimeException {
-    private final String errorMessageCode;
-    private final Object[] args;
 
-    public InvalidImageExtensionException(String errorMessageCode, Object... args) {
-        super(errorMessageCode);
-        this.errorMessageCode = errorMessageCode;
-        this.args = args;
+public class InvalidImageExtensionException extends LocalizedException {
+
+    public InvalidImageExtensionException(String allowed) {
+        super(MessageCodes.INVALID_IMAGE_EXTENSION, allowed);
     }
 
 }

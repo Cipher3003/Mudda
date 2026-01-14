@@ -78,15 +78,11 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
         // Check if file is empty or null
         if (file == null || file.isEmpty())
-            throw new EmptyFileException(MessageCodes.EMPTY_FILE);
+            throw new EmptyFileException();
 
         // Check if file size exceeds maximum size (1MB default)
         if (file.getSize() >= 1024 * 1024)
-            throw new FileSizeLimitExceededException(
-                    MessageCodes.FILE_SIZE_EXCEED_LIMIT,
-                    file.getSize(),
-                    1024 * 1024
-            );
+            throw new FileSizeLimitExceededException(1);
 
         List<String> validExtensions = List.of("jpeg", "png", "jpg");
         String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
@@ -97,23 +93,20 @@ public class AmazonImageServiceImpl implements AmazonImageService {
                         .stream()
                         .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))
         ) {
-            throw new InvalidImageExtensionException(
-                    MessageCodes.INVALID_IMAGE_EXTENSION,
-                    String.join(", ", validExtensions)
-            );
+            throw new InvalidImageExtensionException(String.join(", ", validExtensions));
         }
 
         // Check if file is an actual image and MIME type is an image
         String fileContentType = file.getContentType();
         if (fileContentType == null || !fileContentType.startsWith("image/"))
-            throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
+            throw new NonImageFileException();
 
         try {
             if (ImageIO.read(file.getInputStream()) == null)
-                throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
+                throw new NonImageFileException();
 
         } catch (IOException e) {
-            throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
+            throw new NonImageFileException();
         }
 
         try {
@@ -127,11 +120,11 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
             return new AmazonImage(fileName, fileUrl);
         } catch (IOException e) {
-            throw new FileConversionException(MessageCodes.MULTIPART_TO_FILE_CONVERT_EXCEPT);
+            throw new FileConversionException();
         } catch (AmazonS3Exception e) {
-            throw new S3ServiceException(MessageCodes.AMAZON_ERROR);
+            throw new S3ServiceException();
         } catch (SdkClientException e) {
-            throw new S3ClientException(MessageCodes.AMAZON_CLIENT_ERROR);
+            throw new S3ClientException();
         }
     }
 
@@ -142,9 +135,9 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         try {
             amazonS3.deleteObject(new DeleteObjectRequest(bucketName, imageFileName));
         } catch (AmazonS3Exception e) {
-            throw new S3ServiceException(MessageCodes.AMAZON_ERROR);
+            throw new S3ServiceException();
         } catch (SdkClientException e) {
-            throw new S3ClientException(MessageCodes.AMAZON_CLIENT_ERROR);
+            throw new S3ClientException();
         }
     }
 

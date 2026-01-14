@@ -1,17 +1,11 @@
 package com.mudda.backend.exceptions;
 
-import lombok.Getter;
+import com.mudda.backend.utils.MessageCodes;
 
-@Getter
-public class NonImageFileException extends RuntimeException {
+public class NonImageFileException extends LocalizedException {
 
-    private final String errorMessageCode;
-    private final Object[] args;
-
-    public NonImageFileException(String errorMessageCode, Object... args) {
-        super(errorMessageCode);
-        this.errorMessageCode = errorMessageCode;
-        this.args = args;
+    public NonImageFileException() {
+        super(MessageCodes.FILE_NOT_IMAGE);
     }
 
 }

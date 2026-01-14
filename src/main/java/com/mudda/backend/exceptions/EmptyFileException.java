@@ -1,17 +1,11 @@
 package com.mudda.backend.exceptions;
 
-import lombok.Getter;
+import com.mudda.backend.utils.MessageCodes;
 
-@Getter
-public class EmptyFileException extends RuntimeException {
+public class EmptyFileException extends LocalizedException {
 
-    private final String errorMessageCode;
-    private final Object[] args;
-
-    public EmptyFileException(String errorMessageCode, Object... args) {
-        super(errorMessageCode);
-        this.errorMessageCode = errorMessageCode;
-        this.args = args;
+    public EmptyFileException() {
+        super(MessageCodes.EMPTY_FILE);
     }
 
 }
