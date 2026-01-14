@@ -9,6 +9,7 @@
 package com.mudda.backend.auth;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +20,7 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
 
     Optional<VerificationToken> findByToken(String token);
 
+    @Modifying
     @Query(value = """
              DELETE from VerificationToken t
              WHERE t.userId = :userId AND t.type = :type
