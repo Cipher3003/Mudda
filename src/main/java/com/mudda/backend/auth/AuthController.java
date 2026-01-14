@@ -9,12 +9,13 @@
 package com.mudda.backend.auth;
 
 import com.mudda.backend.user.CreateUserRequest;
-import com.mudda.backend.user.MuddaUser;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
@@ -52,23 +53,4 @@ public class AuthController {
         return ResponseEntity.ok(AuthMapper.toAuthResponse(authService.refresh(refreshRequest.refreshToken())));
     }
 
-    @PostMapping("/verify-email")
-    public ResponseEntity<String> requestVerification(@RequestBody VerifyRequest verifyRequest) {
-        accountService.sendEmailVerificationLink(verifyRequest.email());
-        return ResponseEntity.ok("If account exists verification link has been sent to email.");
-    }
-
-    @GetMapping("/verify-email")
-    public ResponseEntity<String> verifyEmail(@RequestParam String verifyToken) {
-        accountService.verifyEmail(verifyToken);
-        return ResponseEntity.ok("Email verified successfully.");
-    }
-
-    @DeleteMapping("/account")
-    public ResponseEntity<Void> deleteAccount(Authentication authentication) {
-        Long userId = ((MuddaUser) authentication.getPrincipal()).getUserId();
-        accountService.deleteAccount(userId);
-
-        return ResponseEntity.noContent().build();
-    }
 }
