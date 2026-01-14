@@ -24,20 +24,17 @@ public class AuthService {
 
     private final UserService userService;
     private final JwtService jwtService;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
-    private final TokenHasUtil tokenHasUtil;
 
     public AuthService(UserService userService,
                        JwtService jwtService,
-                       RefreshTokenRepository refreshTokenRepository,
-                       AuthenticationManager authenticationManager,
-                       TokenHasUtil tokenHasUtil) {
+                       RefreshTokenService refreshTokenService,
+                       AuthenticationManager authenticationManager) {
         this.userService = userService;
         this.jwtService = jwtService;
-        this.refreshTokenRepository = refreshTokenRepository;
+        this.refreshTokenService = refreshTokenService;
         this.authenticationManager = authenticationManager;
-        this.tokenHasUtil = tokenHasUtil;
     }
 
     // #region Commands (Write Operations)
@@ -57,14 +54,9 @@ public class AuthService {
         if (!jwtService.validateRefreshToken(rawRefreshToken))
             throw new InvalidRefreshTokenException(MessageCodes.INVALID_REFRESH_TOKEN);
 
-        String hashedToken = tokenHasUtil.hashToken(rawRefreshToken);
+        RefreshToken refreshToken = refreshTokenService.rotate(rawRefreshToken);
 
-        RefreshToken savedRefreshToken = refreshTokenRepository.findByTokenAndRevokedFalse(hashedToken)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-        savedRefreshToken.revoke();
-        refreshTokenRepository.save(savedRefreshToken);
-
-        MuddaUser user = userService.findById(savedRefreshToken.getUserId())
+        MuddaUser user = userService.findById(refreshToken.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
         return getAuthResult(user);
@@ -72,13 +64,7 @@ public class AuthService {
 
     @Transactional
     public void logout(String rawRefreshToken) {
-        String hashedToken = tokenHasUtil.hashToken(rawRefreshToken);
-
-        refreshTokenRepository.findByTokenAndRevokedFalse(hashedToken)
-                .ifPresent(refreshToken -> {
-                    refreshToken.revoke();
-                    refreshTokenRepository.save(refreshToken);
-                });
+        refreshTokenService.revoke(rawRefreshToken);
     }
 
     @Transactional
@@ -86,11 +72,10 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(muddaUser.getUsername());
         String refreshToken = jwtService.generateRefreshToken(muddaUser.getUsername());
 
-        RefreshToken hashedRefreshToken = new RefreshToken(
+        refreshTokenService.create(
                 muddaUser.getUserId(),
-                tokenHasUtil.hashToken(refreshToken),
+                refreshToken,
                 jwtService.getRefreshTokenExpirationTimeMs());
-        refreshTokenRepository.save(hashedRefreshToken);
 
         return new AuthResult(
                 accessToken, refreshToken,

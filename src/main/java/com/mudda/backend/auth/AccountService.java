@@ -13,24 +13,22 @@ import com.mudda.backend.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 public class AccountService {
 
     private final UserService userService;
     private final VerificationTokenService tokenService;
     private final EmailService emailService;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
 
     public AccountService(UserService userService,
                           VerificationTokenService tokenService,
                           EmailService emailService,
-                          RefreshTokenRepository refreshTokenRepository) {
+                          RefreshTokenService refreshTokenService) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.emailService = emailService;
-        this.refreshTokenRepository = refreshTokenRepository;
+        this.refreshTokenService = refreshTokenService;
     }
 
     //    TODO: handle psql exception at all creation time
@@ -59,11 +57,7 @@ public class AccountService {
 
     @Transactional
     public void deleteAccount(Long userId) {
-        List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUserId(userId);
-        for (RefreshToken refreshToken : refreshTokens) {
-            refreshToken.revoke();
-        }
-        refreshTokenRepository.saveAll(refreshTokens);
+        refreshTokenService.revokeAllByUserId(userId);
 
         tokenService.deleteAllTokensByUserId(userId);
 
