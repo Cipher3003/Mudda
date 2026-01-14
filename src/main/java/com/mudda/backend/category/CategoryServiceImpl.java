@@ -1,8 +1,6 @@
 package com.mudda.backend.category;
 
-import com.mudda.backend.exceptions.DuplicateEntityException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,15 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @Override
     public CategoryResponse createCategory(CreateCategoryRequest categoryRequest) {
-        Category saved;
-
-        try {
-            saved = categoryRepository.save(new Category(categoryRequest.name()));
-        } catch (DataIntegrityViolationException e) {
-            throw new DuplicateEntityException("Category with name %s already exists"
-                    .formatted(categoryRequest.name()));
-        }
-
+        Category saved = categoryRepository.save(new Category(categoryRequest.name()));
         return CategoryMapper.toResponse(saved);
     }
 
