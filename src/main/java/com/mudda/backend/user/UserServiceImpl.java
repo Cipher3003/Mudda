@@ -72,7 +72,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     // #region Commands (Write Operations)
 
-    //    TODO: add validation to check email and phoneNumber with OTP
     @Transactional
     @Override
     public UserDetailResponse createUser(CreateUserRequest userRequest) {
