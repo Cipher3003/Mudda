@@ -8,7 +8,7 @@
  */
 package com.mudda.backend.token.verification;
 
-import com.mudda.backend.account.InvalidTokenException;
+import com.mudda.backend.exceptions.InvalidVerificationTokenException;
 import com.mudda.backend.token.TokenType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,16 +33,16 @@ public class VerificationTokenService {
     @Transactional
     public VerificationToken consumeToken(String verificationToken, TokenType tokenType) {
         VerificationToken token = tokenRepository.findByToken(verificationToken)
-                .orElseThrow(() -> new InvalidTokenException("Token not found"));
+                .orElseThrow(() -> new InvalidVerificationTokenException("Token not found"));
 
         if (token.isUsed())
-            throw new InvalidTokenException("Token already used.");
+            throw new InvalidVerificationTokenException("Token already used.");
 
         if (token.getExpiryAt().isBefore(Instant.now()))
-            throw new InvalidTokenException("Token is expired.");
+            throw new InvalidVerificationTokenException("Token is expired.");
 
         if (!token.getType().equals(tokenType))
-            throw new InvalidTokenException("Invalid token type.");
+            throw new InvalidVerificationTokenException("Invalid token type.");
 
         token.markUsed();
         tokenRepository.save(token);

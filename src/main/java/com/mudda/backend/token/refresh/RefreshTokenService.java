@@ -8,7 +8,7 @@
  */
 package com.mudda.backend.token.refresh;
 
-import com.mudda.backend.auth.InvalidRefreshTokenException;
+import com.mudda.backend.exceptions.InvalidRefreshTokenException;
 import com.mudda.backend.token.TokenHasUtil;
 import com.mudda.backend.utils.MessageCodes;
 import org.springframework.stereotype.Service;
