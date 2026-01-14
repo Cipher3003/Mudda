@@ -6,7 +6,7 @@
  * Created : 13-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.auth;
+package com.mudda.backend.token.refresh;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

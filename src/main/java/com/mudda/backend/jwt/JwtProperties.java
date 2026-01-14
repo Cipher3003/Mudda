@@ -6,7 +6,7 @@
  * Created : 12-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.auth;
+package com.mudda.backend.jwt;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

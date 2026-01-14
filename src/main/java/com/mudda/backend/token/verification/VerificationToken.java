@@ -6,8 +6,9 @@
  * Created : 14-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.auth;
+package com.mudda.backend.token.verification;
 
+import com.mudda.backend.token.TokenType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -1,13 +1,15 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : TokenType
+ * File    : InvalidTokenException
  * Author  : Vikas Kumar
  * Created : 14-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.auth;
+package com.mudda.backend.account;
 
-public enum TokenType {
-    EMAIL_VERIFY
+public class InvalidTokenException extends RuntimeException {
+    public InvalidTokenException(String message) {
+        super(message);
+    }
 }

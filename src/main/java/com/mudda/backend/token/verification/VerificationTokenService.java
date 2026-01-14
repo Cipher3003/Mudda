@@ -6,8 +6,10 @@
  * Created : 14-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.auth;
+package com.mudda.backend.token.verification;
 
+import com.mudda.backend.account.InvalidTokenException;
+import com.mudda.backend.token.TokenType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

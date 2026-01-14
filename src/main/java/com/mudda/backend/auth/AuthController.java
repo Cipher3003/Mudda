@@ -8,6 +8,7 @@
  */
 package com.mudda.backend.auth;
 
+import com.mudda.backend.account.AccountService;
 import com.mudda.backend.user.CreateUserRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

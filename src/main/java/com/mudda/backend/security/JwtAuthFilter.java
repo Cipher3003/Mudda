@@ -8,7 +8,7 @@
  */
 package com.mudda.backend.security;
 
-import com.mudda.backend.auth.JwtService;
+import com.mudda.backend.jwt.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

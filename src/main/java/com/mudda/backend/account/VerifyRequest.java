@@ -1,14 +1,14 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : EmailService
+ * File    : VerifyRequest
  * Author  : Vikas Kumar
  * Created : 14-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.auth;
+package com.mudda.backend.account;
 
-public interface EmailService {
-
-    void sendVerificationEmail(String email, String token);
+public record VerifyRequest(
+        String email
+) {
 }

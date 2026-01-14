@@ -6,7 +6,7 @@
  * Created : 14-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.auth;
+package com.mudda.backend.account;
 
 import com.mudda.backend.user.MuddaUser;
 import org.springframework.http.ResponseEntity;

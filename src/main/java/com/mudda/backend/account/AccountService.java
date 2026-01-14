@@ -6,8 +6,13 @@
  * Created : 14-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.auth;
+package com.mudda.backend.account;
 
+import com.mudda.backend.token.refresh.RefreshTokenService;
+import com.mudda.backend.token.TokenType;
+import com.mudda.backend.token.verification.VerificationToken;
+import com.mudda.backend.token.verification.VerificationTokenService;
+import com.mudda.backend.email.EmailService;
 import com.mudda.backend.user.CreateUserRequest;
 import com.mudda.backend.user.UserService;
 import org.springframework.stereotype.Service;
