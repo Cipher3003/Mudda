@@ -8,6 +8,7 @@ public class MessageCodes {
     public static final String PAYLOAD_TOO_LARGE = "error.payload.too.large";
     public static final String AUTHENTICATION_REQUIRED = "error.authentication.required";
     public static final String UNEXPECTED_ERROR = "error.unexpected";
+    public static final String NOT_FOUND = "error.not.found";
 
     /* ---------- auth ---------- */
     public static final String INVALID_REFRESH_TOKEN = "auth.invalid.refresh.token";
@@ -23,5 +24,4 @@ public class MessageCodes {
     /* ---------- storage (S3) ---------- */
     public static final String STORAGE_UNAVAILABLE = "storage.unavailable";
     public static final String STORAGE_CLIENT_ERROR = "storage.client.error";
-
 }

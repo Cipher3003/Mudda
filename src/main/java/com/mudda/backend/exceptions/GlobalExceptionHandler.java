@@ -1,12 +1,15 @@
 package com.mudda.backend.exceptions;
 
+import com.amazonaws.services.inspector.model.NoSuchEntityException;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,6 +51,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest()
                 .body(ApiError.validation(errors));
+    }
+
+    //    404 - not found
+    @ExceptionHandler(value = {
+            EntityNotFoundException.class,
+            UsernameNotFoundException.class,
+            NoSuchEntityException.class
+    })
+    public ResponseEntity<ApiError> handleNotFound(Exception e) {
+        String message = resolveMessage(e, MessageCodes.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of(HttpStatus.NOT_FOUND, message));
     }
 
     //    409 - conflicts
