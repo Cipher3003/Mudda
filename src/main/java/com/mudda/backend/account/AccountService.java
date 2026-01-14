@@ -36,7 +36,6 @@ public class AccountService {
         this.refreshTokenService = refreshTokenService;
     }
 
-    //    TODO: handle psql exception at all creation time
     public void register(CreateUserRequest createUserRequest) {
         userService.createUser(createUserRequest);
     }
