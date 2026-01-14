@@ -55,9 +55,21 @@ public class AccountService {
     }
 
     public void requestPasswordReset(String email) {
+        userService.findByEmail(email).ifPresent(user -> {
+            VerificationToken token = tokenService.generateToken(TokenType.PASSWORD_RESET, user.getUserId());
+            emailService.sendPasswordResetEmail(email, token.getToken());
+        });
     }
 
-    public void resetPassword(String token, String newPassword) {
+    public void resetPassword(String verifyToken, String newPassword) {
+        VerificationToken token = tokenService.consumeToken(verifyToken, TokenType.PASSWORD_RESET);
+
+        Long userId = token.getUserId();
+
+        userService.updatePassword(userId, newPassword);
+
+        refreshTokenService.revokeAllByUserId(userId);
+        tokenService.deleteAllTokensByUserId(userId);
     }
 
     @Transactional
@@ -69,5 +81,4 @@ public class AccountService {
         userService.deleteUser(userId);
     }
 
-//    TODO: add account deletion
 }

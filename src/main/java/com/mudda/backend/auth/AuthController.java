@@ -64,4 +64,15 @@ public class AuthController {
         return ResponseEntity.ok(AuthMapper.toAuthResponse(authService.refresh(refreshRequest.refreshToken())));
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
+        accountService.requestPasswordReset(forgotPasswordRequest.email());
+        return ResponseEntity.ok("If account exists, a password reset link has been sent.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) {
+        accountService.resetPassword(resetPasswordRequest.token(), resetPasswordRequest.password());
+        return ResponseEntity.ok("Password Reset successfully, you can now login again.");
+    }
 }

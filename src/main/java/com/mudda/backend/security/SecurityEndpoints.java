@@ -39,7 +39,9 @@ public final class SecurityEndpoints {
             "/auth/login",
             "/auth/logout",
             "/auth/refresh",
-            "/auth/verify-email"
+            "/auth/verify-email",
+            "/auth/forgot-password",
+            "/auth/reset-password"
     };
 
     public static final String[] PUBLIC_READONLY_ENDPOINTS = {

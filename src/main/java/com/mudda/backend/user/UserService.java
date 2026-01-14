@@ -17,6 +17,8 @@ public interface UserService {
 
     UserDetailResponse createUser(CreateUserRequest userRequest);
 
+    void updatePassword(Long id, String password);
+
     List<Long> createUsers(List<CreateUserRequest> userRequests);
 
     void saveUsers(List<MuddaUser> users);

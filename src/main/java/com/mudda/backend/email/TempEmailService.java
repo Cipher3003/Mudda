@@ -17,4 +17,10 @@ public class TempEmailService implements EmailService {
         String verificationLink = "localhost:8080/auth/verify-email?verifyToken=%s".formatted(token);
         System.out.printf("Sending verification Link: {%s} to Email: {%s}%n", verificationLink, email);
     }
+
+    @Override
+    public void sendPasswordResetEmail(String email, String token) {
+        String verificationLink = "localhost:8080/auth/reset-password?verifyToken=%s".formatted(token);
+        System.out.printf("Sending verification Link for password reset: {%s} to Email: {%s}%n", verificationLink, email);
+    }
 }

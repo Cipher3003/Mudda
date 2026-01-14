@@ -1,14 +1,15 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : TokenType
+ * File    : ResetPasswordRequest
  * Author  : Vikas Kumar
  * Created : 14-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.token;
+package com.mudda.backend.auth;
 
-public enum TokenType {
-    EMAIL_VERIFY,
-    PASSWORD_RESET
+public record ResetPasswordRequest(
+        String token,
+        String password
+) {
 }

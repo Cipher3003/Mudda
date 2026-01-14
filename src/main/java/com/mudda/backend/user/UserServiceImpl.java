@@ -92,6 +92,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return UserMapper.toDetail(userRepository.save(muddaUser));
     }
 
+    @Override
+    public void updatePassword(Long id, String password) {
+        MuddaUser user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        user.changePasswordHash(passwordEncoder.encode(password));
+        userRepository.save(user);
+    }
+
     @Transactional
     @Override
     public List<Long> createUsers(List<CreateUserRequest> userRequests) {
