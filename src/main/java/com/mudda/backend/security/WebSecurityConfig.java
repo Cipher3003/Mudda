@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static com.mudda.backend.security.SecurityEndpoints.*;
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
@@ -53,47 +55,15 @@ public class WebSecurityConfig {
 
     private void configureAuthorization(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                // Swagger / Docs
-                .requestMatchers(
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/v3/api-docs"
-                ).permitAll()
 
-//                Public HTML pages
-                .requestMatchers(
-                        "/",
-                        "/index.html",
-                        "/home.html",
-                        "/issue.html",
-                        "/seed.html",
-                        "/media_url.html",
-                        "/login.html"
-                ).permitAll()
+                // ===== PUBLIC ENDPOINTS =====
+                .requestMatchers(SEED_ENDPOINTS).permitAll()
+                .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
+                .requestMatchers(PUBLIC_STATIC_PAGES).permitAll()
+                .requestMatchers(AUTH_PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.GET, PUBLIC_READONLY_ENDPOINTS).permitAll()
 
-//                Public API endpoints
-                .requestMatchers(
-                        "/api/v1/seed/**",
-                        "/api/v1/votes/**",
-                        "/api/v1/users/**",
-                        "/auth/register",
-                        "/auth/login",
-                        "/auth/logout",
-                        "/auth/refresh",
-                        "/auth/verify-email"
-                ).permitAll()
-
-//                Public GET endpoints
-                .requestMatchers(HttpMethod.GET,
-                        "/api/v1/amazon/images/**",
-                        "/api/v1/issues/categories/**",
-                        "/api/v1/comments/**",
-                        "/api/v1/issues/**",
-                        "/api/v1/locations/**"
-                ).permitAll()
-
-                // Everything Else Needs Login
+                // ===== PROTECTED ENDPOINTS =====
                 .anyRequest().authenticated());
     }
 
