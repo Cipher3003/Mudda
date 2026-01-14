@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -74,13 +75,27 @@ public class WebSecurityConfig {
 //                Not logged in
                 .authenticationEntryPoint((request, response, e) -> {
                     System.err.println("AUTH ERROR -> " + e.getMessage());
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=utf-8");
+                    response.getWriter().write("""
+                            {
+                            "error":"UNAUTHORIZED",
+                            "message":"Authentication required or token expired"
+                            }
+                            """);
                 })
 
 //                Logged in but not allowed
                 .accessDeniedHandler((request, response, e) -> {
                     System.err.println("ACCESS DENIED -> " + e.getMessage());
                     response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                    response.setContentType("application/json;charset=utf-8");
+                    response.getWriter().write("""
+                            {
+                            "error":"FORBIDDEN",
+                            "message":"You do not have permission to access this resource"
+                            }
+                            """);
                 }));
     }
 
