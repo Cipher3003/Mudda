@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -39,6 +40,9 @@ public class AuthService {
         this.tokenHasUtil = tokenHasUtil;
     }
 
+    // #region Commands (Write Operations)
+
+    @Transactional
     public AuthResult login(AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
@@ -48,6 +52,7 @@ public class AuthService {
     }
 
     //    TODO: do occasional cleanup of refresh tokens
+    @Transactional
     public AuthResult refresh(String rawRefreshToken) {
         if (!jwtService.validateRefreshToken(rawRefreshToken))
             throw new InvalidRefreshTokenException(MessageCodes.INVALID_REFRESH_TOKEN);
@@ -65,6 +70,7 @@ public class AuthService {
         return getAuthResult(user);
     }
 
+    @Transactional
     public void logout(String rawRefreshToken) {
         String hashedToken = tokenHasUtil.hashToken(rawRefreshToken);
 
@@ -75,7 +81,8 @@ public class AuthService {
                 });
     }
 
-    private AuthResult getAuthResult(MuddaUser muddaUser) {
+    @Transactional
+    protected AuthResult getAuthResult(MuddaUser muddaUser) {
         String accessToken = jwtService.generateAccessToken(muddaUser.getUsername());
         String refreshToken = jwtService.generateRefreshToken(muddaUser.getUsername());
 
@@ -92,5 +99,7 @@ public class AuthService {
                 muddaUser
         );
     }
+
+    // #endregion
 
 }
