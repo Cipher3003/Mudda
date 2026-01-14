@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    //    TODO: add proper authentication rules for endpoints
     private final UserService userService;
 
     public UserController(UserService userService) {

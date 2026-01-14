@@ -138,7 +138,6 @@ public class MuddaUser implements UserDetails {
         return true;
     }
 
-    //    TODO: use custom fields and logic
     @Override
     public boolean isAccountNonLocked() {
         return !locked;
