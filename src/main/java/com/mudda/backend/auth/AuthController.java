@@ -9,6 +9,7 @@
 package com.mudda.backend.auth;
 
 import com.mudda.backend.user.CreateUserRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody CreateUserRequest registrationRequest) {
+    public ResponseEntity<String> registerUser(@Valid @RequestBody CreateUserRequest registrationRequest) {
         accountService.register(registrationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body("Registration successful.");
     }

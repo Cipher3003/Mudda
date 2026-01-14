@@ -77,9 +77,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public UserDetailResponse createUser(CreateUserRequest userRequest) {
 
-        if (userRepository.existsByUsername(userRequest.userName()))
+        if (userRepository.existsByUsername(userRequest.username()))
             throw new IllegalArgumentException("Username: %s is already taken"
-                    .formatted(userRequest.userName()));
+                    .formatted(userRequest.username()));
         if (userRepository.existsByEmail(userRequest.email()))
             throw new IllegalArgumentException("Account with Email ID: %s already exists"
                     .formatted(userRequest.email()));

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 public record CreateUserRequest(
-        @NotBlank String userName,
+        @NotBlank String username,
         @NotBlank String name,
         @NotBlank @Email String email,
         @NotNull @Past LocalDate dateOfBirth,

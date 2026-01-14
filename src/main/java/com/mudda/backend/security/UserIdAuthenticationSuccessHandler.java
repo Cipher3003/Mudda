@@ -39,7 +39,7 @@ public class UserIdAuthenticationSuccessHandler extends SavedRequestAwareAuthent
 
         String userName = authentication.getName();
         Long userId = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new EntityNotFoundException("User with userName: %s not found"
+                .orElseThrow(() -> new EntityNotFoundException("User with username: %s not found"
                         .formatted(userName)))
                 .getUserId();
 

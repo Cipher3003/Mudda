@@ -4,7 +4,7 @@ public class UserMapper {
 
     public static MuddaUser toUser(CreateUserRequest userRequest) {
         return new MuddaUser(
-                userRequest.userName(),
+                userRequest.username(),
                 userRequest.name(),
                 userRequest.phoneNumber(),
                 userRequest.dateOfBirth(),
