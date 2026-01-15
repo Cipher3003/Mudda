@@ -47,8 +47,6 @@ public class AuthController {
         return ResponseEntity.ok("Email verified successfully.");
     }
 
-
-    //    TODO: rate limit
     //    Only login when both token expires
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest authRequest) {

@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
@@ -56,6 +57,13 @@ public class MuddaUser implements UserDetails {
     @Column(nullable = false)
     private boolean enabled = false;
 
+    @Setter
+    @Column(nullable = false)
+    private int failedLoginAttempts = 0;
+
+    @Column
+    private Instant lockUntil;
+
     @Column(nullable = false)
     private Instant createdAt;
 
@@ -98,6 +106,32 @@ public class MuddaUser implements UserDetails {
 
         changePhoneNumber(phoneNumber);
         changeProfileImageUrl(profileImageUrl);
+    }
+
+    public void recordFailedLoginAttempt(int maxAttempts, Duration lockDuration) {
+        failedLoginAttempts++;
+
+        if (failedLoginAttempts >= maxAttempts) {
+            this.locked = true;
+            this.lockUntil = Instant.now().plus(lockDuration);
+            failedLoginAttempts = 0;
+        }
+    }
+
+    public void resetLoginFailures() {
+        this.locked = false;
+        this.failedLoginAttempts = 0;
+        this.lockUntil = null;
+    }
+
+    public boolean unlockIfExpires() {
+        if (this.locked && lockUntil != null && this.lockUntil.isBefore(Instant.now())) {
+            this.locked = false;
+            this.failedLoginAttempts = 0;
+            this.lockUntil = null;
+            return true;
+        }
+        return false;
     }
 
 //    Setter
@@ -156,5 +190,9 @@ public class MuddaUser implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public boolean isLocked() {
+        return locked && lockUntil != null && lockUntil.isAfter(Instant.now());
     }
 }

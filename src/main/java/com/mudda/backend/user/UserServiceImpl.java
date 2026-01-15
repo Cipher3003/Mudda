@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -157,6 +158,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         });
     }
 
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        MuddaUser user = userRepository.findByUsername(username).orElseThrow(() ->
+                new UsernameNotFoundException("User not found with username: %s".formatted(username)));
+
+        if (user.unlockIfExpires()) userRepository.save(user);
+
+        if (user.isLocked()) throw new LockedException("Account locked");
+
+        return user;
+    }
+
     // #endregion
 
 //    ------------------------------
@@ -165,12 +179,5 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private EntityNotFoundException notFound(long id) {
         return new EntityNotFoundException("User not found with id: %d".formatted(id));
-    }
-
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User not found with username: %s".formatted(username)));
     }
 }

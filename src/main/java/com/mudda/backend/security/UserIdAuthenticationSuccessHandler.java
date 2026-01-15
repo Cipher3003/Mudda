@@ -1,18 +1,3 @@
-package com.mudda.backend.security;
-
-import com.mudda.backend.user.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
@@ -21,6 +6,20 @@ import java.io.IOException;
  * Created : 13-11-2025
  * ---------------------------------------------------------------
  */
+package com.mudda.backend.security;
+
+import com.mudda.backend.user.MuddaUser;
+import com.mudda.backend.user.UserRepository;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+
 @Component
 public class UserIdAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
@@ -31,25 +30,17 @@ public class UserIdAuthenticationSuccessHandler extends SavedRequestAwareAuthent
     }
 
     @Override
+    @Transactional
     public void onAuthenticationSuccess(
             HttpServletRequest request,
             HttpServletResponse response,
             Authentication authentication
     ) throws ServletException, IOException {
 
-        String userName = authentication.getName();
-        Long userId = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new EntityNotFoundException("User with username: %s not found"
-                        .formatted(userName)))
-                .getUserId();
+        MuddaUser user = (MuddaUser) authentication.getPrincipal();
+        user.resetLoginFailures();
+        userRepository.save(user);
 
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                userId,
-                authentication.getCredentials(),
-                authentication.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        super.onAuthenticationSuccess(request, response, auth);
+        super.onAuthenticationSuccess(request, response, authentication);
     }
 }

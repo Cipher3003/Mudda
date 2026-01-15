@@ -9,6 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import javax.security.auth.login.AccountLockedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +48,12 @@ public class GlobalExceptionHandler {
             default -> ResponseEntity.badRequest()
                     .body(ApiError.of(HttpStatus.BAD_REQUEST, MessageCodes.INVALID_VERIFICATION_TOKEN));
         };
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ApiError> handleAccountLocked(LockedException ex) {
+        return ResponseEntity.status(HttpStatus.LOCKED)
+                .body(ApiError.of(HttpStatus.LOCKED, MessageCodes.ACCOUNT_LOCKED));
     }
 
     //    400 - validation & bad input
