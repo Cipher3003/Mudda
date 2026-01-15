@@ -3,6 +3,7 @@ package com.mudda.backend.user;
 import com.mudda.backend.AppProperties;
 import com.mudda.backend.comment.CommentLikeService;
 import com.mudda.backend.comment.CommentService;
+import com.mudda.backend.exceptions.PasswordUnchangedException;
 import com.mudda.backend.exceptions.PhoneNumberAlreadyExistsException;
 import com.mudda.backend.exceptions.UserAlreadyExistsException;
 import com.mudda.backend.exceptions.UsernameAlreadyExistsException;
@@ -125,6 +126,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public void updatePassword(Long id, String password) {
         MuddaUser user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (passwordEncoder.matches(password, user.getPassword()))
+            throw new PasswordUnchangedException();
 
         user.changePasswordHash(passwordEncoder.encode(password));
         userRepository.save(user);

@@ -21,6 +21,7 @@ public class MessageCodes {
     public static final String ACCOUNT_LOCKED = "auth.account.locked";
     public static final String INVALID_CREDENTIALS = "auth.invalid.credentials";
     public static final String ACCOUNT_NOT_VERIFIED = "auth.account.not.verified";
+    public static final String PASSWORD_SAME_AS_OLD = "auth.password.same.as.old";
 
     /* ---------- file upload ---------- */
     public static final String EMPTY_FILE = "file.empty";

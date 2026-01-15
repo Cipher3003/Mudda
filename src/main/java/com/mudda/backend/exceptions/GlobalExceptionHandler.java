@@ -62,7 +62,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
             IllegalArgumentException.class,
             InvalidImageExtensionException.class,
-            InvalidVerificationTokenException.class
+            InvalidVerificationTokenException.class,
+            PasswordUnchangedException.class,
     })
     public ResponseEntity<ApiError> handleBadRequest(Exception e) {
         String message = resolveMessage(e, MessageCodes.BAD_REQUEST);
