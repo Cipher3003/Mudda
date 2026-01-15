@@ -13,6 +13,7 @@ import com.mudda.backend.token.TokenHasUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -64,11 +65,11 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    public void create(Long userId, String refreshToken, long ttlSeconds) {
+    public void create(Long userId, String refreshToken, Instant expiresAt) {
         RefreshToken hashedRefreshToken = new RefreshToken(
                 userId,
                 tokenHasUtil.hashToken(refreshToken),
-                ttlSeconds);
+                expiresAt);
 
         refreshTokenRepository.save(hashedRefreshToken);
     }

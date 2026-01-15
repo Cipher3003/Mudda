@@ -14,7 +14,6 @@ public record AuthResult(
         String accessToken,
         String refreshToken,
         long accessExpiresInMs,
-        long refreshExpiresInMs,
         MuddaUser user
 ) {
 }

@@ -13,7 +13,6 @@ public record AuthResponse(
         String refreshToken,
         String tokenType,
         Long accessExpiresInMs,
-        Long refreshExpiresInMs,
         AuthenticatedUserResponse user
 ) {
 }

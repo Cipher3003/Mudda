@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+
 @Service
 public class AuthService {
 
@@ -53,7 +55,7 @@ public class AuthService {
             // success side-effects
             userService.resetLoginFailures(muddaUser.getUserId());
 
-            return getAuthResult(muddaUser);
+            return getAuthResult(muddaUser, Instant.now().plusSeconds(jwtService.getRefreshTokenExpirationSeconds()));
 
         } catch (BadCredentialsException e) {
             // failure side-effects
@@ -74,7 +76,7 @@ public class AuthService {
         MuddaUser user = userService.findById(refreshToken.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        return getAuthResult(user);
+        return getAuthResult(user, refreshToken.getExpiresAt());
     }
 
     @Transactional
@@ -83,19 +85,18 @@ public class AuthService {
     }
 
     @Transactional
-    protected AuthResult getAuthResult(MuddaUser muddaUser) {
+    protected AuthResult getAuthResult(MuddaUser muddaUser, Instant expiresAt) {
         String accessToken = jwtService.generateAccessToken(muddaUser.getUsername());
         String refreshToken = jwtService.generateRefreshToken(muddaUser.getUsername());
 
         refreshTokenService.create(
                 muddaUser.getUserId(),
                 refreshToken,
-                jwtService.getRefreshTokenExpirationSeconds());
+                expiresAt);
 
         return new AuthResult(
                 accessToken, refreshToken,
                 jwtService.getAccessTokenExpirationSeconds(),
-                jwtService.getRefreshTokenExpirationSeconds(),
                 muddaUser
         );
     }

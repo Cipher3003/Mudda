@@ -16,7 +16,6 @@ public class AuthMapper {
                 authResult.refreshToken(),
                 "Bearer",
                 authResult.accessExpiresInMs(),
-                authResult.refreshExpiresInMs(),
                 new AuthenticatedUserResponse(
                         authResult.user().getUserId(),
                         authResult.user().getUsername(),

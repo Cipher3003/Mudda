@@ -51,18 +51,18 @@ public class RefreshToken {
         createdAt = Instant.now();
     }
 
-    public RefreshToken(Long userId, String token, Long expiresInSeconds) {
+    public RefreshToken(Long userId, String token, Instant expiresAt) {
 
         if (userId == null)
             throw new IllegalArgumentException("Refresh Token userId cannot be null");
         if (token == null || token.isBlank())
             throw new IllegalArgumentException("Refresh token token cannot be blank");
-        if (expiresInSeconds == null || expiresInSeconds <= 0)
+        if (expiresAt == null || expiresAt.isBefore(Instant.now()))
             throw new IllegalArgumentException("Refresh Token expiration time cannot be negative");
 
         this.userId = userId;
         this.token = token;
-        this.expiresAt = Instant.now().plusSeconds(expiresInSeconds);
+        this.expiresAt = expiresAt;
     }
 
     public void revoke() {
