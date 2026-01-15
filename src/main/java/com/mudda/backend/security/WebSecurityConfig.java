@@ -1,5 +1,6 @@
 package com.mudda.backend.security;
 
+import com.mudda.backend.AppProperties;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 import static com.mudda.backend.security.SecurityEndpoints.*;
 
@@ -27,19 +33,22 @@ public class WebSecurityConfig {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthFilter jwtAuthFilter;
+    private final AppProperties appProperties;
 
     public WebSecurityConfig(UserDetailsService userDetailsService,
                              PasswordEncoder passwordEncoder,
-                             JwtAuthFilter jwtAuthFilter) {
+                             JwtAuthFilter jwtAuthFilter,
+                             AppProperties appProperties) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.jwtAuthFilter = jwtAuthFilter;
+        this.appProperties = appProperties;
     }
 
-    //    TODO: add CORS
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+        enableCors(http);
         disableCsrf(http);  // CSRF not needed in jwt
         configureAuthorization(http);   // add public and protected endpoints
         configureExceptionHandling(http);   // Handles authentication and authorization error
@@ -49,6 +58,9 @@ public class WebSecurityConfig {
         return http.build();
     }
 
+    private void enableCors(HttpSecurity http) throws Exception {
+        http.cors(Customizer.withDefaults());
+    }
 
     private void disableCsrf(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
@@ -122,6 +134,19 @@ public class WebSecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(appProperties.getCors().getAllowedOrigins().split(",")));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
 }

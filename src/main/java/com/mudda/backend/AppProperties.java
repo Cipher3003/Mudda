@@ -23,6 +23,7 @@ public class AppProperties {
     private Token token;
     private Security security;
     private RateLimit rateLimit;
+    private Cors cors;
 
     @Getter
     @Setter
@@ -51,5 +52,11 @@ public class AppProperties {
         private int authCapacity;
         private int authRefillTokens;
         private int authRefillMinutes;
+    }
+
+    @Getter
+    @Setter
+    public static class Cors {
+        private String allowedOrigins;
     }
 }
