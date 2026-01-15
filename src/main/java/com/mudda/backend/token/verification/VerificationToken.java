@@ -43,26 +43,31 @@ public class VerificationToken {
     private TokenType type;
 
     @Column(nullable = false)
-    private Instant expiryAt;
+    private Instant expiresAt;
 
-    @Column(nullable = false)
-    private boolean used = false;
+    @Column(name = "update_at")
+    private Instant usedAt;
 
-    public VerificationToken(Long userId, String token, TokenType type, Instant expiryAt) {
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+    }
+
+    public VerificationToken(Long userId, String token, TokenType type, Instant expiresAt) {
         if (userId == null)
             throw new IllegalArgumentException("Verification Token userId cannot be null");
         if (token == null || token.isBlank())
             throw new IllegalArgumentException("Verification token token cannot be blank");
-        if (expiryAt == null || expiryAt.isBefore(Instant.now()))
+        if (expiresAt == null || expiresAt.isBefore(Instant.now()))
             throw new IllegalArgumentException("Verification Token expiry must be in future");
 
         this.userId = userId;
         this.token = token;
         this.type = type;
-        this.expiryAt = expiryAt;
+        this.expiresAt = expiresAt;
     }
 
-    public void markUsed() {
-        this.used = true;
-    }
 }

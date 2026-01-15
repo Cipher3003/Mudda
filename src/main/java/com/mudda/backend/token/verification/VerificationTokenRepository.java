@@ -21,7 +21,7 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
 
     Optional<VerificationToken> findByToken(String token);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = """
              DELETE from VerificationToken t
              WHERE t.userId = :userId AND t.type = :type
@@ -29,4 +29,13 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
     void deleteByUserIdAndType(long userId, TokenType type);
 
     void deleteAllByUserId(long userId);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = """
+             UPDATE VerificationToken t
+             SET t.usedAt = now()
+             WHERE t.id = :id
+            """
+    )
+    void markUsed(Long id);
 }

@@ -9,6 +9,8 @@
 package com.mudda.backend.token.verification;
 
 import com.mudda.backend.exceptions.InvalidVerificationTokenException;
+import com.mudda.backend.exceptions.TokenFailureReason;
+import com.mudda.backend.exceptions.TokenValidationException;
 import com.mudda.backend.token.TokenType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,12 +39,13 @@ public class VerificationTokenService {
         if (!token.getType().equals(tokenType))
             throw new InvalidVerificationTokenException();
 
-        if (token.isUsed())
+        if (token.getUsedAt() != null)
             throw new TokenValidationException(tokenType, TokenFailureReason.ALREADY_USED);
 
         if (token.getExpiresAt().isBefore(Instant.now()))
             throw new TokenValidationException(tokenType, TokenFailureReason.EXPIRED);
 
+        tokenRepository.markUsed(token.getId());
         return token;
     }
 
