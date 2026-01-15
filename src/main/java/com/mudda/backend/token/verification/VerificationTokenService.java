@@ -28,23 +28,21 @@ public class VerificationTokenService {
 
     // #region Commands (Write Operations)
 
-    //    TODO: should delete all consumed tokens?
+    //    TODO: should delete all consumed tokens periodically
     @Transactional
     public VerificationToken consumeToken(String verificationToken, TokenType tokenType) {
         VerificationToken token = tokenRepository.findByToken(verificationToken)
                 .orElseThrow(InvalidVerificationTokenException::new);
 
-        if (token.isUsed())
-            throw new InvalidVerificationTokenException();
-
-        if (token.getExpiryAt().isBefore(Instant.now()))
-            throw new InvalidVerificationTokenException();
-
         if (!token.getType().equals(tokenType))
             throw new InvalidVerificationTokenException();
 
-        token.markUsed();
-        tokenRepository.save(token);
+        if (token.isUsed())
+            throw new TokenValidationException(tokenType, TokenFailureReason.ALREADY_USED);
+
+        if (token.getExpiresAt().isBefore(Instant.now()))
+            throw new TokenValidationException(tokenType, TokenFailureReason.EXPIRED);
+
         return token;
     }
 

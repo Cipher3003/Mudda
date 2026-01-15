@@ -1,6 +1,7 @@
 package com.mudda.backend.exceptions;
 
 import com.amazonaws.services.inspector.model.NoSuchEntityException;
+import com.mudda.backend.token.TokenType;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,10 +32,27 @@ public class GlobalExceptionHandler {
         this.messageUtil = messageUtil;
     }
 
+    @ExceptionHandler(TokenValidationException.class)
+    public ResponseEntity<ApiError> handleTokenInvalid(TokenValidationException ex) {
+        if (ex.getTokenType() == TokenType.PASSWORD_RESET)
+            return ResponseEntity.badRequest()
+                    .body(ApiError.of(HttpStatus.BAD_REQUEST, MessageCodes.INVALID_VERIFICATION_TOKEN));
+
+        return switch (ex.getFailureReason()) {
+            case EXPIRED -> ResponseEntity.status(HttpStatus.GONE)
+                    .body(ApiError.of(HttpStatus.GONE, MessageCodes.TOKEN_EXPIRED));
+            case ALREADY_USED -> ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiError.of(HttpStatus.CONFLICT, MessageCodes.TOKEN_USED));
+            default -> ResponseEntity.badRequest()
+                    .body(ApiError.of(HttpStatus.BAD_REQUEST, MessageCodes.INVALID_VERIFICATION_TOKEN));
+        };
+    }
+
     //    400 - validation & bad input
     @ExceptionHandler(value = {
             IllegalArgumentException.class,
-            InvalidImageExtensionException.class
+            InvalidImageExtensionException.class,
+            InvalidVerificationTokenException.class
     })
     public ResponseEntity<ApiError> handleBadRequest(Exception e) {
         String message = resolveMessage(e, MessageCodes.BAD_REQUEST);
@@ -86,6 +104,8 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(ApiError.of(HttpStatus.PAYLOAD_TOO_LARGE, message));
     }
+
+//    TODO: handle InvalidVerificationTokenException and subsidiary
 
     //    401 - unauthorized
     @ExceptionHandler(value = {
