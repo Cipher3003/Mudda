@@ -1,5 +1,6 @@
 package com.mudda.backend.user;
 
+import com.mudda.backend.AppProperties;
 import com.mudda.backend.comment.CommentLikeService;
 import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.exceptions.PhoneNumberAlreadyExistsException;
@@ -28,16 +29,13 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
 
-    //    TODO: control from config ?
-    private static final int MAX_ATTEMPTS = 2;
-    private static final Duration LOCK_DURATION = Duration.ofMinutes(1);
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final IssueService issueService;
     private final CommentService commentService;
     private final CommentLikeService commentLikeService;
     private final VoteService voteService;
+    private final AppProperties appProperties;
 
     public UserServiceImpl(
             UserRepository userRepository,
@@ -45,7 +43,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             IssueService issueService,
             CommentService commentService,
             CommentLikeService commentLikeService,
-            VoteService voteService
+            VoteService voteService,
+            AppProperties appProperties
     ) {
         this.issueService = issueService;
         this.userRepository = userRepository;
@@ -53,6 +52,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         this.commentService = commentService;
         this.commentLikeService = commentLikeService;
         this.voteService = voteService;
+        this.appProperties = appProperties;
     }
 
     // #region Queries (Read Operations)
@@ -103,7 +103,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordFailedLogin(String username) {
         userRepository.findByUsername(username).ifPresent(muddaUser -> {
-            muddaUser.recordFailedLoginAttempt(MAX_ATTEMPTS, LOCK_DURATION);
+            muddaUser.recordFailedLoginAttempt(
+                    appProperties.getSecurity().getMaxAttempts(),
+                    Duration.ofMinutes(appProperties.getSecurity().getLockDurationMinutes())
+            );
             userRepository.save(muddaUser);
         });
     }

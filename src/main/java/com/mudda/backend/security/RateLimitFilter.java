@@ -8,6 +8,7 @@
  */
 package com.mudda.backend.security;
 
+import com.mudda.backend.AppProperties;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,6 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+    private final AppProperties appProperties;
+
+    public RateLimitFilter(AppProperties appProperties) {
+        this.appProperties = appProperties;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -51,9 +58,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private Bucket newBucket(String key) {
         return Bucket.builder()
                 .addLimit(limit -> limit
-                        .capacity(20)
-                        .refillGreedy(10, Duration.ofMinutes(1)))
-                .build();
+                        .capacity(appProperties.getRateLimit().getCapacity())
+                        .refillGreedy(
+                                appProperties.getRateLimit().getRefillTokens(),
+                                Duration.ofMinutes(appProperties.getRateLimit().getRefillMinutes())
+                        )
+                ).build();
     }
 
     private boolean shouldRateLimit(String path) {

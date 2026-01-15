@@ -22,6 +22,7 @@ public class AppProperties {
     private String frontendBaseUrl;
     private Token token;
     private Security security;
+    private RateLimit rateLimit;
 
     @Getter
     @Setter
@@ -30,4 +31,18 @@ public class AppProperties {
         private int verificationExpiryHours;
     }
 
+    @Getter
+    @Setter
+    public static class Security {
+        private int maxAttempts;
+        private int lockDurationMinutes;
+    }
+
+    @Getter
+    @Setter
+    public static class RateLimit {
+        private int capacity;
+        private int refillTokens;
+        private int refillMinutes;
+    }
 }
