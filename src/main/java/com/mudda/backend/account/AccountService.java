@@ -21,6 +21,7 @@ import com.mudda.backend.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Service
@@ -49,6 +50,10 @@ public class AccountService {
 
             if (muddaUser.isEnabled()) throw new UserAlreadyExistsException();
 
+            //            2 minute cooldown before sending email verification link
+            if (tokenService.recentTokenExists(muddaUser.getUserId(), TokenType.EMAIL_VERIFY, Duration.ofMinutes(2)))
+                return;
+
             tokenService.invalidateUnusedTokens(muddaUser.getUserId(), TokenType.EMAIL_VERIFY);
 
             VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, muddaUser.getUserId());
@@ -65,6 +70,10 @@ public class AccountService {
         userService.findByEmail(email).ifPresent(user -> {
             if (user.isEnabled()) return;
 
+//            2 minute cooldown before sending email verification link
+            if (tokenService.recentTokenExists(user.getUserId(), TokenType.EMAIL_VERIFY, Duration.ofMinutes(2)))
+                return;
+
             tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.EMAIL_VERIFY);
             VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.getUserId());
             emailService.sendVerificationEmail(email, token.getToken());
@@ -80,6 +89,11 @@ public class AccountService {
 
     public void requestPasswordReset(String email) {
         userService.findByEmail(email).ifPresent(user -> {
+
+            //            2 minute cooldown before sending email verification link
+            if (tokenService.recentTokenExists(user.getUserId(), TokenType.EMAIL_VERIFY, Duration.ofMinutes(2)))
+                return;
+
             tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.PASSWORD_RESET);
             VerificationToken token = tokenService.generateToken(TokenType.PASSWORD_RESET, user.getUserId());
             emailService.sendPasswordResetEmail(email, token.getToken());

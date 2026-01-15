@@ -28,6 +28,14 @@ public class VerificationTokenService {
         this.tokenRepository = tokenRepository;
     }
 
+    // #region Queries (Read Operations)
+
+    public boolean recentTokenExists(Long userId, TokenType tokenType, Duration cooldown) {
+        return tokenRepository.existsByUserIdAndTypeAndCreatedAtAfter(userId, tokenType, Instant.now().minus(cooldown));
+    }
+
+    // #endregion
+
     // #region Commands (Write Operations)
 
     //    TODO: should delete all consumed tokens periodically

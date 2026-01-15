@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -46,4 +47,6 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
              WHERE t.userId = :userId AND t.type = :type AND t.usedAt < now()
             """)
     void invalidateUnusedTokens(long userId, TokenType type);
+
+    boolean existsByUserIdAndTypeAndCreatedAtAfter(long userId, TokenType tokenType, Instant minus);
 }

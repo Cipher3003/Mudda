@@ -29,14 +29,12 @@ public class AuthController {
         this.accountService = accountService;
     }
 
-    //    TODO: rate limit
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody CreateUserRequest registrationRequest) {
         accountService.register(registrationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body("Registration successful.");
     }
 
-    //    TODO: rate limit
     @PostMapping("/verify-email/resend")
     public ResponseEntity<String> retryVerifyEmail(@RequestBody VerifyRequest verifyRequest) {
         accountService.resendEmailVerificationLink(verifyRequest.email());
