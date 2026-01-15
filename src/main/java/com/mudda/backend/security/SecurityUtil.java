@@ -1,9 +1,3 @@
-package com.mudda.backend.security;
-
-import com.mudda.backend.user.MuddaUser;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
@@ -12,6 +6,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * Created : 13-11-2025
  * ---------------------------------------------------------------
  */
+package com.mudda.backend.security;
+
+import com.mudda.backend.user.MuddaUser;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 public class SecurityUtil {
     public static Long getUserIdOrNull() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

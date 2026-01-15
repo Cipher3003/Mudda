@@ -20,4 +20,14 @@ import org.springframework.context.annotation.Configuration;
 public class AppProperties {
 
     private String frontendBaseUrl;
+    private Token token;
+    private Security security;
+
+    @Getter
+    @Setter
+    public static class Token {
+        private int resendCooldownMinutes;
+        private int verificationExpiryHours;
+    }
+
 }

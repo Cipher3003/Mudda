@@ -8,6 +8,7 @@
  */
 package com.mudda.backend.token.verification;
 
+import com.mudda.backend.AppProperties;
 import com.mudda.backend.exceptions.InvalidVerificationTokenException;
 import com.mudda.backend.exceptions.TokenFailureReason;
 import com.mudda.backend.exceptions.TokenValidationException;
@@ -23,9 +24,12 @@ import java.util.UUID;
 public class VerificationTokenService {
 
     private final VerificationTokenRepository tokenRepository;
+    private final AppProperties appProperties;
 
-    public VerificationTokenService(VerificationTokenRepository tokenRepository) {
+    public VerificationTokenService(VerificationTokenRepository tokenRepository,
+                                    AppProperties appProperties) {
         this.tokenRepository = tokenRepository;
+        this.appProperties = appProperties;
     }
 
     // #region Queries (Read Operations)
@@ -67,7 +71,7 @@ public class VerificationTokenService {
                 userId,
                 UUID.randomUUID().toString(),
                 type,
-                Instant.now().plus(Duration.ofDays(1)));
+                Instant.now().plus(Duration.ofHours(appProperties.getToken().getVerificationExpiryHours())));
 
         return tokenRepository.save(token);
     }

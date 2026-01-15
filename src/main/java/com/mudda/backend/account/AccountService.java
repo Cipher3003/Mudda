@@ -8,6 +8,7 @@
  */
 package com.mudda.backend.account;
 
+import com.mudda.backend.AppProperties;
 import com.mudda.backend.exceptions.UserAlreadyExistsException;
 import com.mudda.backend.token.refresh.RefreshTokenService;
 import com.mudda.backend.token.TokenType;
@@ -31,15 +32,18 @@ public class AccountService {
     private final VerificationTokenService tokenService;
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
+    private final AppProperties appProperties;
 
     public AccountService(UserService userService,
                           VerificationTokenService tokenService,
                           EmailService emailService,
-                          RefreshTokenService refreshTokenService) {
+                          RefreshTokenService refreshTokenService,
+                          AppProperties appProperties) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.emailService = emailService;
         this.refreshTokenService = refreshTokenService;
+        this.appProperties = appProperties;
     }
 
     @Transactional
@@ -50,8 +54,7 @@ public class AccountService {
 
             if (muddaUser.isEnabled()) throw new UserAlreadyExistsException();
 
-            //            2 minute cooldown before sending email verification link
-            if (tokenService.recentTokenExists(muddaUser.getUserId(), TokenType.EMAIL_VERIFY, Duration.ofMinutes(2)))
+            if (tokenService.recentTokenExists(muddaUser.getUserId(), TokenType.EMAIL_VERIFY, resendCooldown()))
                 return;
 
             tokenService.invalidateUnusedTokens(muddaUser.getUserId(), TokenType.EMAIL_VERIFY);
@@ -70,8 +73,7 @@ public class AccountService {
         userService.findByEmail(email).ifPresent(user -> {
             if (user.isEnabled()) return;
 
-//            2 minute cooldown before sending email verification link
-            if (tokenService.recentTokenExists(user.getUserId(), TokenType.EMAIL_VERIFY, Duration.ofMinutes(2)))
+            if (tokenService.recentTokenExists(user.getUserId(), TokenType.EMAIL_VERIFY, resendCooldown()))
                 return;
 
             tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.EMAIL_VERIFY);
@@ -91,8 +93,7 @@ public class AccountService {
     public void requestPasswordReset(String email) {
         userService.findByEmail(email).ifPresent(user -> {
 
-            //            2 minute cooldown before sending email verification link
-            if (tokenService.recentTokenExists(user.getUserId(), TokenType.PASSWORD_RESET, Duration.ofMinutes(2)))
+            if (tokenService.recentTokenExists(user.getUserId(), TokenType.PASSWORD_RESET, resendCooldown()))
                 return;
 
             tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.PASSWORD_RESET);
@@ -120,6 +121,10 @@ public class AccountService {
         tokenService.deleteAllTokensByUserId(userId);
 
         userService.deleteUser(userId);
+    }
+
+    private Duration resendCooldown() {
+        return Duration.ofMinutes(appProperties.getToken().getResendCooldownMinutes());
     }
 
 }
