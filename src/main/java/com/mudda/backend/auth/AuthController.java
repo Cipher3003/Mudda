@@ -32,7 +32,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody CreateUserRequest registrationRequest) {
         accountService.register(registrationRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Registration successful.");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Registration successful. A verification link has been sent to your email. Please verify to continue.");
     }
 
     @PostMapping("/verify-email/resend")

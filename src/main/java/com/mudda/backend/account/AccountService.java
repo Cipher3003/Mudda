@@ -87,6 +87,7 @@ public class AccountService {
         userService.verifyUser(token.getUserId());
     }
 
+    @Transactional
     public void requestPasswordReset(String email) {
         userService.findByEmail(email).ifPresent(user -> {
 
