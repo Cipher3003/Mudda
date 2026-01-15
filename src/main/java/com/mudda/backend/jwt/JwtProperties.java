@@ -27,9 +27,9 @@ public class JwtProperties {
     private String secretKey;
 
     @Positive
-    private long accessTtlMs;
+    private long accessTtlMin;
 
     @Positive
-    private long refreshTtlMs;
+    private long refreshTtlDays;
 
 }

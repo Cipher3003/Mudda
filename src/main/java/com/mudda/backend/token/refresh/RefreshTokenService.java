@@ -64,11 +64,11 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    public void create(Long userId, String refreshToken, long ttlMs) {
+    public void create(Long userId, String refreshToken, long ttlSeconds) {
         RefreshToken hashedRefreshToken = new RefreshToken(
                 userId,
                 tokenHasUtil.hashToken(refreshToken),
-                ttlMs);
+                ttlSeconds);
 
         refreshTokenRepository.save(hashedRefreshToken);
     }

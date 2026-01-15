@@ -16,6 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +39,8 @@ public class JwtService {
                 .claims(claims)
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessTtlMs()))
+                .expiration(Date.from(Instant.now()
+                        .plus(Duration.ofMinutes(jwtProperties.getAccessTtlMin()))))
                 .signWith(getSignKey())
                 .compact();
     }
@@ -48,7 +51,8 @@ public class JwtService {
                 .subject(username)
                 .id(UUID.randomUUID().toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTtlMs()))
+                .expiration(Date.from(Instant.now()
+                        .plus(Duration.ofDays(jwtProperties.getRefreshTtlDays()))))
                 .signWith(getSignKey())
                 .compact();
     }
@@ -79,30 +83,30 @@ public class JwtService {
                 .getPayload();
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    private boolean isTokenValid(String token) {
+        return extractExpiration(token).after(new Date());
     }
 
     public boolean validateAccessToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return (username.equals(userDetails.getUsername()) && isTokenValid(token));
     }
 
     public boolean validateRefreshToken(String token) {
         try {
             Claims claims = extractAllClaims(token);
             String type = claims.get("type", String.class);
-            return type.equals("REFRESH") && !isTokenExpired(token);
+            return type.equals("REFRESH") && isTokenValid(token);
         } catch (Exception e) {
             return false;
         }
     }
 
-    public long getAccessTokenExpirationTimeMs() {
-        return jwtProperties.getAccessTtlMs();
+    public long getAccessTokenExpirationSeconds() {
+        return Duration.ofMinutes(jwtProperties.getAccessTtlMin()).getSeconds();
     }
 
-    public long getRefreshTokenExpirationTimeMs() {
-        return jwtProperties.getRefreshTtlMs();
+    public long getRefreshTokenExpirationSeconds() {
+        return Duration.ofDays(jwtProperties.getRefreshTtlDays()).getSeconds();
     }
 }

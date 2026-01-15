@@ -90,12 +90,12 @@ public class AuthService {
         refreshTokenService.create(
                 muddaUser.getUserId(),
                 refreshToken,
-                jwtService.getRefreshTokenExpirationTimeMs());
+                jwtService.getRefreshTokenExpirationSeconds());
 
         return new AuthResult(
                 accessToken, refreshToken,
-                jwtService.getAccessTokenExpirationTimeMs(),
-                jwtService.getRefreshTokenExpirationTimeMs(),
+                jwtService.getAccessTokenExpirationSeconds(),
+                jwtService.getRefreshTokenExpirationSeconds(),
                 muddaUser
         );
     }
