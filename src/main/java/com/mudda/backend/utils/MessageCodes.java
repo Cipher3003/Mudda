@@ -19,6 +19,7 @@ public class MessageCodes {
     public static final String USERNAME_ALREADY_EXISTS = "auth.username.already.exists";
     public static final String PHONE_ALREADY_EXISTS = "auth.phone.already.exists";
     public static final String ACCOUNT_LOCKED = "auth.account.locked";
+    public static final String INVALID_CREDENTIALS = "auth.invalid.credentials";
 
     /* ---------- file upload ---------- */
     public static final String EMPTY_FILE = "file.empty";

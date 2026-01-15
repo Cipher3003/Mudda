@@ -9,15 +9,14 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import javax.security.auth.login.AccountLockedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,22 +37,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleTokenInvalid(TokenValidationException ex) {
         if (ex.getTokenType() == TokenType.PASSWORD_RESET)
             return ResponseEntity.badRequest()
-                    .body(ApiError.of(HttpStatus.BAD_REQUEST, MessageCodes.INVALID_VERIFICATION_TOKEN));
+                    .body(ApiError.of(
+                            HttpStatus.BAD_REQUEST,
+                            messageUtil.getMessage(MessageCodes.INVALID_VERIFICATION_TOKEN)
+                    ));
 
         return switch (ex.getFailureReason()) {
             case EXPIRED -> ResponseEntity.status(HttpStatus.GONE)
-                    .body(ApiError.of(HttpStatus.GONE, MessageCodes.TOKEN_EXPIRED));
+                    .body(ApiError.of(
+                            HttpStatus.GONE,
+                            messageUtil.getMessage(MessageCodes.TOKEN_EXPIRED)
+                    ));
             case ALREADY_USED -> ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(ApiError.of(HttpStatus.CONFLICT, MessageCodes.TOKEN_USED));
-            default -> ResponseEntity.badRequest()
-                    .body(ApiError.of(HttpStatus.BAD_REQUEST, MessageCodes.INVALID_VERIFICATION_TOKEN));
+                    .body(ApiError.of(
+                            HttpStatus.CONFLICT,
+                            messageUtil.getMessage(MessageCodes.TOKEN_USED)
+                    ));
         };
     }
 
     @ExceptionHandler(LockedException.class)
-    public ResponseEntity<ApiError> handleAccountLocked(LockedException ex) {
+    public ResponseEntity<ApiError> handleAccountLocked() {
         return ResponseEntity.status(HttpStatus.LOCKED)
-                .body(ApiError.of(HttpStatus.LOCKED, MessageCodes.ACCOUNT_LOCKED));
+                .body(ApiError.of(
+                        HttpStatus.LOCKED,
+                        messageUtil.getMessage(MessageCodes.ACCOUNT_LOCKED)
+                ));
     }
 
     //    400 - validation & bad input
@@ -82,7 +91,6 @@ public class GlobalExceptionHandler {
     //    404 - not found
     @ExceptionHandler(value = {
             EntityNotFoundException.class,
-            UsernameNotFoundException.class,
             NoSuchEntityException.class
     })
     public ResponseEntity<ApiError> handleNotFound(Exception e) {
@@ -118,7 +126,14 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(HttpStatus.PAYLOAD_TOO_LARGE, message));
     }
 
-//    TODO: handle InvalidVerificationTokenException and subsidiary
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiError.of(
+                        HttpStatus.UNAUTHORIZED,
+                        messageUtil.getMessage(MessageCodes.INVALID_CREDENTIALS)
+                ));
+    }
 
     //    401 - unauthorized
     @ExceptionHandler(value = {

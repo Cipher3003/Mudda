@@ -8,6 +8,7 @@
  */
 package com.mudda.backend.exceptions;
 
+//NOTE: add any new reason or default in global exception handler
 public enum TokenFailureReason {
     EXPIRED,
     ALREADY_USED
