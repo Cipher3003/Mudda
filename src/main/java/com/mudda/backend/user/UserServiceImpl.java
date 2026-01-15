@@ -104,8 +104,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public void recordFailedLogin(String username) {
         userRepository.findByUsername(username).ifPresent(muddaUser -> {
             muddaUser.recordFailedLoginAttempt(
-                    appProperties.getSecurity().getMaxAttempts(),
-                    Duration.ofMinutes(appProperties.getSecurity().getLockDurationMinutes())
+                    appProperties.getSecurity().getLogin().getMaxAttempts(),
+                    Duration.ofMinutes(appProperties.getSecurity().getLogin().getLockDurationMinutes())
             );
             userRepository.save(muddaUser);
         });

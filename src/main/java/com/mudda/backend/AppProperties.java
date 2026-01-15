@@ -34,15 +34,22 @@ public class AppProperties {
     @Getter
     @Setter
     public static class Security {
-        private int maxAttempts;
-        private int lockDurationMinutes;
+
+        private Login login;
+
+        @Getter
+        @Setter
+        public static class Login {
+            private int maxAttempts;
+            private int lockDurationMinutes;
+        }
     }
 
     @Getter
     @Setter
     public static class RateLimit {
-        private int capacity;
-        private int refillTokens;
-        private int refillMinutes;
+        private int authCapacity;
+        private int authRefillTokens;
+        private int authRefillMinutes;
     }
 }
