@@ -8,15 +8,20 @@
  */
 package com.mudda.backend.account;
 
+import com.mudda.backend.exceptions.UserAlreadyExistsException;
 import com.mudda.backend.token.refresh.RefreshTokenService;
 import com.mudda.backend.token.TokenType;
 import com.mudda.backend.token.verification.VerificationToken;
 import com.mudda.backend.token.verification.VerificationTokenService;
 import com.mudda.backend.email.EmailService;
 import com.mudda.backend.user.CreateUserRequest;
+import com.mudda.backend.user.MuddaUser;
+import com.mudda.backend.user.UserDetailResponse;
 import com.mudda.backend.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -36,16 +41,30 @@ public class AccountService {
         this.refreshTokenService = refreshTokenService;
     }
 
+    @Transactional
     public void register(CreateUserRequest createUserRequest) {
-        userService.createUser(createUserRequest);
+        Optional<MuddaUser> existingUser = userService.findByEmail(createUserRequest.email());
+        if (existingUser.isPresent()) {
+            MuddaUser muddaUser = existingUser.get();
+
+            if (muddaUser.isEnabled()) throw new UserAlreadyExistsException();
+
+            VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, muddaUser.getUserId());
+            emailService.sendVerificationEmail(muddaUser.getEmail(), token.getToken());
+            return;
+        }
+
+        UserDetailResponse user = userService.createUser(createUserRequest);
+        VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.userId());
+        emailService.sendVerificationEmail(user.email(), token.getToken());
     }
 
-    public void sendEmailVerificationLink(String email) {
-        userService.findByEmail(email).ifPresent(user -> {
-            VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.getUserId());
-            emailService.sendVerificationEmail(email, token.getToken());
-        });
-    }
+//    public void sendEmailVerificationLink(String email) {
+//        userService.findByEmail(email).ifPresent(user -> {
+//            VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.getUserId());
+//            emailService.sendVerificationEmail(email, token.getToken());
+//        });
+//    }
 
     @Transactional
     public void verifyEmail(String verifyToken) {
