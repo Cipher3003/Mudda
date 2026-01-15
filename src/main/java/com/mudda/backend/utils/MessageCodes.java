@@ -20,6 +20,7 @@ public class MessageCodes {
     public static final String PHONE_ALREADY_EXISTS = "auth.phone.already.exists";
     public static final String ACCOUNT_LOCKED = "auth.account.locked";
     public static final String INVALID_CREDENTIALS = "auth.invalid.credentials";
+    public static final String ACCOUNT_NOT_VERIFIED = "auth.account.not.verified";
 
     /* ---------- file upload ---------- */
     public static final String EMPTY_FILE = "file.empty";

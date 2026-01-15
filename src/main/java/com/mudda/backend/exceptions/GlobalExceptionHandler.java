@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
@@ -130,12 +131,21 @@ public class GlobalExceptionHandler {
     //    423 - account locked
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> handleAccountLocked(AuthenticationException e) {
-        if (e instanceof InternalAuthenticationServiceException iae && iae.getCause() instanceof LockedException) {
-            return ResponseEntity.status(HttpStatus.LOCKED)
-                    .body(ApiError.of(
-                            HttpStatus.LOCKED,
-                            messageUtil.getMessage(MessageCodes.ACCOUNT_LOCKED)
-                    ));
+        if (e instanceof InternalAuthenticationServiceException iae) {
+
+            if (iae.getCause() instanceof LockedException)
+                return ResponseEntity.status(HttpStatus.LOCKED)
+                        .body(ApiError.of(
+                                HttpStatus.LOCKED,
+                                messageUtil.getMessage(MessageCodes.ACCOUNT_LOCKED)
+                        ));
+
+            if (iae.getCause() instanceof DisabledException)
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiError.of(
+                                HttpStatus.FORBIDDEN,
+                                messageUtil.getMessage(MessageCodes.ACCOUNT_NOT_VERIFIED)
+                        ));
         }
 
         String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);

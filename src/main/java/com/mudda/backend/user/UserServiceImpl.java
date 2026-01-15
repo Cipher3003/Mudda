@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -191,7 +192,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
         if (user.unlockIfExpires()) userRepository.save(user);
 
-        if (user.isLocked()) throw new LockedException("Account locked");
+        if (user.isLocked()) throw new LockedException("Account is locked. Please try again later.");
+
+        if (!user.isEnabled()) throw new DisabledException("Account not verified. Please verify your email.");
 
         return user;
     }
