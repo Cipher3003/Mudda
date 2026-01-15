@@ -34,7 +34,7 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
     @Modifying(clearAutomatically = true)
     @Query(value = """
              UPDATE VerificationToken t
-             SET t.usedAt = now()
+             SET t.usedAt = CURRENT_TIMESTAMP
              WHERE t.id = :id
             """
     )
@@ -43,8 +43,8 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
     @Modifying(clearAutomatically = true)
     @Query(value = """
              UPDATE VerificationToken t
-             SET t.usedAt = now()
-             WHERE t.userId = :userId AND t.type = :type AND t.usedAt < now()
+             SET t.usedAt = CURRENT_TIMESTAMP
+             WHERE t.userId = :userId AND t.type = :type AND t.usedAt IS null
             """)
     void invalidateUnusedTokens(long userId, TokenType type);
 

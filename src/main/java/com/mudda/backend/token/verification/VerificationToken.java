@@ -45,7 +45,7 @@ public class VerificationToken {
     @Column(nullable = false)
     private Instant expiresAt;
 
-    @Column(name = "update_at")
+    @Column
     private Instant usedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
