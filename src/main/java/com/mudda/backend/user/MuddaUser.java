@@ -51,10 +51,6 @@ public class MuddaUser implements UserDetails {
 
     @Setter
     @Column(nullable = false)
-    private boolean locked = false;
-
-    @Setter
-    @Column(nullable = false)
     private boolean enabled = false;
 
     @Setter
@@ -111,22 +107,17 @@ public class MuddaUser implements UserDetails {
     public void recordFailedLoginAttempt(int maxAttempts, Duration lockDuration) {
         failedLoginAttempts++;
 
-        if (failedLoginAttempts >= maxAttempts) {
-            this.locked = true;
+        if (failedLoginAttempts >= maxAttempts)
             this.lockUntil = Instant.now().plus(lockDuration);
-            failedLoginAttempts = 0;
-        }
     }
 
     public void resetLoginFailures() {
-        this.locked = false;
         this.failedLoginAttempts = 0;
         this.lockUntil = null;
     }
 
     public boolean unlockIfExpires() {
-        if (this.locked && lockUntil != null && this.lockUntil.isBefore(Instant.now())) {
-            this.locked = false;
+        if (lockUntil != null && this.lockUntil.isBefore(Instant.now())) {
             this.failedLoginAttempts = 0;
             this.lockUntil = null;
             return true;
@@ -178,7 +169,7 @@ public class MuddaUser implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return !locked;
+        return !isLocked();
     }
 
     //    TODO: dont know what to do with this
@@ -193,6 +184,6 @@ public class MuddaUser implements UserDetails {
     }
 
     public boolean isLocked() {
-        return locked && lockUntil != null && lockUntil.isAfter(Instant.now());
+        return lockUntil != null && lockUntil.isAfter(Instant.now());
     }
 }

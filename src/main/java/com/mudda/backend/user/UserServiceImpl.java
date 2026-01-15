@@ -17,13 +17,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
+
+    //    TODO: control from config ?
+    private static final int MAX_ATTEMPTS = 2;
+    private static final Duration LOCK_DURATION = Duration.ofMinutes(1);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -93,6 +99,25 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordFailedLogin(String username) {
+        userRepository.findByUsername(username).ifPresent(muddaUser -> {
+            muddaUser.recordFailedLoginAttempt(MAX_ATTEMPTS, LOCK_DURATION);
+            userRepository.save(muddaUser);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void resetLoginFailures(long id) {
+        userRepository.findById(id).ifPresent(muddaUser -> {
+            muddaUser.resetLoginFailures();
+            userRepository.save(muddaUser);
+        });
+    }
+
+    @Override
+    @Transactional
     public void updatePassword(Long id, String password) {
         MuddaUser user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));

@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -54,15 +55,6 @@ public class GlobalExceptionHandler {
                             messageUtil.getMessage(MessageCodes.TOKEN_USED)
                     ));
         };
-    }
-
-    @ExceptionHandler(LockedException.class)
-    public ResponseEntity<ApiError> handleAccountLocked() {
-        return ResponseEntity.status(HttpStatus.LOCKED)
-                .body(ApiError.of(
-                        HttpStatus.LOCKED,
-                        messageUtil.getMessage(MessageCodes.ACCOUNT_LOCKED)
-                ));
     }
 
     //    400 - validation & bad input
@@ -135,12 +127,25 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    //    423 - account locked
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAccountLocked(AuthenticationException e) {
+        if (e instanceof InternalAuthenticationServiceException iae && iae.getCause() instanceof LockedException) {
+            return ResponseEntity.status(HttpStatus.LOCKED)
+                    .body(ApiError.of(
+                            HttpStatus.LOCKED,
+                            messageUtil.getMessage(MessageCodes.ACCOUNT_LOCKED)
+                    ));
+        }
+
+        String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
+    }
+
     //    401 - unauthorized
-    @ExceptionHandler(value = {
-            AuthenticationException.class,
-            InvalidRefreshTokenException.class
-    })
-    public ResponseEntity<ApiError> handleAuthenticationException(Exception e) {
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiError> handLeInvalidToken(Exception e) {
         String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
         log.warn("{} : {}", e.getClass().getSimpleName(), message);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

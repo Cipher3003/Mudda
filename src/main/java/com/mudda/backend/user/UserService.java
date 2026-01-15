@@ -17,6 +17,10 @@ public interface UserService {
 
     UserDetailResponse createUser(CreateUserRequest userRequest);
 
+    void recordFailedLogin(String username);
+
+    void resetLoginFailures(long id);
+
     void updatePassword(Long id, String password);
 
     List<Long> createUsers(List<CreateUserRequest> userRequests);

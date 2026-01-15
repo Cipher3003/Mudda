@@ -16,6 +16,7 @@ import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -44,11 +45,22 @@ public class AuthService {
 
     @Transactional
     public AuthResult login(AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
 
-        MuddaUser muddaUser = (MuddaUser) authentication.getPrincipal();
-        return getAuthResult(muddaUser);
+            MuddaUser muddaUser = (MuddaUser) authentication.getPrincipal();
+            // success side-effects
+            userService.resetLoginFailures(muddaUser.getUserId());
+
+            return getAuthResult(muddaUser);
+
+        } catch (BadCredentialsException e) {
+            // failure side-effects
+            userService.recordFailedLogin(authRequest.username());
+
+            throw e;
+        }
     }
 
     //    TODO: do occasional cleanup of refresh tokens
