@@ -29,12 +29,14 @@ public class AuthController {
         this.accountService = accountService;
     }
 
+    //    TODO: rate limit
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody CreateUserRequest registrationRequest) {
         accountService.register(registrationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body("Registration successful.");
     }
 
+    //    TODO: rate limit
     @PostMapping("/verify-email/resend")
     public ResponseEntity<String> retryVerifyEmail(@RequestBody VerifyRequest verifyRequest) {
         accountService.resendEmailVerificationLink(verifyRequest.email());
@@ -47,6 +49,8 @@ public class AuthController {
         return ResponseEntity.ok("Email verified successfully.");
     }
 
+
+    //    TODO: rate limit
     //    Only login when both token expires
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest authRequest) {
@@ -64,6 +68,7 @@ public class AuthController {
         return ResponseEntity.ok(AuthMapper.toAuthResponse(authService.refresh(refreshRequest.refreshToken())));
     }
 
+//    TODO: rate limit
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
         accountService.requestPasswordReset(forgotPasswordRequest.email());
