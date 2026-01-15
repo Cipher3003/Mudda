@@ -84,7 +84,12 @@ public class GlobalExceptionHandler {
     }
 
     //    409 - conflicts
-    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ExceptionHandler(value = {
+            DataIntegrityViolationException.class,
+            UserAlreadyExistsException.class,
+            UsernameAlreadyExistsException.class,
+            PhoneNumberAlreadyExistsException.class
+    })
     public ResponseEntity<ApiError> handleConflict(Exception e) {
         String message = resolveMessage(e, MessageCodes.CONFLICT);
         return ResponseEntity

@@ -15,6 +15,9 @@ public class MessageCodes {
     public static final String INVALID_VERIFICATION_TOKEN = "auth.invalid.verification.token";
     public static final String TOKEN_USED = "auth.token.used";
     public static final String TOKEN_EXPIRED = "auth.token.expired";
+    public static final String USER_ALREADY_EXISTS = "auth.user.already.exists";
+    public static final String USERNAME_ALREADY_EXISTS = "auth.username.already.exists";
+    public static final String PHONE_ALREADY_EXISTS = "auth.phone.already.exists";
 
     /* ---------- file upload ---------- */
     public static final String EMPTY_FILE = "file.empty";

@@ -2,6 +2,9 @@ package com.mudda.backend.user;
 
 import com.mudda.backend.comment.CommentLikeService;
 import com.mudda.backend.comment.CommentService;
+import com.mudda.backend.exceptions.PhoneNumberAlreadyExistsException;
+import com.mudda.backend.exceptions.UserAlreadyExistsException;
+import com.mudda.backend.exceptions.UsernameAlreadyExistsException;
 import com.mudda.backend.issue.IssueService;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityNotFoundException;
@@ -77,14 +80,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public UserDetailResponse createUser(CreateUserRequest userRequest) {
 
         if (userRepository.existsByUsername(userRequest.username()))
-            throw new IllegalArgumentException("Username: %s is already taken"
-                    .formatted(userRequest.username()));
+            throw new UsernameAlreadyExistsException();
         if (userRepository.existsByEmail(userRequest.email()))
-            throw new IllegalArgumentException("Account with Email ID: %s already exists"
-                    .formatted(userRequest.email()));
+            throw new UserAlreadyExistsException();
         if (userRepository.existsByPhoneNumber(userRequest.phoneNumber()))
-            throw new IllegalArgumentException("Phone Number: %s is already being used"
-                    .formatted(userRequest.phoneNumber()));
+            throw new PhoneNumberAlreadyExistsException();
 
         MuddaUser muddaUser = UserMapper.toUser(userRequest);
         muddaUser.changePasswordHash(passwordEncoder.encode(userRequest.password()));
