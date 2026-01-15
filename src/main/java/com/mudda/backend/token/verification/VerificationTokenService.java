@@ -63,7 +63,6 @@ public class VerificationTokenService {
         return token;
     }
 
-    //    TODO: remove generic day expiry
     @Transactional
     public VerificationToken generateToken(TokenType type, Long userId) {
 
