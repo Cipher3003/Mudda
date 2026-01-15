@@ -34,6 +34,26 @@
       "name": "security.jwt.refresh-ttl-ms",
       "type": "java.lang.String",
       "description": "The Time to Live for JWT Refresh Token after creation in Milliseconds."
+    },
+    {
+      "name": "app.email.retry.max-attempts",
+      "type": "java.lang.Integer",
+      "description": "The maximum number of retries for sending a mail."
+    },
+    {
+      "name": "app.email.retry.backoff-ms",
+      "type": "java.lang.Long",
+      "description": "The cooldown period after sending a mail and trying again."
+    },
+    {
+      "name": "app.email.verify-path",
+      "type": "java.lang.String",
+      "description": "The account verification email link endpoint to be sent in mail."
+    },
+    {
+      "name": "app.email.reset-path",
+      "type": "java.lang.String",
+      "description": "The password reset link endpoint to be sent in mail."
     }
   ]
 }

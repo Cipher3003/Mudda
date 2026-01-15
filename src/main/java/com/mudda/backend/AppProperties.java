@@ -1,25 +1,23 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : EmailConfig
+ * File    : AppProperties
  * Author  : Vikas Kumar
  * Created : 15-01-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.email;
+package com.mudda.backend;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-@Setter
 @Getter
+@Setter
 @Configuration
-@ConfigurationProperties(prefix = "app.email")
-public class EmailConfig {
+@ConfigurationProperties(prefix = "app")
+public class AppProperties {
 
-    private String verifyPath;
-    private String resetPath;
-
+    private String frontendBaseUrl;
 }

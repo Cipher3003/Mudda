@@ -8,9 +8,11 @@
  */
 package com.mudda.backend.email;
 
+import com.mudda.backend.AppProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -21,20 +23,36 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+
 @Slf4j
 @Service
 public class SmtpEmailService implements EmailService {
 
     private final JavaMailSender mailSender;
+    private final EmailConfig emailConfig;
+    private final AppProperties appProperties;
 
-    public SmtpEmailService(JavaMailSender mailSender) {
+    @Value("${app.email.retry.max-attempts}")
+    private int maxAttempts;
+
+    @Value("${app.email.retry.backoff-ms}")
+    private long backOffMs;
+
+    public SmtpEmailService(JavaMailSender mailSender,
+                            EmailConfig emailConfig,
+                            AppProperties appProperties) {
         this.mailSender = mailSender;
+        this.emailConfig = emailConfig;
+        this.appProperties = appProperties;
     }
 
     @Async
     @Override
     public void sendVerificationEmail(String email, String token) {
-        String link = "http://localhost:8080/auth/verify-email/confirm?verifyToken=%s".formatted(token);
+        String link = "%s%s?verifyToken=%s".formatted(
+                appProperties.getFrontendBaseUrl(), emailConfig.getVerifyPath(), token);
+
         sendHtmlEmail(
                 email,
                 "Verify your email",
@@ -45,7 +63,9 @@ public class SmtpEmailService implements EmailService {
     @Async
     @Override
     public void sendPasswordResetEmail(String email, String token) {
-        String link = "http://localhost:8080/auth/reset-password?verifyToken=%s".formatted(token);
+        String link = "%s%s?verifyToken=%s".formatted(
+                appProperties.getFrontendBaseUrl(), emailConfig.getResetPath(), token);
+
         sendHtmlEmail(
                 email,
                 "Reset your password",
@@ -55,13 +75,14 @@ public class SmtpEmailService implements EmailService {
 
     @Retryable(
             retryFor = MailException.class,
-            maxAttempts = 4,
-            backoff = @Backoff(delay = 2000)
+            maxAttemptsExpression = "#{@smtpEmailService.maxAttempts}",
+            backoff = @Backoff(delayExpression = "#{@smtpEmailService.backOffMs}")
     )
     public void sendHtmlEmail(String email, String subject, String html) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "utf-8");
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    mimeMessage, true, StandardCharsets.UTF_8.name());
 
             helper.setTo(email);
             helper.setSubject(subject);
