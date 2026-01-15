@@ -66,7 +66,6 @@ public class AuthController {
         return ResponseEntity.ok(AuthMapper.toAuthResponse(authService.refresh(refreshRequest.refreshToken())));
     }
 
-//    TODO: rate limit
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
         accountService.requestPasswordReset(forgotPasswordRequest.email());

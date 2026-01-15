@@ -31,7 +31,9 @@ public class VerificationTokenService {
     // #region Queries (Read Operations)
 
     public boolean recentTokenExists(Long userId, TokenType tokenType, Duration cooldown) {
-        return tokenRepository.existsByUserIdAndTypeAndCreatedAtAfter(userId, tokenType, Instant.now().minus(cooldown));
+        return tokenRepository.existsByUserIdAndTypeAndCreatedAtAfter(
+                userId, tokenType, Instant.now().minus(cooldown)
+        );
     }
 
     // #endregion

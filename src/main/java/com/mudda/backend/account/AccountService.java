@@ -91,7 +91,7 @@ public class AccountService {
         userService.findByEmail(email).ifPresent(user -> {
 
             //            2 minute cooldown before sending email verification link
-            if (tokenService.recentTokenExists(user.getUserId(), TokenType.EMAIL_VERIFY, Duration.ofMinutes(2)))
+            if (tokenService.recentTokenExists(user.getUserId(), TokenType.PASSWORD_RESET, Duration.ofMinutes(2)))
                 return;
 
             tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.PASSWORD_RESET);
