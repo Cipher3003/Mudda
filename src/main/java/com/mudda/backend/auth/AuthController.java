@@ -41,7 +41,7 @@ public class AuthController {
         return ResponseEntity.ok("If account exists verification link has been sent to email.");
     }
 
-    @GetMapping("/verify-email")
+    @GetMapping("/verify-email/confirm")
     public ResponseEntity<String> verifyEmail(@RequestParam String verifyToken) {
         accountService.verifyEmail(verifyToken);
         return ResponseEntity.ok("Email verified successfully.");

@@ -23,7 +23,7 @@ public class SmtpEmailService implements EmailService {
 
     @Override
     public void sendVerificationEmail(String email, String token) {
-        String link = "localhost:8080/auth/verify-email?verifyToken=%s".formatted(token);
+        String link = "http://localhost:8080/auth/verify-email/confirm?verifyToken=%s".formatted(token);
         sendEmail(
                 email,
                 "Verify your email",
@@ -33,7 +33,7 @@ public class SmtpEmailService implements EmailService {
 
     @Override
     public void sendPasswordResetEmail(String email, String token) {
-        String link = "localhost:8080/auth/reset-password?verifyToken=%s".formatted(token);
+        String link = "http://localhost:8080/auth/reset-password?verifyToken=%s".formatted(token);
         sendEmail(
                 email,
                 "Reset your password",

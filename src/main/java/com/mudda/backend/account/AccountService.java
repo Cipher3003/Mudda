@@ -47,6 +47,7 @@ public class AccountService {
         });
     }
 
+    @Transactional
     public void verifyEmail(String verifyToken) {
         VerificationToken token = tokenService.consumeToken(verifyToken, TokenType.EMAIL_VERIFY);
 
@@ -60,6 +61,7 @@ public class AccountService {
         });
     }
 
+    @Transactional
     public void resetPassword(String verifyToken, String newPassword) {
         VerificationToken token = tokenService.consumeToken(verifyToken, TokenType.PASSWORD_RESET);
 
