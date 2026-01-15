@@ -9,7 +9,7 @@
 package com.mudda.backend.security;
 
 import com.mudda.backend.jwt.JwtService;
-import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -92,7 +92,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
 
-        } catch (ExpiredJwtException | UsernameNotFoundException e) {
+        } catch (JwtException | UsernameNotFoundException e) {
             SecurityContextHolder.clearContext();
         }
 
