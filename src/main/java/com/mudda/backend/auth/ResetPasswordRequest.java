@@ -8,8 +8,11 @@
  */
 package com.mudda.backend.auth;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public record ResetPasswordRequest(
-        String token,
-        String password
+        @NotBlank String token,
+        @NotBlank @Size(min = 8, max = 64) String password
 ) {
 }

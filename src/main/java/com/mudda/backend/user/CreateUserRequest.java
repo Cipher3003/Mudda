@@ -13,8 +13,8 @@ public record CreateUserRequest(
         @Pattern(regexp = "^\\+?[0-9]{10,15}$",
                 message = "Phone number must be 10-15 digits and can start with +")
         String phoneNumber,
-        @NotBlank String password,
+        @NotBlank @Size(min = 8, max = 64) String password,
         @NotNull MuddaUserRole role,
-        String profileImageUrl
+        @Size(max = 512) String profileImageUrl
 ) {
 }

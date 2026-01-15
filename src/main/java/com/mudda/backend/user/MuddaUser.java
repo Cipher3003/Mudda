@@ -24,6 +24,7 @@ public class MuddaUser implements UserDetails {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
     private Long userId;
 
+    //    TODO: Add limits to string fields
     @Column(nullable = false, unique = true)
     private String username;
 
