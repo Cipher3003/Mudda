@@ -49,6 +49,8 @@ public class AccountService {
 
             if (muddaUser.isEnabled()) throw new UserAlreadyExistsException();
 
+            tokenService.invalidateUnusedTokens(muddaUser.getUserId(), TokenType.EMAIL_VERIFY);
+
             VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, muddaUser.getUserId());
             emailService.sendVerificationEmail(muddaUser.getEmail(), token.getToken());
             return;
@@ -59,12 +61,15 @@ public class AccountService {
         emailService.sendVerificationEmail(user.email(), token.getToken());
     }
 
-//    public void sendEmailVerificationLink(String email) {
-//        userService.findByEmail(email).ifPresent(user -> {
-//            VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.getUserId());
-//            emailService.sendVerificationEmail(email, token.getToken());
-//        });
-//    }
+    public void resendEmailVerificationLink(String email) {
+        userService.findByEmail(email).ifPresent(user -> {
+            if (user.isEnabled()) return;
+
+            tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.EMAIL_VERIFY);
+            VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.getUserId());
+            emailService.sendVerificationEmail(email, token.getToken());
+        });
+    }
 
     @Transactional
     public void verifyEmail(String verifyToken) {
@@ -75,6 +80,7 @@ public class AccountService {
 
     public void requestPasswordReset(String email) {
         userService.findByEmail(email).ifPresent(user -> {
+            tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.PASSWORD_RESET);
             VerificationToken token = tokenService.generateToken(TokenType.PASSWORD_RESET, user.getUserId());
             emailService.sendPasswordResetEmail(email, token.getToken());
         });

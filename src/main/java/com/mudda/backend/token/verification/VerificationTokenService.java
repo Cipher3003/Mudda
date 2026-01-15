@@ -49,14 +49,9 @@ public class VerificationTokenService {
         return token;
     }
 
-    // #endregion
-
-    // #region Commands (Write Operations)
-
     //    TODO: remove generic day expiry
     @Transactional
     public VerificationToken generateToken(TokenType type, Long userId) {
-        tokenRepository.deleteByUserIdAndType(userId, type);
 
         VerificationToken token = new VerificationToken(
                 userId,
@@ -65,6 +60,11 @@ public class VerificationTokenService {
                 Instant.now().plus(Duration.ofDays(1)));
 
         return tokenRepository.save(token);
+    }
+
+    @Transactional
+    public void invalidateUnusedTokens(Long userId, TokenType type) {
+        tokenRepository.invalidateUnusedTokens(userId, type);
     }
 
     @Transactional

@@ -39,7 +39,7 @@ public final class SecurityEndpoints {
             "/auth/login",
             "/auth/logout",
             "/auth/refresh",
-            "/auth/verify-email",
+            "/auth/verify-email/resend",
             "/auth/verify-email/confirm",
             "/auth/forgot-password",
             "/auth/reset-password"

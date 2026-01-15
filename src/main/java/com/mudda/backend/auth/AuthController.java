@@ -9,6 +9,7 @@
 package com.mudda.backend.auth;
 
 import com.mudda.backend.account.AccountService;
+import com.mudda.backend.account.VerifyRequest;
 import com.mudda.backend.user.CreateUserRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,11 +35,11 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Registration successful.");
     }
 
-//    @PostMapping("/verify-email")
-//    public ResponseEntity<String> requestVerification(@RequestBody VerifyRequest verifyRequest) {
-//        accountService.sendEmailVerificationLink(verifyRequest.email());
-//        return ResponseEntity.ok("If account exists verification link has been sent to email.");
-//    }
+    @PostMapping("/verify-email/resend")
+    public ResponseEntity<String> retryVerifyEmail(@RequestBody VerifyRequest verifyRequest) {
+        accountService.resendEmailVerificationLink(verifyRequest.email());
+        return ResponseEntity.ok("If account exists verification link has been sent to email.");
+    }
 
     @GetMapping("/verify-email/confirm")
     public ResponseEntity<String> verifyEmail(@RequestParam String verifyToken) {

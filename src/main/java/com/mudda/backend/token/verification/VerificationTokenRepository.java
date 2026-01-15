@@ -38,4 +38,12 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
             """
     )
     void markUsed(Long id);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = """
+             UPDATE VerificationToken t
+             SET t.usedAt = now()
+             WHERE t.userId = :userId AND t.type = :type AND t.usedAt < now()
+            """)
+    void invalidateUnusedTokens(long userId, TokenType type);
 }
