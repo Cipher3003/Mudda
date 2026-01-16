@@ -22,6 +22,11 @@ public class MessageCodes {
     public static final String INVALID_CREDENTIALS = "auth.invalid.credentials";
     public static final String ACCOUNT_NOT_VERIFIED = "auth.account.not.verified";
     public static final String PASSWORD_SAME_AS_OLD = "auth.password.same.as.old";
+    public static final String REGISTRATION_SUCCESS = "auth.registration.success";
+    public static final String VERIFICATION_EMAIL_SENT = "auth.verification.email.sent";
+    public static final String EMAIL_VERIFIED = "auth.email.verified";
+    public static final String PASSWORD_RESET_LINK_SENT = "auth.password.reset.link.sent";
+    public static final String PASSWORD_RESET_SUCCESS = "auth.password.reset.success";
 
     /* ---------- file upload ---------- */
     public static final String EMPTY_FILE = "file.empty";

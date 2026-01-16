@@ -10,6 +10,8 @@ package com.mudda.backend.auth;
 
 import com.mudda.backend.account.AccountService;
 import com.mudda.backend.user.CreateUserRequest;
+import com.mudda.backend.utils.MessageCodes;
+import com.mudda.backend.utils.MessageUtil;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
@@ -22,30 +24,33 @@ public class AuthController {
 
     private final AuthService authService;
     private final AccountService accountService;
+    private final MessageUtil messageUtil;
 
     public AuthController(AuthService authService,
-                          AccountService accountService) {
+                          AccountService accountService,
+                          MessageUtil messageUtil) {
         this.authService = authService;
         this.accountService = accountService;
+        this.messageUtil = messageUtil;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody CreateUserRequest registrationRequest) {
+    public ResponseEntity<MessageResponse> registerUser(@Valid @RequestBody CreateUserRequest registrationRequest) {
         accountService.register(registrationRequest);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body("Registration successful. A verification link has been sent to your email. Please verify to continue.");
+                .body(new MessageResponse(messageUtil.getMessage(MessageCodes.REGISTRATION_SUCCESS)));
     }
 
     @PostMapping("/verify-email/resend")
-    public ResponseEntity<String> retryVerifyEmail(@Valid @RequestBody VerifyRequest verifyRequest) {
+    public ResponseEntity<MessageResponse> retryVerifyEmail(@Valid @RequestBody VerifyRequest verifyRequest) {
         accountService.resendEmailVerificationLink(verifyRequest.email());
-        return ResponseEntity.ok("If account exists verification link has been sent to email.");
+        return ResponseEntity.ok(new MessageResponse(messageUtil.getMessage(MessageCodes.VERIFICATION_EMAIL_SENT)));
     }
 
     @GetMapping("/verify-email/confirm")
-    public ResponseEntity<String> verifyEmail(@RequestParam @NotBlank String verifyToken) {
+    public ResponseEntity<MessageResponse> verifyEmail(@RequestParam @NotBlank String verifyToken) {
         accountService.verifyEmail(verifyToken);
-        return ResponseEntity.ok("Email verified successfully.");
+        return ResponseEntity.ok(new MessageResponse(messageUtil.getMessage(MessageCodes.EMAIL_VERIFIED)));
     }
 
     //    Only login when both token expires
@@ -66,14 +71,18 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest) {
+    public ResponseEntity<MessageResponse> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest
+    ) {
         accountService.requestPasswordReset(forgotPasswordRequest.email());
-        return ResponseEntity.ok("If account exists, a password reset link has been sent.");
+        return ResponseEntity.ok(new MessageResponse(messageUtil.getMessage(MessageCodes.PASSWORD_RESET_LINK_SENT)));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
+    public ResponseEntity<MessageResponse> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest resetPasswordRequest
+    ) {
         accountService.resetPassword(resetPasswordRequest.token(), resetPasswordRequest.password());
-        return ResponseEntity.ok("Password Reset successfully, you can now login again.");
+        return ResponseEntity.ok(new MessageResponse(messageUtil.getMessage(MessageCodes.PASSWORD_RESET_SUCCESS)));
     }
 }
