@@ -32,7 +32,8 @@ public final class SecurityEndpoints {
             "/seed.html",
             "/media_url.html",
             "/login.html",
-            "/favicon.ico"
+            "/favicon.ico",
+            "/placeholder.png"
     };
 
     public static final String[] AUTH_PUBLIC_ENDPOINTS = {
