@@ -42,6 +42,9 @@ build/
 *.tfstate
 *.tfstate.*
 
+# Log files
+logs/*
+
 # Crash log files
 crash.log
 

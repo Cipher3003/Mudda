@@ -14,6 +14,7 @@ import com.mudda.backend.token.refresh.RefreshToken;
 import com.mudda.backend.token.refresh.RefreshTokenService;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 public class AuthService {
 
@@ -47,6 +49,7 @@ public class AuthService {
 
     @Transactional
     public AuthResult login(AuthRequest authRequest) {
+        log.info("Trying to login as user: {}", authRequest.username());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
@@ -60,7 +63,7 @@ public class AuthService {
         } catch (BadCredentialsException e) {
             // failure side-effects
             userService.recordFailedLogin(authRequest.username());
-
+            log.warn("Login failed for user: {}. Bad Credentials", authRequest.username());
             throw e;
         }
     }
@@ -68,8 +71,12 @@ public class AuthService {
     //    TODO: do occasional cleanup of refresh tokens
     @Transactional
     public AuthResult refresh(String rawRefreshToken) {
-        if (!jwtService.validateRefreshToken(rawRefreshToken))
+        log.info("Refreshing user login");
+
+        if (!jwtService.validateRefreshToken(rawRefreshToken)) {
+            log.warn("Invalid refresh token");
             throw new InvalidRefreshTokenException();
+        }
 
         RefreshToken refreshToken = refreshTokenService.rotate(rawRefreshToken);
 
@@ -81,11 +88,13 @@ public class AuthService {
 
     @Transactional
     public void logout(String rawRefreshToken) {
+        log.info("Logout user login");
         refreshTokenService.revoke(rawRefreshToken);
     }
 
     @Transactional
     protected AuthResult getAuthResult(MuddaUser muddaUser, Instant expiresAt) {
+        log.trace("Generating access and refresh token for user: {}", muddaUser.getUserId());
         String accessToken = jwtService.generateAccessToken(muddaUser.getUsername());
         String refreshToken = jwtService.generateRefreshToken(muddaUser.getUsername());
 

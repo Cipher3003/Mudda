@@ -4,6 +4,7 @@ import com.mudda.backend.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1")
 public class CommentController {
@@ -22,7 +24,7 @@ public class CommentController {
     }
 
     // ----------- PUBLIC READ -----------------
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     @GetMapping("/issues/{issueId}/comments")
     public ResponseEntity<Page<CommentDetailResponse>> getCommentsByIssue(
@@ -33,12 +35,16 @@ public class CommentController {
         Pageable pageable = PageRequest.of(page, size);
         Long userId = SecurityUtil.getUserIdOrNull();
 
+        log.debug("Getting comments by issue id {}", issueId);
+
         return ResponseEntity.ok(commentService.findCommentsWithLikes(issueId, pageable, userId));
     }
 
     @GetMapping("/comments/{commentId}")
     public ResponseEntity<CommentDetailResponse> getCommentsById(@PathVariable long commentId) {
         Long userId = SecurityUtil.getUserIdOrNull();
+
+        log.debug("Getting comments by id {}", commentId);
 
         return commentService.findById(commentId, userId)
                 .map(ResponseEntity::ok)
@@ -54,19 +60,23 @@ public class CommentController {
         Pageable pageable = PageRequest.of(page, size);
         Long userId = SecurityUtil.getUserIdOrNull();
 
+        log.debug("Getting replies by comment id {}", commentId);
+
         return ResponseEntity.ok(commentService.findAllReplies(commentId, pageable, userId));
     }
 
-    // #endregion
+    // endregion
 
     // ----------- AUTH COMMANDS -----------------
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @Operation(description = "Creates comments under an issue")
     @PostMapping("/issues/{issueId}/comments")
     public ResponseEntity<CommentResponse> createComment(@PathVariable long issueId,
                                                          @Valid @RequestBody CreateCommentRequest request) {
         Long userId = SecurityUtil.getUserIdOrNull();
+
+        log.debug("Creating comment for issue with id {} and request {}", issueId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(issueId, userId, request));
     }
@@ -77,6 +87,8 @@ public class CommentController {
                                                        @Valid @RequestBody CreateCommentRequest request) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
+        log.debug("Creating reply for comment with id {} and request {}", commentId, request);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createReply(commentId, userId, request));
     }
 
@@ -84,6 +96,7 @@ public class CommentController {
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<CommentResponse> updateComment(@PathVariable long commentId,
                                                          @Valid @NotBlank @RequestBody String text) {
+        log.debug("Updating comment with id {} and text {}", commentId, text);
         return ResponseEntity.ok(commentService.updateComment(commentId, text));
     }
 
@@ -91,12 +104,15 @@ public class CommentController {
     public ResponseEntity<CommentLikeResponse> likeComment(@PathVariable long commentId) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
+        log.debug("Liking comment with id {} by user {}", commentId, userId);
+
         return ResponseEntity.ok(commentService.likeComment(commentId, userId));
     }
 
     @Operation(description = "Deletes both comments and replies by their commentId")
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> delete(@PathVariable long commentId) {
+        log.debug("Deleting comment with id {}", commentId);
         commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }
@@ -105,8 +121,10 @@ public class CommentController {
     public ResponseEntity<CommentLikeResponse> removeLikeFromComment(@PathVariable long commentId) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
+        log.debug("Removing like on comment with id {} by user {}", commentId, userId);
+
         return ResponseEntity.ok(commentService.deleteLikeComment(commentId, userId));
     }
 
-    // #endregion
+    // endregion
 }

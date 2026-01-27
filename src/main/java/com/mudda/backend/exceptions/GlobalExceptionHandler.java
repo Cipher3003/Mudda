@@ -5,7 +5,7 @@ import com.mudda.backend.token.TokenType;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import java.util.HashMap;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -34,6 +34,8 @@ public class GlobalExceptionHandler {
     public GlobalExceptionHandler(MessageUtil messageUtil) {
         this.messageUtil = messageUtil;
     }
+
+    //region Specialized Handlers
 
     @ExceptionHandler(TokenValidationException.class)
     public ResponseEntity<ApiError> handleTokenInvalid(TokenValidationException ex) {
@@ -58,6 +60,30 @@ public class GlobalExceptionHandler {
         };
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException e) {
+
+        Map<String, String> errors = new HashMap<>();
+        e.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+
+        return ResponseEntity.badRequest()
+                .body(ApiError.validation(errors));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiError.of(
+                        HttpStatus.UNAUTHORIZED,
+                        messageUtil.getMessage(MessageCodes.INVALID_CREDENTIALS)
+                ));
+    }
+
+    //endregion
+
+    //region 400 Series Handlers
+
     //    400 - validation & bad input
     @ExceptionHandler(value = {
             IllegalArgumentException.class,
@@ -71,15 +97,12 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException e) {
-
-        Map<String, String> errors = new HashMap<>();
-        e.getBindingResult().getFieldErrors()
-                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-
-        return ResponseEntity.badRequest()
-                .body(ApiError.validation(errors));
+    //    401 - unauthorized
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiError> handLeInvalidToken(Exception e) {
+        String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
     }
 
     //    404 - not found
@@ -114,19 +137,9 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ApiError> handlePayloadTooLarge(Exception e) {
         String message = resolveMessage(e, MessageCodes.PAYLOAD_TOO_LARGE);
-        log.warn("{}: {}", e.getClass().getName(), message);
         return ResponseEntity
                 .status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(ApiError.of(HttpStatus.PAYLOAD_TOO_LARGE, message));
-    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiError> handleBadCredentials() {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiError.of(
-                        HttpStatus.UNAUTHORIZED,
-                        messageUtil.getMessage(MessageCodes.INVALID_CREDENTIALS)
-                ));
     }
 
     //    423 - account locked
@@ -141,6 +154,7 @@ public class GlobalExceptionHandler {
                                 messageUtil.getMessage(MessageCodes.ACCOUNT_LOCKED)
                         ));
 
+//            TODO: maybe allow user to login without verification with limited activity as guest
             if (iae.getCause() instanceof DisabledException)
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(ApiError.of(
@@ -154,14 +168,9 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
     }
 
-    //    401 - unauthorized
-    @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<ApiError> handLeInvalidToken(Exception e) {
-        String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
-        log.warn("{} : {}", e.getClass().getSimpleName(), message);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
-    }
+    //endregion
+
+    //region 500 Series Handlers
 
     //    503 - unavailable services
     @ExceptionHandler(value = {
@@ -170,7 +179,7 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ApiError> handleStorage(Exception e) {
         String message = resolveMessage(e, MessageCodes.STORAGE_UNAVAILABLE);
-        log.warn("S3ClientException: {}", message);
+        log.error("Unexcepted exception caught in GlobalExceptionHandler", e);
         return ResponseEntity
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiError.of(HttpStatus.SERVICE_UNAVAILABLE, message));
@@ -180,11 +189,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception e) {
         String message = resolveMessage(e, MessageCodes.UNEXPECTED_ERROR);
-        log.warn("{}: {}", e.getClass().getName(), message);
+        log.error("Unexcepted exception caught in GlobalExceptionHandler", e);
         return ResponseEntity
                 .internalServerError()
                 .body(ApiError.of(HttpStatus.INTERNAL_SERVER_ERROR, message));
     }
+
+    //endregion
 
     private String resolveMessage(Exception e, String fallbackMessage) {
         if (e instanceof LocalizedException le)

@@ -17,7 +17,7 @@ public class VoteController {
         this.voteService = voteService;
     }
 
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     //    NOTE: DEVELOPER ONLY
     @GetMapping("/votes")
@@ -31,18 +31,18 @@ public class VoteController {
 
     //    NOTE: DEVELOPER ONLY
     @GetMapping("/votes/{voteId}")
-    public ResponseEntity<Vote> getVotesById(@PathVariable(name = "id") long voteId) {
+    public ResponseEntity<Vote> getVotesById(@PathVariable long voteId) {
         return voteService.findVoteById(voteId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // #endregion
+    // endregion
 
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @PostMapping("/issues/{issueId}/votes")
-    public ResponseEntity<VoteResponse> create(@PathVariable(name = "issueId") long issueId) {
+    public ResponseEntity<VoteResponse> create(@PathVariable long issueId) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
         return ResponseEntity.ok(voteService.create(issueId, userId));
@@ -50,17 +50,17 @@ public class VoteController {
 
     //    NOTE: DEVELOPER ONLY
     @DeleteMapping("/votes/{voteId}")
-    public ResponseEntity<Void> delete(@PathVariable(name = "id") long voteId) {
+    public ResponseEntity<Void> delete(@PathVariable long voteId) {
         voteService.deleteVote(voteId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/issues/{issueId}/votes")
-    public ResponseEntity<VoteResponse> deleteVoteOnIssueIdByUserId(@PathVariable(name = "issueId") long issueId) {
+    public ResponseEntity<VoteResponse> deleteVoteOnIssueIdByUserId(@PathVariable long issueId) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
         return ResponseEntity.ok(voteService.deleteVoteByIssueIdAndUserId(issueId, userId));
     }
 
-    // #endregion
+    // endregion
 }

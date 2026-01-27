@@ -90,6 +90,8 @@ public class SmtpEmailService implements EmailService {
 
             mailSender.send(mimeMessage);
 
+            log.info("Sent email to={} with subject={}", email, subject);
+
         } catch (MessagingException e) {
             throw new MailSendException("Failed to construct or send email", e);
         }
@@ -212,6 +214,5 @@ public class SmtpEmailService implements EmailService {
                 </html>
                 """.formatted(link);
     }
-
 
 }

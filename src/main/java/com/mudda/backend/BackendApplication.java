@@ -28,9 +28,7 @@ public class BackendApplication {
                 .load();
 
         // Set all environment variables from .env as system properties
-        dotenv.entries().forEach(entry -> {
-            System.setProperty(entry.getKey(), entry.getValue());
-        });
+        dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
 
         SpringApplication.run(BackendApplication.class, args);
     }

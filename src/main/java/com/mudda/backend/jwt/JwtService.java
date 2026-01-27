@@ -12,6 +12,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+@Slf4j
 @Service
 public class JwtService {
 
@@ -34,6 +36,7 @@ public class JwtService {
     }
 
     public String generateAccessToken(String username) {
+        log.info("Generating access token for user {}", username);
         Map<String, Object> claims = new HashMap<>();
         return Jwts.builder()
                 .claims(claims)
@@ -46,6 +49,7 @@ public class JwtService {
     }
 
     public String generateRefreshToken(String username) {
+        log.info("Generating refresh token for user {}", username);
         return Jwts.builder()
                 .claim("type", "REFRESH")
                 .subject(username)
@@ -88,11 +92,13 @@ public class JwtService {
     }
 
     public boolean validateAccessToken(String token, UserDetails userDetails) {
+        log.trace("Validating access token for user {}", userDetails.getUsername());
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && isTokenValid(token));
     }
 
     public boolean validateRefreshToken(String token) {
+        log.trace("Validating refresh token for user");
         try {
             Claims claims = extractAllClaims(token);
             String type = claims.get("type", String.class);

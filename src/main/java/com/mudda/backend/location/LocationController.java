@@ -2,6 +2,7 @@ package com.mudda.backend.location;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/locations")
 @Tag(name = "Location Management",
@@ -22,7 +24,7 @@ public class LocationController {
     }
 
     // ----------- PUBLIC READ -----------------
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     //    TODO: maybe add filter request
     @GetMapping
@@ -37,14 +39,15 @@ public class LocationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // #endregion
+    // endregion
 
     // ----------- AUTH COMMANDS -----------------
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @Transactional
     @PostMapping
     public ResponseEntity<LocationResponse> create(@RequestBody @Valid CreateLocationRequest locationRequest) {
+        log.debug("Creating location with request {}", locationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(locationService.createLocation(locationRequest));
     }
 
@@ -63,5 +66,5 @@ public class LocationController {
         return ResponseEntity.noContent().build();
     }
 
-    // #endregion
+    // endregion
 }

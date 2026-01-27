@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/issues")
 public class IssueController {
@@ -25,7 +27,7 @@ public class IssueController {
     }
 
     // ----------- PUBLIC READ -----------------
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     @Operation(summary = "List issues with filters, sorting and pagination")
     @ApiResponses({
@@ -47,6 +49,7 @@ public class IssueController {
                         : Sort.by(sort.getFieldName()).ascending());
 
         Long userId = SecurityUtil.getUserIdOrNull();
+        log.debug("Finding issues with filters: {}", filterRequest);
 
         return ResponseEntity.ok(issueService.findAllIssues(filterRequest, pageable, userId));
     }
@@ -65,18 +68,20 @@ public class IssueController {
     public ResponseEntity<IssueClusterResponse> getIssueClusters(
             @Valid @ModelAttribute IssueClusterRequest clusterRequest) {
 
+        log.debug("Finding clusters: " + clusterRequest);
         return ResponseEntity.ok(issueService.findAllIssueClusters(clusterRequest));
     }
 
-    // #endregion
+    // endregion
 
     // ----------- AUTH COMMANDS -----------------
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @PostMapping
     public ResponseEntity<IssueResponse> createIssue(@Valid @RequestBody CreateIssueRequest issueRequest) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
+        log.info("Creating new issue by user with id {}", userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(issueService.createIssue(userId, issueRequest));
     }
 
@@ -86,6 +91,7 @@ public class IssueController {
             @Valid @RequestBody UpdateIssueRequest issueRequest) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
+        log.info("Updating issue with id {} by user with id {}", id, userId);
         return ResponseEntity.ok(issueService.updateIssue(id, userId, issueRequest));
     }
 
@@ -93,9 +99,10 @@ public class IssueController {
     public ResponseEntity<Void> deleteIssue(@PathVariable(name = "id") long id) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
+        log.info("Deleting issue with id {} by user with id {}", id, userId);
         issueService.deleteIssue(id, userId);
         return ResponseEntity.noContent().build();
     }
 
-    // #endregion
+    // endregion
 }

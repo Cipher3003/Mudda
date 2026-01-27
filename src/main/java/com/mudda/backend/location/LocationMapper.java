@@ -1,7 +1,3 @@
-package com.mudda.backend.location;
-
-import org.locationtech.jts.geom.Coordinate;
-
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
@@ -10,6 +6,10 @@ import org.locationtech.jts.geom.Coordinate;
  * Created : 12-11-2025
  * ---------------------------------------------------------------
  */
+package com.mudda.backend.location;
+
+import org.locationtech.jts.geom.Coordinate;
+
 public class LocationMapper {
 
     public static LocationDTO toSummary(Location location) {

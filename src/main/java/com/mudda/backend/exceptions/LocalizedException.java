@@ -8,6 +8,9 @@
  */
 package com.mudda.backend.exceptions;
 
+import lombok.Getter;
+
+@Getter
 public abstract class LocalizedException extends RuntimeException {
 
     private final String errorMessageCode;
@@ -19,11 +22,4 @@ public abstract class LocalizedException extends RuntimeException {
         this.args = args;
     }
 
-    public String getErrorMessageCode() {
-        return errorMessageCode;
-    }
-
-    public Object[] getArgs() {
-        return args;
-    }
 }

@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,10 +31,8 @@ import com.mudda.backend.exceptions.InvalidImageExtensionException;
 import com.mudda.backend.utils.FileUtils;
 import com.mudda.backend.utils.MessageCodes;
 
-import lombok.extern.log4j.Log4j2;
-
+@Slf4j
 @Service
-@Log4j2
 public class AmazonImageServiceImpl implements AmazonImageService {
 
     private final String bucketName;
@@ -45,12 +44,14 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         this.amazonS3 = amazonS3;
     }
 
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     // NOTE: For testing only
     @Override
     public List<String> getBucketContents() {
         List<String> objectKeys = new ArrayList<>();
+
+        log.trace("Fetching bucket contents");
         try {
             ObjectListing objectListing = amazonS3.listObjects(bucketName);
 
@@ -68,14 +69,15 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         return objectKeys;
     }
 
-    // #endregion
+    // endregion
 
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @Transactional
     @Override
     public AmazonImage uploadImageToAmazon(MultipartFile file) {
 
+        log.trace("Validating image file before uploading to AWS");
         // Check if file is empty or null
         if (file == null || file.isEmpty())
             throw new EmptyFileException();
@@ -92,9 +94,9 @@ public class AmazonImageServiceImpl implements AmazonImageService {
                 validExtensions
                         .stream()
                         .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))
-        ) {
+        )
             throw new InvalidImageExtensionException(String.join(", ", validExtensions));
-        }
+
 
         // Check if file is an actual image and MIME type is an image
         String fileContentType = file.getContentType();
@@ -109,6 +111,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             throw new NonImageFileException();
         }
 
+        log.trace("Converting multipart file to image file for uploading to AWS");
         try {
             File imageFile = FileUtils.convertMultipartToFile(file);
             String fileName = FileUtils.generateFileName(file);
@@ -117,6 +120,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             imageFile.delete();
 
             String fileUrl = getFileUrl(bucketName, amazonS3.getRegionName()).concat(fileName);
+            log.info("Uploaded image to AWS: {}", fileUrl);
 
             return new AmazonImage(fileName, fileUrl);
         } catch (IOException e) {
@@ -134,6 +138,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
         try {
             amazonS3.deleteObject(new DeleteObjectRequest(bucketName, imageFileName));
+            log.info("Removed image from AWS: {}", imageFileName);
         } catch (AmazonS3Exception e) {
             throw new S3ServiceException();
         } catch (SdkClientException e) {
@@ -141,7 +146,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         }
     }
 
-    // #endregion
+    // endregion
 
 //    ------------------------------
 //    Helpers

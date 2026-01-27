@@ -1,6 +1,7 @@
 package com.mudda.backend.user;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
@@ -20,7 +22,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     @GetMapping
     public ResponseEntity<Page<UserSummaryResponse>> getAllUsers(
@@ -36,6 +38,8 @@ public class UserController {
                         ? Sort.by(sort.getFieldName()).descending()
                         : Sort.by(sort.getFieldName()).ascending());
 
+        log.debug("Get all user with filter {}, page {}, size {}, sort {}, direction {}",
+                filterRequest, page, size, sort, direction);
         return ResponseEntity.ok(userService.findAllUsers(filterRequest, pageable));
     }
 
@@ -47,18 +51,20 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // #endregion
+    // endregion
 
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @PostMapping
     public ResponseEntity<UserDetailResponse> createUser(@Valid @RequestBody CreateUserRequest userRequest) {
+        log.debug("Creating user with request {}", userRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequest));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserSummaryResponse> updateUser(@PathVariable(name = "id") long id,
                                                           @RequestBody UpdateUserRequest userRequest) {
+        log.debug("Updating user with request {}", userRequest);
         return ResponseEntity.ok(userService.updateUser(id, userRequest));
     }
 
@@ -69,5 +75,5 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    // #endregion
+    // endregion
 }

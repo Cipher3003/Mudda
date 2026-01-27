@@ -21,6 +21,7 @@ import com.mudda.backend.vote.VoteSeed;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.Text;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ import java.util.stream.IntStream;
 import static net.datafaker.providers.base.Text.DIGITS;
 import static net.datafaker.providers.base.Text.EN_UPPERCASE;
 
+@Slf4j
 @Service
 public class SeedService {
 
@@ -79,6 +81,7 @@ public class SeedService {
      */
     @Transactional
     public List<String> clearDatabase() {
+        log.info("Clearing database");
         List<String> feedback = new ArrayList<>();
         feedback.add("Starting database cleanup using manual deletion...");
 
@@ -142,12 +145,14 @@ public class SeedService {
             // The @Transactional annotation will automatically handle rolling back the
             // transaction
             // in case of an error, preventing a partially cleared database.
+            log.error("Unexpected error while clearing the database.", e);
         }
         return feedback;
     }
 
     @Transactional
     public List<String> seedDatabase(CreateSeedRequest request) {
+        log.info("Seeding database with request");
         // --- Data stores to simulate database primary keys for relationships ---
         List<String> feedback = new ArrayList<>();
         List<Long> userIds = new ArrayList<>();
@@ -191,6 +196,7 @@ public class SeedService {
 
     @Transactional
     public List<String> seedDatabaseFromJson() {
+        log.info("Seeding database from JSON");
         Gson gson = new Gson();
         List<String> feedback = new ArrayList<>();
 
@@ -258,7 +264,7 @@ public class SeedService {
             }
         } catch (IOException e) {
             feedback.add("Error during JSON seeding: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Unexcepted error while seeding from json", e);
         }
 
         return feedback;

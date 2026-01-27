@@ -3,6 +3,7 @@ package com.mudda.backend.comment;
 import com.mudda.backend.issue.IssueRepository;
 import com.mudda.backend.utils.EntityValidator;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Service
 public class CommentServiceImpl implements CommentService {
 
@@ -34,7 +36,7 @@ public class CommentServiceImpl implements CommentService {
         this.issueRepository = issueRepository;
     }
 
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     @Override
     public Page<CommentDetailResponse> findCommentsWithLikes(long issueId, Pageable pageable, Long userId) {
@@ -132,9 +134,9 @@ public class CommentServiceImpl implements CommentService {
                 canUserLike, canUserUpdate, canUserDelete);
     }
 
-    // #endregion
+    // endregion
 
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @Transactional
     @Override
@@ -147,6 +149,7 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = CommentMapper.toComment(createCommentRequest, issueId, userId);
         Comment saved = commentRepository.save(comment);
+        log.info("Created comment with id {} by user {} on issue {}", saved.getCommentId(), userId, issueId);
         return CommentMapper.toCommentResponse(saved);
     }
 
@@ -156,18 +159,15 @@ public class CommentServiceImpl implements CommentService {
                                      List<CreateCommentRequest> createCommentRequests
     ) {
         return commentRepository
-                .saveAll(
-                        IntStream
-                                .range(0, issueIds.size())
-                                .mapToObj(index ->
-                                        CommentMapper.toComment(
-                                                createCommentRequests.get(index),
-                                                issueIds.get(index),
-                                                userIds.get(index)
-                                        )
-                                )
-                                .toList()
-                )
+                .saveAll(IntStream
+                        .range(0, issueIds.size())
+                        .mapToObj(index ->
+                                CommentMapper.toComment(
+                                        createCommentRequests.get(index),
+                                        issueIds.get(index),
+                                        userIds.get(index)
+                                ))
+                        .toList())
                 .stream()
                 .map(Comment::getCommentId)
                 .toList();
@@ -186,9 +186,11 @@ public class CommentServiceImpl implements CommentService {
 
         Comment reply = CommentMapper.toReply(createCommentRequest, parent.getIssueId(), userId, parentId);
         Comment saved = commentRepository.save(reply);
+        log.info("Created reply with id {} under comment {} by user {}", saved.getCommentId(), parentId, userId);
         return CommentMapper.toCommentResponse(saved);
     }
 
+    //    TODO: improve the readability of create replies
     @Transactional
     @Override
     public List<Long> createReplies(List<Long> parentIds, List<Long> userIds,
@@ -202,11 +204,8 @@ public class CommentServiceImpl implements CommentService {
                                         createCommentRequests.get(index),
                                         issueIds.get(index),
                                         userIds.get(index),
-                                        parentIds.get(index)
-                                )
-                        )
-                        .toList()
-                )
+                                        parentIds.get(index)))
+                        .toList())
                 .stream()
                 .map(Comment::getCommentId)
                 .toList();
@@ -229,6 +228,7 @@ public class CommentServiceImpl implements CommentService {
 
         comment.updateDetails(text);
         Comment saved = commentRepository.save(comment);
+        log.info("Updated comment with id {}", saved.getCommentId());
         return CommentMapper.toCommentResponse(saved);
     }
 
@@ -245,13 +245,16 @@ public class CommentServiceImpl implements CommentService {
                     .toList();
 
             if (!replyIds.isEmpty()) {
+                log.trace("Deleting all replies and reply likes under comment {}", id);
                 commentLikeService.deleteAllByCommentId(replyIds);
                 commentRepository.deleteByParentId(comment.getCommentId());
             }
         }
 
+        log.trace("Deleting all likes on comment with id {}", id);
         commentLikeService.deleteByCommentId(comment.getCommentId());
         commentRepository.deleteById(id);
+        log.info("Deleted comment with id {}", id);
     }
 
     @Transactional
@@ -274,8 +277,10 @@ public class CommentServiceImpl implements CommentService {
         List<Long> allIds = new ArrayList<>(commentIds);
         allIds.addAll(replyIds);
 
+        log.trace("Deleting all likes on comment by user {}", userId);
         commentLikeService.deleteAllByCommentId(allIds);
         commentRepository.deleteAllById(allIds);
+        log.info("Deleted all comments by user id {}", userId);
     }
 
     @Transactional
@@ -289,8 +294,10 @@ public class CommentServiceImpl implements CommentService {
 
         if (commentIds.isEmpty()) return;
 
+        log.trace("Deleting all likes on the comments under the issue with id {}", issueId);
         commentLikeService.deleteAllByCommentId(commentIds);
         commentRepository.deleteAllById(commentIds);
+        log.info("Deleted all comments under the issue with id {}", issueId);
     }
 
     //    TODO: maybe refactor and combine above method and below method common functionality ?
@@ -305,8 +312,10 @@ public class CommentServiceImpl implements CommentService {
 
         if (commentIds.isEmpty()) return;
 
+        log.trace("Deleting all likes on comments and replies under {} issues", issueIds.size());
         commentLikeService.deleteAllByCommentId(commentIds);
         commentRepository.deleteAllById(commentIds);
+        log.info("Delete comments and replies under {} issues", issueIds.size());
     }
 
     @Transactional
@@ -331,11 +340,10 @@ public class CommentServiceImpl implements CommentService {
         return commentLikeService.userRemovesLikeFromComment(commentId, userId);
     }
 
-    // #endregion
+    // endregion
 
-    //    ------------------------------
-    //    Helpers
-    //    ------------------------------
+    //region Helpers
+
     private void validateCommentReferences(long issueId) {
         EntityValidator.validateExists(issueRepository, issueId, "Issue");
     }
@@ -343,5 +351,7 @@ public class CommentServiceImpl implements CommentService {
     private EntityNotFoundException notFound(long id) {
         return new EntityNotFoundException("Comment not found with id: %d".formatted(id));
     }
+
+    //endregion
 
 }

@@ -10,12 +10,14 @@ package com.mudda.backend.token.refresh;
 
 import com.mudda.backend.exceptions.InvalidRefreshTokenException;
 import com.mudda.backend.token.TokenHasUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Service
 public class RefreshTokenService {
 
@@ -28,7 +30,7 @@ public class RefreshTokenService {
         this.tokenHasUtil = tokenHasUtil;
     }
 
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @Transactional
     public void revokeAllByUserId(Long userId) {
@@ -37,6 +39,7 @@ public class RefreshTokenService {
             refreshToken.revoke();
         }
         refreshTokenRepository.saveAll(refreshTokens);
+        log.debug("Revoked all refresh tokens assigned to user {}", userId);
     }
 
     @Transactional
@@ -49,6 +52,7 @@ public class RefreshTokenService {
 
         refreshToken.revoke();
         refreshTokenRepository.save(refreshToken);
+        log.debug("Rotated refresh token");
 
         return refreshToken;
     }
@@ -57,6 +61,7 @@ public class RefreshTokenService {
     public void revoke(String rawRefreshToken) {
         String hashedToken = tokenHasUtil.hashToken(rawRefreshToken);
 
+        log.debug("Revoking refresh token");
         refreshTokenRepository.findByTokenAndRevokedFalse(hashedToken)
                 .ifPresent(refreshToken -> {
                     refreshToken.revoke();
@@ -72,8 +77,9 @@ public class RefreshTokenService {
                 expiresAt);
 
         refreshTokenRepository.save(hashedRefreshToken);
+        log.debug("Created refresh token for user {} valid till {}", userId, expiresAt);
     }
 
-    // #endregion
+    // endregion
 
 }

@@ -1,9 +1,3 @@
-package com.mudda.backend.user;
-
-import org.springframework.data.jpa.domain.Specification;
-
-import java.time.Instant;
-
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
@@ -12,6 +6,12 @@ import java.time.Instant;
  * Created : 13-11-2025
  * ---------------------------------------------------------------
  */
+package com.mudda.backend.user;
+
+import org.springframework.data.jpa.domain.Specification;
+
+import java.time.Instant;
+
 public class UserSpecifications {
 
     public static Specification<MuddaUser> hasName(String name) {
