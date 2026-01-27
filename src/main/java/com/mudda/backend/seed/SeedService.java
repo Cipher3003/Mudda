@@ -95,10 +95,10 @@ public class SeedService {
                 "Comment",
                 "Vote",
                 "Issue",
-                "User",
+                "MuddaUser",
                 "Location",
-                "Category",
-                "Role");
+                "Category"
+        );
 
         try {
             for (String entityName : entityNamesInDeletionOrder) {
@@ -121,8 +121,8 @@ public class SeedService {
                     "issues_id_seq",
                     "users_id_seq",
                     "locations_id_seq",
-                    "categories_id_seq",
-                    "roles_id_seq");
+                    "categories_id_seq"
+            );
 
             for (String sequenceName : sequenceNames) {
                 try {

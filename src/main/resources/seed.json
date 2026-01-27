@@ -1,12 +1,4 @@
 {
-  "roles": [
-    {
-      "name": "Citizen"
-    },
-    {
-      "name": "Administrator"
-    }
-  ],
   "users": [
     {
       "userName": "citizen_john",
@@ -15,7 +7,7 @@
       "dateOfBirth": "1995-04-15",
       "phoneNumber": "+919876543210",
       "password": "hashed_password_1",
-      "roleId": 1,
+      "role": "GOVERNMENT",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -25,7 +17,7 @@
       "dateOfBirth": "1988-11-20",
       "phoneNumber": "+15551234567",
       "password": "hashed_password_2",
-      "roleId": 2,
+      "role": "CITIZEN",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -35,7 +27,7 @@
       "dateOfBirth": "2000-01-01",
       "phoneNumber": "8005550101",
       "password": "hashed_password_3",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -45,7 +37,7 @@
       "dateOfBirth": "1975-07-28",
       "phoneNumber": "+447700900101",
       "password": "hashed_password_4",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -55,7 +47,7 @@
       "dateOfBirth": "1999-03-10",
       "phoneNumber": "07001020304",
       "password": "hashed_password_5",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -65,7 +57,7 @@
       "dateOfBirth": "1992-05-18",
       "phoneNumber": "9998887776",
       "password": "hashed_password_6",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -75,7 +67,7 @@
       "dateOfBirth": "1985-09-22",
       "phoneNumber": "+33612345678",
       "password": "hashed_password_7",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -85,7 +77,7 @@
       "dateOfBirth": "1970-12-03",
       "phoneNumber": "+61412345678",
       "password": "hashed_password_8",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -95,7 +87,7 @@
       "dateOfBirth": "1980-02-14",
       "phoneNumber": "02081112222",
       "password": "hashed_password_9",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -105,7 +97,7 @@
       "dateOfBirth": "1996-10-05",
       "phoneNumber": "+4915112345678",
       "password": "hashed_password_10",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -115,7 +107,7 @@
       "dateOfBirth": "1991-06-25",
       "phoneNumber": "9876512340",
       "password": "hashed_password_11",
-      "roleId": 1,
+      "role": "GOVERNMENT",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -125,7 +117,7 @@
       "dateOfBirth": "1984-08-12",
       "phoneNumber": "1234567890",
       "password": "hashed_password_12",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -135,7 +127,7 @@
       "dateOfBirth": "1978-04-01",
       "phoneNumber": "5551112222",
       "password": "hashed_password_13",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -145,7 +137,7 @@
       "dateOfBirth": "1993-01-30",
       "phoneNumber": "+917778889990",
       "password": "hashed_password_14",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -155,7 +147,7 @@
       "dateOfBirth": "1987-11-09",
       "phoneNumber": "+447890123456",
       "password": "hashed_password_15",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -165,7 +157,7 @@
       "dateOfBirth": "1998-05-27",
       "phoneNumber": "0404123456",
       "password": "hashed_password_16",
-      "roleId": 1,
+      "role": "GOVERNMENT",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -175,7 +167,7 @@
       "dateOfBirth": "1972-03-19",
       "phoneNumber": "+34600112233",
       "password": "hashed_password_17",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -185,7 +177,7 @@
       "dateOfBirth": "1994-10-08",
       "phoneNumber": "9991234567",
       "password": "hashed_password_18",
-      "roleId": 1,
+      "role": "GOVERNMENT",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
@@ -195,7 +187,7 @@
       "dateOfBirth": "1982-07-17",
       "phoneNumber": "+6590001234",
       "password": "hashed_password_19",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://media.istockphoto.com/id/499728904/photo/unknown-person-silhouette.jpg?s=1024x1024&w=is&k=20&c=cvcV9WvqFt691KAQCXPzFexJ5VVSIYx4lBlhPXwydaE="
     },
     {
@@ -205,7 +197,7 @@
       "dateOfBirth": "1990-09-02",
       "phoneNumber": "8887776665",
       "password": "hashed_password_20",
-      "roleId": 1,
+      "role": "CITIZEN",
       "profileImageUrl": "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     }
   ],
