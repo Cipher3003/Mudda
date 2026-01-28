@@ -6,7 +6,7 @@
     <title>Mudda — Dev Tools</title>
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             text-align: center;
             padding-top: 80px;
             background: #f5f5f5;
@@ -30,12 +30,37 @@
         .btn:hover {
             background: #125a9c;
         }
+
+        #header {
+            position: relative;
+        }
+
+        #authButton {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 6px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #4caf50;
+        }
+
+        #authButton:hover {
+            background: #43a047;
+        }
     </style>
 </head>
 
 <body>
 
-    <h1>Mudda — Development Panel</h1>
+<div>
+
+    <div id="header">
+        <h1>Mudda — Development Panel</h1>
+        <button id="authButton"></button>
+    </div>
 
     <!-- Home Page -->
     <button class="btn" onclick="openTab('/home.html')">
@@ -57,11 +82,82 @@
         Open Media URL
     </button>
 
-    <script>
-        function openTab(url) {
-            window.open(url, '_blank');
+</div>
+
+<script>
+
+    // region Constants
+
+    const URLS = {
+        LOGIN_PAGE: '/login.html',
+        LOGOUT: '/auth/logout',
+    }
+
+    const STORAGE_KEYS = {
+        ACCESS_TOKEN: 'accessToken',
+        REFRESH_TOKEN: 'refreshToken',
+        TOKEN_TTL: 'accessExpiresInMs',
+        USER_ID: 'userId',
+        USERNAME: 'username',
+        VERIFIED: 'verified'
+    }
+
+    // endregion
+
+    const authButton = document.getElementById('authButton')
+
+    if (loggedIn()) {
+        const username = localStorage.getItem(STORAGE_KEYS.USERNAME)
+        authButton.textContent = `Logout ${username}`
+        authButton.onclick = logout
+    } else {
+        authButton.textContent = 'Login'
+        authButton.onclick = () => window.location.href = URLS.LOGIN_PAGE
+    }
+
+    function removeAuthResult() {
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+        localStorage.removeItem(STORAGE_KEYS.USER_ID)
+        localStorage.removeItem(STORAGE_KEYS.TOKEN_TTL)
+        localStorage.removeItem(STORAGE_KEYS.USERNAME)
+        localStorage.removeItem(STORAGE_KEYS.VERIFIED)
+    }
+
+    async function logout() {
+
+        const payload = {
+            "refreshToken": localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
         }
-    </script>
+
+        const response = await postRequest(URLS.LOGOUT, payload)
+        if (!response.ok) {
+            const data = await response.json()
+            alert(data.message)
+            return
+        }
+
+        removeAuthResult();
+        window.location.reload()
+    }
+
+    async function postRequest(url, payload) {
+        return await fetch(url, {
+            method: "POST",
+            headers: {"content-type": "application/json"},
+            body: JSON.stringify(payload),
+        })
+    }
+
+    function loggedIn() {
+        return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) !== null;
+    }
+
+    function openTab(url) {
+        window.open(url, '_blank');
+    }
+
+</script>
 
 </body>
 

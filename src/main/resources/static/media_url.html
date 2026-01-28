@@ -35,6 +35,8 @@
             throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
         }
 
+        // TODO: Add logic to work with auth
+
         const bucket_items = await response.json();
         console.log(bucket_items)
 
