@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!--TODO: add logout and profile section here-->
+
 <head>
     <meta charset="UTF-8">
     <title>Mudda — Issues Feed</title>
@@ -49,28 +51,28 @@
 
 <body>
 
-    <h1>Issues Feed</h1>
+<h1>Issues Feed</h1>
 
-    <div id="issues"></div>
+<div id="issues"></div>
 
-    <script>
-        const auth = localStorage.getItem("auth");
+<script>
+    const auth = localStorage.getItem("auth");
 
-        fetch("/api/v1/issues?page=0&size=20", {
-            headers: auth ? { "Authorization": auth } : {}
-        })
-            .then(r => r.json())
-            .then(page => {
-                const container = document.getElementById("issues");
+    fetch("/api/v1/issues?page=0&size=20", {
+        headers: auth ? {"Authorization": auth} : {}
+    })
+        .then(r => r.json())
+        .then(page => {
+            const container = document.getElementById("issues");
 
-                page.content.forEach(issue => {
-                    const card = document.createElement("div");
-                    card.className = "issue-card";
-                    card.onclick = () => window.location.href = `/issue.html?id=${issue.id}`;
+            page.content.forEach(issue => {
+                const card = document.createElement("div");
+                card.className = "issue-card";
+                card.onclick = () => window.location.href = `/issue.html?id=${issue.id}`;
 
-                    const imageUrl = issue.media_urls?.[0] || "/placeholder.png";
+                const imageUrl = issue.media_urls?.[0] || "/placeholder.png";
 
-                    card.innerHTML = `
+                card.innerHTML = `
             <h3>${issue.title}</h3>
             <p>Status: ${issue.status}</p>
             <img src="${imageUrl}">
@@ -86,17 +88,17 @@
             <small>Created: ${new Date(issue.created_at).toLocaleString()}</small>
         `;
 
-                    container.appendChild(card);
-                });
+                container.appendChild(card);
             });
+        });
 
-        function toggleVote(issueId) {
-            fetch(`/api/v1/votes/${issueId}`, {
-                method: "POST",
-                headers: { "Authorization": auth }
-            }).then(() => location.reload());
-        }
-    </script>
+    function toggleVote(issueId) {
+        fetch(`/api/v1/votes/${issueId}`, {
+            method: "POST",
+            headers: {"Authorization": auth}
+        }).then(() => location.reload());
+    }
+</script>
 
 </body>
 
