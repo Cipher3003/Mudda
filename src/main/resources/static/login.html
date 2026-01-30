@@ -22,7 +22,8 @@
             margin-top: 20px;
         }
 
-        #usernameError, #passwordError {
+        #usernameError,
+        #passwordError {
             color: red;
         }
     </style>
@@ -37,142 +38,148 @@
 
 <body>
 
-<div>
-    <h2>Login</h2>
+    <div>
+        <h2>Login</h2>
 
-    <form id="loginForm">
-        <label for="username"></label>
-        <input id="username" placeholder="Username" required autofocus><br>
-        <label id="usernameError"></label><br>
+        <form id="loginForm">
+            <label for="username"></label>
+            <input id="username" placeholder="Username" required autofocus><br>
+            <label id="usernameError"></label><br>
 
-        <label for="password"></label>
-        <input id="password" type="password" placeholder="Password" required><br>
-        <label id="passwordError"></label><br>
+            <label for="password"></label>
+            <input id="password" type="password" placeholder="Password" required><br>
+            <label id="passwordError"></label><br>
 
-        <button type="submit">Login</button>
-    </form>
+            <button type="submit">Login</button>
+        </form>
 
-    <p id="msg"></p>
-</div>
+        <p id="msg"></p>
+    </div>
 
-<script>
+    <script>
 
-    // region Constants
+        // region Constants
 
-    const URLS = {
-        LOGIN: '/auth/login',
-        ROOT_PAGE: '/index.html'
-    }
-
-    const IDS = {
-        LOGIN_FORM: 'loginForm',
-        USERNAME: 'username',
-        PASSWORD: 'password',
-        USERNAME_ERROR: 'usernameError',
-        PASSWORD_ERROR: 'passwordError',
-        MESSAGE: 'msg'
-    }
-
-    const STORAGE_KEYS = {
-        ACCESS_TOKEN: 'accessToken',
-        REFRESH_TOKEN: 'refreshToken',
-        TOKEN_TTL: 'accessExpiresInMs',
-        USER_ID: 'userId',
-        USERNAME: 'username',
-        VERIFIED: 'verified'
-    }
-
-    const MESSAGES = {
-        LOGIN_SUCCESS: 'Logged in! Now routing to main page',
-    }
-
-    // endregion
-
-    // region UI Elements
-
-    const loginForm = document.getElementById(IDS.LOGIN_FORM)
-    const loginSubmitButton = loginForm.querySelector("button")
-    const usernameInput = document.getElementById(IDS.USERNAME)
-    const passwordInput = document.getElementById(IDS.PASSWORD)
-    const usernameErrorLabel = document.getElementById(IDS.USERNAME_ERROR)
-    const passwordErrorLabel = document.getElementById(IDS.PASSWORD_ERROR)
-    const messageLabel = document.getElementById(IDS.MESSAGE)
-
-    // endregion
-
-    loginForm.onsubmit = login;
-
-    function resetErrorLabels() {
-        usernameErrorLabel.textContent = "";
-        passwordErrorLabel.textContent = "";
-        messageLabel.textContent = "";
-    }
-
-    function saveAuthResult(data) {
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
-        localStorage.setItem(STORAGE_KEYS.TOKEN_TTL, data.accessExpiresInMs);
-        localStorage.setItem(STORAGE_KEYS.USER_ID, data.user.id);
-        localStorage.setItem(STORAGE_KEYS.USERNAME, data.user.username);
-        localStorage.setItem(STORAGE_KEYS.VERIFIED, data.user.verified);
-    }
-
-    function setErrorLabels(data) {
-        if (data.errors == null) {
-            messageLabel.style.color = "red";
-            messageLabel.textContent = data.message
-            return;
+        const URLS = {
+            LOGIN: '/auth/login',
+            ROOT_PAGE: '/index.html'
         }
 
-        Object.entries(data.errors).forEach(([key, value]) => {
-            if (key === IDS.USERNAME) usernameErrorLabel.textContent = value;
-            if (key === IDS.PASSWORD) passwordErrorLabel.textContent = value;
-        })
-    }
-
-    async function postRequest(url, payload) {
-        return await fetch(url, {
-            method: "POST",
-            headers: {"content-type": "application/json"},
-            body: JSON.stringify(payload),
-        })
-    }
-
-    async function login(event) {
-        event.preventDefault();
-
-        loginSubmitButton.disabled = true;
-        resetErrorLabels();
-
-        const payload = {
-            username: usernameInput.value,
-            password: passwordInput.value
+        const IDS = {
+            LOGIN_FORM: 'loginForm',
+            USERNAME: 'username',
+            PASSWORD: 'password',
+            USERNAME_ERROR: 'usernameError',
+            PASSWORD_ERROR: 'passwordError',
+            MESSAGE: 'msg'
         }
 
-        const response = await postRequest(URLS.LOGIN, payload)
-        let data = {}
-        try {
-            data = await response.json();
-        } catch {
-            data.message = "Unexpected error";
+        const STORAGE_KEYS = {
+            ACCESS_TOKEN: 'accessToken',
+            REFRESH_TOKEN: 'refreshToken',
+            TOKEN_EXPIRES_AT: 'accessExpiresAt',
+            USER_ID: 'userId',
+            USERNAME: 'username',
+            VERIFIED: 'verified'
         }
 
-        if (response.ok) {
-            loginForm.reset();
-
-            saveAuthResult(data);
-            messageLabel.textContent = MESSAGES.LOGIN_SUCCESS;
-            // TODO: add redirect with next in param
-            window.location.href = URLS.ROOT_PAGE
-
-        } else {
-            loginSubmitButton.disabled = false;
-            setErrorLabels(data);
+        const MESSAGES = {
+            LOGIN_SUCCESS: 'Logged in! Now routing to main page',
         }
 
-    }
+        // endregion
 
-</script>
+        // region UI Elements
+
+        const loginForm = document.getElementById(IDS.LOGIN_FORM)
+        const loginSubmitButton = loginForm.querySelector("button")
+        const usernameInput = document.getElementById(IDS.USERNAME)
+        const passwordInput = document.getElementById(IDS.PASSWORD)
+        const usernameErrorLabel = document.getElementById(IDS.USERNAME_ERROR)
+        const passwordErrorLabel = document.getElementById(IDS.PASSWORD_ERROR)
+        const messageLabel = document.getElementById(IDS.MESSAGE)
+
+        // endregion
+
+        loginForm.onsubmit = login;
+
+        function resetErrorLabels() {
+            usernameErrorLabel.textContent = "";
+            passwordErrorLabel.textContent = "";
+            messageLabel.textContent = "";
+        }
+
+        function saveAuthResult(data) {
+            const expiresAt = Date.now() + data.accessExpiresInMs
+
+            localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
+            localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRES_AT, expiresAt);
+            localStorage.setItem(STORAGE_KEYS.USER_ID, data.user.id);
+            localStorage.setItem(STORAGE_KEYS.USERNAME, data.user.username);
+            localStorage.setItem(STORAGE_KEYS.VERIFIED, data.user.verified);
+        }
+
+        function setErrorLabels(data) {
+            if (data.errors == null) {
+                messageLabel.style.color = "red";
+                messageLabel.textContent = data.message
+                return;
+            }
+
+            Object.entries(data.errors).forEach(([key, value]) => {
+                if (key === IDS.USERNAME) usernameErrorLabel.textContent = value;
+                if (key === IDS.PASSWORD) passwordErrorLabel.textContent = value;
+            })
+        }
+
+        async function postRequest(url, payload) {
+            return await fetch(url, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+        }
+
+        async function login(event) {
+            event.preventDefault();
+
+            loginSubmitButton.disabled = true;
+            resetErrorLabels();
+
+            const payload = {
+                username: usernameInput.value,
+                password: passwordInput.value
+            }
+
+            const response = await postRequest(URLS.LOGIN, payload)
+            let data = {}
+            try {
+                data = await response.json();
+            } catch {
+                data.message = "Unexpected error";
+            }
+
+            if (response.ok) {
+                loginForm.reset();
+
+                saveAuthResult(data);
+                messageLabel.textContent = MESSAGES.LOGIN_SUCCESS;
+
+                const urlParams = new URLSearchParams(window.location.search)
+                const next = urlParams.get('next')
+
+                window.location.href = (next == null) ? URLS.ROOT_PAGE : next
+
+            } else {
+                loginSubmitButton.disabled = false;
+                setErrorLabels(data);
+            }
+
+        }
+
+    </script>
 
 </body>
+
 </html>

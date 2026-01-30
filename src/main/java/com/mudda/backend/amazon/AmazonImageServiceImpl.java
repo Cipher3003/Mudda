@@ -39,7 +39,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
     private final AmazonS3 amazonS3;
 
     public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName,
-                                  AmazonS3 amazonS3) {
+            AmazonS3 amazonS3) {
         this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
     }
@@ -93,10 +93,8 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         if (fileExtension == null ||
                 validExtensions
                         .stream()
-                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))
-        )
+                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension)))
             throw new InvalidImageExtensionException(String.join(", ", validExtensions));
-
 
         // Check if file is an actual image and MIME type is an image
         String fileContentType = file.getContentType();
@@ -104,6 +102,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             throw new NonImageFileException();
 
         try {
+            // TODO: this fails for webp fix it maybe
             if (ImageIO.read(file.getInputStream()) == null)
                 throw new NonImageFileException();
 
@@ -148,9 +147,9 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
     // endregion
 
-//    ------------------------------
-//    Helpers
-//    ------------------------------
+    // ------------------------------
+    // Helpers
+    // ------------------------------
 
     private String getFileUrl(String bucketName, String region) {
         return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);

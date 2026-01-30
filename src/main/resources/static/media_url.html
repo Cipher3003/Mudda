@@ -5,80 +5,416 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Image Upload to S3</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+
+        form {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        input[type="file"] {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        button {
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            background: #1976d2;
+            color: white;
+        }
+
+        button:hover {
+            background: #125aa0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .fileLabel {
+            padding: 6px 14px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .fileLabel:hover {
+            background: #d5d5d5;
+        }
+
+        .fileName {
+            font-size: 13px;
+            color: #555;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .imageCard {
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .imageCard img {
+            max-width: 150px;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .imageCard label {
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            color: #444;
+            word-break: break-word;
+        }
+
+        .bucketItem {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 12px;
+        }
+
+        .deleteBtn {
+            background: #e53935;
+        }
+
+        .deleteBtn:hover {
+            background: #c62828;
+        }
+
+        #imageContainer {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 10px;
+        }
+
+        #imageContainer>div {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
+            background: #fafafa;
+        }
+
+        #msg,
+        #uploadMessage {
+            color: red;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Test Image Upload to S3</h1>
-    <form action="/api/v1/amazon/images" method="post" enctype="multipart/form-data">
-        <label for="files">Select an image to upload:</label>
-        <input type="file" id="files" name="files" accept="image/*" multiple required>
-        <button type="submit">Upload</button>
-    </form>
+    <div class="container">
+        <h1>Test Image Upload to S3</h1>
 
-    <h2>Uploaded Image</h2>
-    <img id="uploadedImage" src="" alt="Uploaded Image will appear here after upload."
-        style="max-width: 100%; height: auto;">
+        <form id="imageForm">
+            <label class="fileLabel" for="fileInput">Choose Images</label>
+            <!-- This accept just sets custom filter on file picker which can be overriden easily -->
+            <input type="file" id="fileInput" name="files" accept="image/jpeg,image/png,image/jpg" multiple hidden>
+            <span id="fileNameSpan" class="fileName">No image selected</span>
+            <button type="submit">Upload</button>
+        </form>
 
-    <br>
-    <br>
+        <p id="msg"></p>
 
-    <button id="bucket_list_btn" onclick="listBucketContents()">List Bucket Contents</button>
-    <ul id="bucket_list"></ul>
-</body>
+        <h2>Uploaded Images</h2>
 
-<script>
-    async function listBucketContents() {
-        const BASE_URL = window.location.origin
-        const AMAZON_IMAGE_URL = BASE_URL + "/api/v1/amazon/images"
-        const response = await fetch(AMAZON_IMAGE_URL)
-        if (!response.ok) {
-            throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
+        <div id="imageContainer">
+            Uploaded Image will appear here after upload.
+        </div>
+        <br>
+
+        <button onclick="listBucketContents()">List Bucket Contents</button>
+        <ul id="bucketList"></ul>
+    </div>
+
+    <script>
+
+        const URLS = {
+            AMAZON_IMAGE: '/api/v1/amazon/images',
+            REFRESH: '/auth/refresh',
+            LOGIN_PAGE: '/login.html'
         }
 
-        // TODO: Add logic to work with auth
+        const IDS = {
+            IMAGE_FORM: 'imageForm',
+            FILE_INPUT: 'fileInput',
+            MESSAGE: 'msg',
+            IMAGE_CONTAINER: 'imageContainer',
+            BUCKET_LIST: 'bucketList',
+            FILE_NAME_SPAN: 'fileNameSpan'
+        }
 
-        const bucket_items = await response.json();
-        console.log(bucket_items)
+        const STORAGE_KEYS = {
+            ACCESS_TOKEN: 'accessToken',
+            REFRESH_TOKEN: 'refreshToken',
+            TOKEN_EXPIRES_AT: 'accessExpiresAt',
+            USER_ID: 'userId',
+            USERNAME: 'username',
+            VERIFIED: 'verified'
+        }
 
-        const bucket_list = document.getElementById("bucket_list")
+        const uploadForm = document.getElementById(IDS.IMAGE_FORM)
+        const fileInput = document.getElementById(IDS.FILE_INPUT)
+        const message = document.getElementById(IDS.MESSAGE)
+        const imgContainer = document.getElementById(IDS.IMAGE_CONTAINER)
+        const fileNameSpan = document.getElementById(IDS.FILE_NAME_SPAN)
 
-        bucket_list.innerHTML = ""
+        fileInput.onchange = () => {
+            const count = fileInput.files.length
+            if (count === 0) fileNameSpan.textContent = 'No image selected'
+            else if (count === 1) fileNameSpan.textContent = fileInput.files[0].name
+            else fileNameSpan.textContent = `${fileInput.files.length} file(s) selected`
+        }
 
-        bucket_items.forEach(item => {
-            const list_item = document.createElement("li")
-            list_item.style.display = "flex"
-            list_item.style.alignItems = "center"
-            list_item.style.marginBottom = "8px"
+        uploadForm.onsubmit = uploadImage
 
-            const nameSpan = document.createElement("span")
-            nameSpan.innerText = item
+        async function uploadImage(event) {
+            console.log("Uploading image");
 
-            const deleteButton = document.createElement("button")
-            deleteButton.innerText = "Delete"
-            deleteButton.style.marginLeft = "12px"
-            deleteButton.onclick = async () => {
-                try {
-                    const res = await fetch(`${AMAZON_IMAGE_URL}/${encodeURIComponent(item)}`, {
-                        method: "DELETE"
-                    })
+            event.preventDefault()
+            resetLabels()
 
-                    if (res.ok) {
-                        list_item.remove()
-                        console.log(`Deleted ${item}`)
-                    } else {
-                        console.log(`Failed to delete file: ${item}`);
-                    }
-                } catch (error) {
-                    console.error("Error: " + error);
+            if (!validImages(fileInput.files)) return
+
+            const submitBtn = uploadForm.querySelector("button")
+            submitBtn.disabled = true
+            message.textContent = 'Uploading.. please wait'
+
+            const imageData = new FormData()
+
+            for (const file of fileInput.files)
+                imageData.append('files', file)
+
+            const response = await authFetch(URLS.AMAZON_IMAGE, {
+                method: 'POST',
+                body: imageData
+            })
+            console.log("Got response");
+
+            submitBtn.disabled = false
+
+            if (response == null) return
+
+            let data = {}
+            try {
+                data = await response.json();
+                console.log("Got data");
+
+            } catch {
+                data.message = "Unexpected error";
+            }
+
+            if (response.ok) {
+                imgContainer.textContent = ''
+                showImagePreview(data)
+            }
+            else if (response.status === 401) redirectToLogin()
+            else message.textContent = data.message
+        }
+
+        function validImages(files) {
+            if (files.length === 0) {
+                message.textContent = 'No file selected please select a file'
+                return false
+            }
+
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) {
+                    message.textContent = 'Only image files are allowed'
+                    return false
                 }
             }
 
-            list_item.appendChild(nameSpan)
-            list_item.appendChild(deleteButton)
-            bucket_list.appendChild(list_item)
-        });
-    }
+            return true
+        }
 
-</script>
+        function showImagePreview(data) {
+            data.forEach(img => {
+                const wrapper = document.createElement("div")
+                wrapper.className = "imageCard"
+
+                const image = document.createElement("img")
+                image.src = '/placeholder.png'
+                // TODO use imageUrl
+
+                const label = document.createElement("label")
+                label.textContent = img.imageName
+
+                wrapper.appendChild(image)
+                wrapper.appendChild(label)
+                imgContainer.appendChild(wrapper)
+            })
+        }
+
+        function redirectToLogin() {
+            window.location.href = `${URLS.LOGIN_PAGE}?next=${encodeURIComponent(window.location.href)}`
+        }
+
+        function isTokenValid() {
+            const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+            const expiresAt = Number(localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRES_AT))
+
+            return accessToken != null && expiresAt > Date.now()
+        }
+
+        async function refresh() {
+            const token = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
+
+            if (token == null) {
+                redirectToLogin()
+                return
+            }
+
+            const payload = { refreshToken: token }
+            const response = await postRequest(URLS.REFRESH, payload)
+            const data = await response.json()
+
+            if (response.ok) saveAuthResult(data)
+            else if (response.status === 401) redirectToLogin()
+            else message.textContent = data.message
+            // TODO: this message won't show complete message if its validation error
+        }
+
+        async function postRequest(url, payload) {
+            return await fetch(url, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+        }
+
+        function saveAuthResult(data) {
+            const expiresAt = Date.now() + data.accessExpiresInMs
+
+            localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
+            localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRES_AT, expiresAt);
+            localStorage.setItem(STORAGE_KEYS.USER_ID, data.user.id);
+            localStorage.setItem(STORAGE_KEYS.USERNAME, data.user.username);
+            localStorage.setItem(STORAGE_KEYS.VERIFIED, data.user.verified);
+        }
+
+        function resetLabels() {
+            message.textContent = ''
+            imgContainer.textContent = 'Uploaded Image will appear here after upload.'
+        }
+
+        async function listBucketContents() {
+
+            const response = await fetch(URLS.AMAZON_IMAGE)
+
+            if (!response.ok)
+                throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
+
+            const bucketItems = await response.json();
+            const bucketList = document.getElementById(IDS.BUCKET_LIST)
+            bucketList.innerHTML = ""
+
+            if (bucketItems.length === 0) {
+                const emptyItem = document.createElement("li");
+                emptyItem.textContent = "Bucket is empty";
+                emptyItem.style.color = "#666";
+                emptyItem.style.fontStyle = "italic";
+                bucketList.appendChild(emptyItem);
+                return
+            }
+
+            bucketItems.forEach(item => {
+                const listItem = document.createElement("li")
+                listItem.className = "bucketItem"
+
+                const nameSpan = document.createElement("span")
+                nameSpan.innerText = item
+
+                const deleteButton = document.createElement("button")
+                deleteButton.className = "deleteBtn"
+                deleteButton.innerText = "Delete"
+
+                deleteButton.onclick = async () => {
+                    try {
+                        const url = `${URLS.AMAZON_IMAGE}/${encodeURIComponent(item)}`
+                        const response = await authFetch(url, { method: 'DELETE' })
+
+                        if (response == null) return
+
+                        if (response.ok) {
+                            listItem.remove()
+                            console.log(`Deleted ${item}`)
+                        }
+                        else console.log(`Failed to delete file: ${item}`);
+
+                    } catch (error) {
+                        console.error("Error: " + error);
+                    }
+                }
+
+                listItem.appendChild(nameSpan)
+                listItem.appendChild(deleteButton)
+                bucketList.appendChild(listItem)
+            });
+        }
+
+        async function authFetch(url, options = {}) {
+            try {
+
+                if (!isTokenValid()) {
+                    await refresh()
+                    if (!isTokenValid()) throw new Error("Auth Failed")
+                }
+
+                const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+
+                try {
+                    const response = await fetch(url, {
+                        ...options,
+                        headers: {
+                            ...(options.headers || {}),
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    })
+                } catch (error) {
+                    console.error(error)
+                    message.textContent = 'Network error'
+                    return null
+                }
+
+                if (response.status === 401) {
+                    redirectToLogin()
+                    return null
+                }
+
+                return response
+
+            } catch (error) {
+                console.error(error);
+                throw error
+            }
+        }
+
+    </script>
+</body>
 
 </html>
