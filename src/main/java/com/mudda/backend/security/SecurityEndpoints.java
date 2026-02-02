@@ -32,6 +32,7 @@ public final class SecurityEndpoints {
             "/seed.html",
             "/media_url.html",
             "/login.html",
+            "/register.html",
             "/favicon.ico",
             "/placeholder.png"
     };
