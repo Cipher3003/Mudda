@@ -98,6 +98,7 @@ public class SeedService {
                 "MuddaUser",
                 "Location",
                 "Category"
+//                TODO: add token tables and sequences
         );
 
         try {
