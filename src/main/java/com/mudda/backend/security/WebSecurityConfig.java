@@ -8,7 +8,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -74,7 +75,21 @@ public class WebSecurityConfig {
 
     private void configureCsrf(HttpSecurity http) throws Exception {
         http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
-                .ignoringRequestMatchers("/auth/mobile/**"));
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()) // already has default
+                .requireCsrfProtectionMatcher(request -> {
+//                    Ignore if request is safe (non-state changing)
+                    if (List.of("GET", "HEAD", "TRACE", "OPTIONS").contains(request.getMethod())) return false;
+
+//                    Ignore if request from mobile
+                    if (List.of("mobile", "mobile-android", "mobile-ios").contains(request.getHeader("X-Client-Type")))
+                        return false;
+
+//                    Ignore if request has bearer token (jwt)
+                    String authorization = request.getHeader("Authorization");
+                    return authorization == null || !authorization.startsWith("Bearer ");
+//                    Force everything else to from browser with csrf
+                }));
     }
 
     private void configureAuthorization(HttpSecurity http) throws Exception {
@@ -84,7 +99,6 @@ public class WebSecurityConfig {
                 .requestMatchers(SEED_ENDPOINTS).permitAll()
                 .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
                 .requestMatchers(PUBLIC_STATIC_PAGES).permitAll()
-                .requestMatchers(AUTH_MOBILE_ENDPOINTS).permitAll()
                 .requestMatchers(AUTH_PUBLIC_ENDPOINTS).permitAll()
                 .requestMatchers(HttpMethod.GET, PUBLIC_READONLY_ENDPOINTS).permitAll()
 
@@ -145,7 +159,7 @@ public class WebSecurityConfig {
                 .loginPage("/login.html"));
 
         http.logout(logout -> logout
-                .logoutUrl("/auth/web/logout")
+                .logoutUrl("/auth/web/logout")  // TODO: maybe change logout and login web url to default
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID", "remember-me")
         );
@@ -180,7 +194,7 @@ public class WebSecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(appProperties.getCors().getAllowedOrigins().split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of("Authorization", "X-XRSF-TOKEN", "X-Client-Type", "Content-Type"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

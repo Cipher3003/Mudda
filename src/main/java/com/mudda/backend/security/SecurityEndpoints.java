@@ -36,19 +36,15 @@ public final class SecurityEndpoints {
             "/placeholder.png"
     };
 
-//    TODO: separate these for web and mobile since csrf is needed in form for security
     public static final String[] AUTH_PUBLIC_ENDPOINTS = {
             "/auth/register",
             "/auth/verify-email/resend",
             "/auth/verify-email/confirm",
             "/auth/forgot-password",
-            "/auth/reset-password"
-    };
-
-    public static final String[] AUTH_MOBILE_ENDPOINTS = {
-            "/auth/mobile/login",
-            "/auth/mobile/refresh",
-            "/auth/mobile/logout"
+            "/auth/reset-password",
+            "/auth/login",
+            "/auth/refresh",
+            "/auth/logout"
     };
 
     public static final String[] PUBLIC_READONLY_ENDPOINTS = {
