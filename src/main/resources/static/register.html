@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        input, select {
+            padding: 8px;
+            margin: 6px;
+            width: 220px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 15px;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Register</h2>
+
+<form id="registerForm">
+    <input id="username" placeholder="Username" required><br>
+    <input id="name" placeholder="Full Name" required><br>
+    <input id="email" type="email" placeholder="Email" required><br>
+    <input id="dob" type="date" required><br>
+    <input id="phone" placeholder="Phone (+1234567890)" required><br>
+    <input id="password" type="password" placeholder="Password" required><br>
+
+    <select id="role">
+        <option value="CITIZEN">CITIZEN</option>
+        <option value="GOVERNMENT">GOVERNMENT</option>
+        <option value="CREATOR">CREATOR</option>
+    </select><br>
+
+    <input id="profileImageUrl" placeholder="Profile Image URL (optional)"><br>
+
+    <button type="submit">Register</button>
+</form>
+
+<p id="message" class="error"></p>
+
+<script>
+    /* ================= CSRF ================= */
+
+    function getCsrfToken() {
+        const cookie = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("XSRF-TOKEN="));
+        return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
+    }
+
+    /* ================= FORM ================= */
+
+    const form = document.getElementById("registerForm");
+    const msg = document.getElementById("message");
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        msg.textContent = "";
+
+        const csrfToken = getCsrfToken();
+        if (!csrfToken) {
+            msg.textContent = "CSRF token missing. Refresh page.";
+            return;
+        }
+
+        const payload = {
+            username: document.getElementById("username").value,
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            dateOfBirth: document.getElementById("dob").value,
+            phoneNumber: document.getElementById("phone").value,
+            password: document.getElementById("password").value,
+            role: document.getElementById("role").value,
+            profileImageUrl: document.getElementById("profileImageUrl").value || null
+        };
+
+        console.log("CSRFToken", csrfToken);
+
+        const response = await fetch("/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-XSRF-TOKEN": csrfToken
+            },
+            credentials: "same-origin",
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            msg.style.color = "green";
+            msg.textContent = "Registered successfully. Check your email.";
+            form.reset();
+        } else {
+            const data = await response.json().catch(() => null);
+            msg.style.color = "red";
+            msg.textContent = data?.message || "Registration failed";
+        }
+    };
+</script>
+
+</body>
+</html>
