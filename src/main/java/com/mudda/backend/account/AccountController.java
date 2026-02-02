@@ -28,6 +28,8 @@ public class AccountController {
     // ----------- AUTH COMMANDS -----------------
     // region Commands (Write Operations)
 
+    //    TODO: add update password endpoint
+
     @DeleteMapping
     public ResponseEntity<Void> deleteAccount(Authentication authentication) {
         log.trace("Received request to delete account {}", authentication.getName());
