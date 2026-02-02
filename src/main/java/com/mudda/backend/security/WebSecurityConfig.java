@@ -82,7 +82,8 @@ public class WebSecurityConfig {
                     if (List.of("GET", "HEAD", "TRACE", "OPTIONS").contains(request.getMethod())) return false;
 
 //                    Ignore if request from mobile
-                    if (List.of("mobile", "mobile-android", "mobile-ios").contains(request.getHeader("X-Client-Type")))
+                    String clientType = request.getHeader("X-Client-Type");
+                    if (clientType != null && List.of("mobile", "mobile-android", "mobile-ios").contains(clientType))
                         return false;
 
 //                    Ignore if request has bearer token (jwt)
