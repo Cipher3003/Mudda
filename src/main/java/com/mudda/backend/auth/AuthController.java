@@ -51,6 +51,8 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse(messageUtil.getMessage(MessageCodes.VERIFICATION_EMAIL_SENT)));
     }
 
+    // region Web ONLY
+
     @GetMapping("/verify-email/confirm")
     public ResponseEntity<MessageResponse> verifyEmail(@RequestParam @NotBlank String verifyToken) {
         log.debug("Verifying email verification token {}", verifyToken);
@@ -58,25 +60,35 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse(messageUtil.getMessage(MessageCodes.EMAIL_VERIFIED)));
     }
 
+//    NOTE: Login and logout handled by spring security in webSecurityConfig
+
+    // endregion
+
+    // region Mobile ONLY
+
+    //    TODO: add email verification endpoint with POST
+
     //    Only login when both token expires
-    @PostMapping("/login")
+    @PostMapping("/mobile/login")
     public ResponseEntity<AuthResponse> loginUser(@Valid @RequestBody AuthRequest authRequest) {
         log.debug("Received request to login user {}", authRequest);
         return ResponseEntity.ok(AuthMapper.toAuthResponse(authService.login(authRequest)));
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/mobile/logout")
     public void logoutUser(@Valid @RequestBody RefreshRequest refreshRequest) {
         log.debug("Received request to logout user {}", refreshRequest);
         authService.logout(refreshRequest.refreshToken());
     }
 
     //    Use to refresh access when expires
-    @PostMapping("/refresh")
+    @PostMapping("/mobile/refresh")
     public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshRequest refreshRequest) {
         log.debug("Received request to refresh token {}", refreshRequest);
         return ResponseEntity.ok(AuthMapper.toAuthResponse(authService.refresh(refreshRequest.refreshToken())));
     }
+
+    // endregion
 
     @PostMapping("/forgot-password")
     public ResponseEntity<MessageResponse> forgotPassword(

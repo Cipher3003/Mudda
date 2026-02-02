@@ -24,6 +24,7 @@ public class AppProperties {
     private Security security;
     private RateLimit rateLimit;
     private Cors cors;
+    private Session session;
 
     @Getter
     @Setter
@@ -58,5 +59,11 @@ public class AppProperties {
     @Setter
     public static class Cors {
         private String allowedOrigins;
+    }
+
+    @Getter
+    @Setter
+    public static class Session {
+        private String key;
     }
 }

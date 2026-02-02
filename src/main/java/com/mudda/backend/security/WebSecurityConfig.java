@@ -12,16 +12,18 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import javax.sql.DataSource;
 import java.util.List;
 
 import static com.mudda.backend.security.SecurityEndpoints.*;
@@ -33,27 +35,36 @@ public class WebSecurityConfig {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthFilter jwtAuthFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final AppProperties appProperties;
+    private final PersistentTokenRepository persistentTokenRepository;
 
     public WebSecurityConfig(UserDetailsService userDetailsService,
                              PasswordEncoder passwordEncoder,
                              JwtAuthFilter jwtAuthFilter,
-                             AppProperties appProperties) {
+                             RateLimitFilter rateLimitFilter,
+                             AppProperties appProperties,
+                             PersistentTokenRepository persistentTokenRepository) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.jwtAuthFilter = jwtAuthFilter;
+        this.rateLimitFilter = rateLimitFilter;
         this.appProperties = appProperties;
+        this.persistentTokenRepository = persistentTokenRepository;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        enableCors(http);
-        disableCsrf(http);  // CSRF not needed in jwt
+        enableCors(http);   // enable CORS for web
+        configureCsrf(http);  // CSRF not needed in jwt
         configureAuthorization(http);   // add public and protected endpoints
         configureExceptionHandling(http);   // Handles authentication and authorization error
-        configureSession(http); // Makes session stateless
+        configureSession(http); // Makes sessions as needed for web
+        configureRememberMe(http);   // Add remember me cookie
+        configureForms(http);   // Add login and logout forms
         configureAuthentication(http);  // Set userDetails, authenticationProvider, JwtFilter, httpBasic
+        configureRateLimit(http);   // Set rateLimitFilter before authentication
 
         return http.build();
     }
@@ -62,8 +73,9 @@ public class WebSecurityConfig {
         http.cors(Customizer.withDefaults());
     }
 
-    private void disableCsrf(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable);
+    private void configureCsrf(HttpSecurity http) throws Exception {
+        http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
+                .ignoringRequestMatchers("/auth/mobile/**"));
     }
 
     private void configureAuthorization(HttpSecurity http) throws Exception {
@@ -73,6 +85,7 @@ public class WebSecurityConfig {
                 .requestMatchers(SEED_ENDPOINTS).permitAll()
                 .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
                 .requestMatchers(PUBLIC_STATIC_PAGES).permitAll()
+                .requestMatchers(AUTH_MOBILE_ENDPOINTS).permitAll()
                 .requestMatchers(AUTH_PUBLIC_ENDPOINTS).permitAll()
                 .requestMatchers(HttpMethod.GET, PUBLIC_READONLY_ENDPOINTS).permitAll()
 
@@ -80,6 +93,7 @@ public class WebSecurityConfig {
                 .anyRequest().authenticated());
     }
 
+    // TODO: handle auth error for mobile only endpoints and redirect to login for web
     private void configureExceptionHandling(HttpSecurity http) throws Exception {
         http.exceptionHandling(exception -> exception
 
@@ -110,17 +124,39 @@ public class WebSecurityConfig {
                 }));
     }
 
+    //    TODO: configure session side effects for resetting login failure and count
     private void configureSession(HttpSecurity http) throws Exception {
         http.sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+    }
+
+    private void configureRememberMe(HttpSecurity http) throws Exception {
+        http.rememberMe(rememberMe -> rememberMe
+                        .key(appProperties.getSession().getKey())
+                        .tokenRepository(persistentTokenRepository)
+                        .userDetailsService(userDetailsService)
+//              .tokenValiditySeconds()   // Set if not happy with default (2 weeks)
+//              .rememberMeParameter()    // set if not happy with default (remember-me)
+        );
+    }
+
+    // TODO: handle session login, logout errors
+    private void configureForms(HttpSecurity http) throws Exception {
+        http.formLogin(formLogin -> formLogin
+                .loginPage("/login.html"));
+
+        http.logout(logout -> logout
+                .logoutUrl("/auth/web/logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", "remember-me")
+        );
     }
 
     private void configureAuthentication(HttpSecurity http) throws Exception {
         http
                 .userDetailsService(userDetailsService)
                 .authenticationProvider(getAuthenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults());
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     private AuthenticationProvider getAuthenticationProvider() {
@@ -128,6 +164,10 @@ public class WebSecurityConfig {
         daoAuthenticationProvider.setUserDetailsService(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         return daoAuthenticationProvider;
+    }
+
+    private void configureRateLimit(HttpSecurity http) {
+        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     //    Get the spring authentication manager (Should never create our own)
@@ -147,6 +187,13 @@ public class WebSecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository(DataSource dataSource) {
+        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+        tokenRepository.setDataSource(dataSource);
+        return tokenRepository;
     }
 
 }
