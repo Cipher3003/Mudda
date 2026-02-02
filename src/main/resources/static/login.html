@@ -77,27 +77,28 @@
         e.preventDefault();
         msg.textContent = ''
 
+        const rawFormData = new FormData(form);
+        const payload = new URLSearchParams();
+        rawFormData.forEach((value, key) => {
+            payload.append(key, value);
+        });
+
         const csrfToken = getCookie('XSRF-TOKEN');
         if (!csrfToken) {
             msg.textContent = "CSRF token missing. Refresh page.";
             return;
         }
 
-        const payload = {
-            username: document.getElementById("username").value,
-            password: document.getElementById("password").value
-        };
-
         console.log("CSRFToken", csrfToken);
 
         const response = await fetch("/login", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
                 "X-XSRF-TOKEN": csrfToken
             },
             credentials: "same-origin",
-            body: JSON.stringify(payload)
+            body: payload
         });
 
         if (response.ok) {

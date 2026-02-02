@@ -110,6 +110,7 @@ public class GlobalExceptionHandler {
             EntityNotFoundException.class,
             NoSuchEntityException.class
     })
+//    TODO: add no resource found exception in this handler
     public ResponseEntity<ApiError> handleNotFound(Exception e) {
         String message = resolveMessage(e, MessageCodes.NOT_FOUND);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

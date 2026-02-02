@@ -82,7 +82,6 @@ public class WebSecurityConfig {
                 .csrfTokenRequestHandler(csrfHandler) // TODO: transition to handshake endpoint to send csrf token
                 .requireCsrfProtectionMatcher(request -> {
 //                    Ignore if request is safe (non-state changing)
-                    System.out.println("CSRF token: " + request.getHeader("X-XSRF-TOKEN"));
                     if (List.of("GET", "HEAD", "TRACE", "OPTIONS").contains(request.getMethod())) return false;
 
 //                    Ignore if request from mobile
@@ -163,7 +162,7 @@ public class WebSecurityConfig {
         http.formLogin(formLogin -> formLogin
                 .loginPage("/login.html")
                 .loginProcessingUrl("/login")
-                .successForwardUrl("/index.html")
+                .defaultSuccessUrl("/index.html")
                 .permitAll()
         );
 
