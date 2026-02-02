@@ -68,7 +68,8 @@ public class WebSecurityConfig {
     }
 
     private void enableCors(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults());
+        http.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer
+                .configurationSource(corsConfigurationSource()));
     }
 
     private void configureCsrf(HttpSecurity http) throws Exception {
