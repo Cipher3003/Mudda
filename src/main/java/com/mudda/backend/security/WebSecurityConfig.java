@@ -18,7 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -74,11 +74,15 @@ public class WebSecurityConfig {
     }
 
     private void configureCsrf(HttpSecurity http) throws Exception {
+        CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
+        csrfHandler.setCsrfRequestAttributeName(null);  // forces spring to generate csrf for all request
+
         http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()) // already has default
+                .csrfTokenRequestHandler(csrfHandler) // TODO: transition to handshake endpoint to send csrf token
                 .requireCsrfProtectionMatcher(request -> {
 //                    Ignore if request is safe (non-state changing)
+                    System.out.println("CSRF token: " + request.getHeader("X-XSRF-TOKEN"));
                     if (List.of("GET", "HEAD", "TRACE", "OPTIONS").contains(request.getMethod())) return false;
 
 //                    Ignore if request from mobile
@@ -157,12 +161,18 @@ public class WebSecurityConfig {
     // TODO: handle session login, logout errors
     private void configureForms(HttpSecurity http) throws Exception {
         http.formLogin(formLogin -> formLogin
-                .loginPage("/login.html"));
+                .loginPage("/login.html")
+                .loginProcessingUrl("/login")
+                .successForwardUrl("/index.html")
+                .permitAll()
+        );
 
         http.logout(logout -> logout
                 .logoutUrl("/auth/web/logout")  // TODO: maybe change logout and login web url to default
+                .logoutSuccessUrl("/login.html?logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID", "remember-me")
+                .permitAll()
         );
     }
 
@@ -195,7 +205,7 @@ public class WebSecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(appProperties.getCors().getAllowedOrigins().split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "X-XRSF-TOKEN", "X-Client-Type", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "X-XSRF-TOKEN", "X-Client-Type", "Content-Type"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

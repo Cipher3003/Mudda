@@ -31,7 +31,7 @@ public final class SecurityEndpoints {
             "/issue.html",
             "/seed.html",
             "/media_url.html",
-            "/login.html",
+            "/login.html",  // TODO: maybe remove since formLogin permits
             "/register.html",
             "/favicon.ico",
             "/placeholder.png"
