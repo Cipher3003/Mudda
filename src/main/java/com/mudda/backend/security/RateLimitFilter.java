@@ -34,6 +34,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.appProperties = appProperties;
     }
 
+//    TODO: IP-based limiter (Ideal setup later):
+//     username-based lockout
+//     exponential backoff
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -41,14 +45,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        String ip = request.getRemoteAddr();
-        String path = request.getRequestURI();
-
-        if (!shouldRateLimit(path)) {
+        if (!shouldRateLimit(request)) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        String ip = request.getRemoteAddr();
         Bucket bucket = buckets.computeIfAbsent(ip, this::newBucket);
 
         if (bucket.tryConsume(1))
@@ -70,7 +72,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 ).build();
     }
 
-    private boolean shouldRateLimit(String path) {
-        return path.startsWith("/auth");
+    private boolean shouldRateLimit(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return request.getMethod().equals("POST") && (path.startsWith("/auth") || path.equals("/login"));
     }
 }
