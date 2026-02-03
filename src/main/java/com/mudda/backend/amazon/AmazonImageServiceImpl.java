@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.mudda.backend.utils.FileUtils.getPublicUrl;
@@ -66,7 +67,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
     //    TODO: maybe cache file to database to resume uploads to handle fallback ?
     @Override
-    public AmazonImage uploadImageToAmazon(MultipartFile multipartFile) {
+    public ImageUploadResponse uploadImageToAmazon(MultipartFile multipartFile) {
 
         imageValidator.validateImage(multipartFile);
 
@@ -84,7 +85,13 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
             log.info("Uploaded image to AWS: {}", fileKey);
 
-            return new AmazonImage(multipartFile.getOriginalFilename(), fileKey);
+            return new ImageUploadResponse(
+                    multipartFile.getOriginalFilename(),
+                    fileKey,
+                    UploadStatus.SUCCESS,
+                    null
+            );
+
         } catch (IOException e) {
             throw new UploadFailedException();
         } catch (S3Exception e) {
@@ -93,6 +100,43 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             throw new S3ClientException();
         }
     }
+
+    @Override
+    public BatchImageUploadResponse uploadImagesToAmazon(List<MultipartFile> files) {
+        log.trace("Starting batch upload for {} images", files != null ? files.size() : 0);
+        if (files == null || files.isEmpty())
+            return new BatchImageUploadResponse(0, 0, Collections.emptyList());
+
+//        Process all files in parallel
+        List<ImageUploadResponse> responses = files.parallelStream()
+                .map(file -> {
+                    try {
+                        return this.uploadImageToAmazon(file);
+                    } catch (Exception e) {
+                        log.error("Failed to upload image to AWS: {}", file.getOriginalFilename(), e);
+
+                        String errorMessage = e.getMessage();
+//                        TODO: give better error messages
+                        if (errorMessage == null || errorMessage.isEmpty())
+                            errorMessage = "Unknown error occurred (%s)".formatted(e.getClass().getSimpleName());
+
+                        return new ImageUploadResponse(
+                                file.getOriginalFilename(),
+                                null,
+                                UploadStatus.FAILED,
+                                errorMessage
+                        );
+                    }
+                })
+                .toList();
+
+        int successCount = (int) responses.stream()
+                .filter(response -> response.status().equals(UploadStatus.SUCCESS)).count();
+        int failureCount = responses.size() - successCount;
+
+        return new BatchImageUploadResponse(successCount, failureCount, responses);
+    }
+
 
     @Override
     public void removeImageFromAmazon(String imageFileName) {

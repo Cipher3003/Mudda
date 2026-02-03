@@ -6,10 +6,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface AmazonImageService {
 
-    public AmazonImage uploadImageToAmazon(MultipartFile file);
+    List<String> getBucketContents();
 
-    public List<String> getBucketContents();
+    ImageUploadResponse uploadImageToAmazon(MultipartFile file);
 
-    public void removeImageFromAmazon(String imageFileName);
+    BatchImageUploadResponse uploadImagesToAmazon(List<MultipartFile> files);
+
+    void removeImageFromAmazon(String imageFileName);
 
 }

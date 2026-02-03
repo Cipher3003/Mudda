@@ -1,6 +1,6 @@
 package com.mudda.backend.amazon.services.impl;
 
-import com.mudda.backend.amazon.AmazonImage;
+import com.mudda.backend.amazon.ImageUploadResponse;
 import com.mudda.backend.amazon.AmazonImageServiceImpl;
 import com.mudda.backend.amazon.ContentType;
 import com.mudda.backend.amazon.ImageValidator;
@@ -64,13 +64,13 @@ public class AmazonImageServiceImplTest {
             mockedStatic.when(() -> FileUtils.generateFileName(any())).thenReturn(testImageName);
             MockMultipartFile mockMultipartFile = createMockFileFromResource();
 
-            AmazonImage actualAmazonImage = amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
+            ImageUploadResponse response = amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
 
             verify(imageValidator).validateImage(mockMultipartFile);
 
             verify(amazonS3).putObject(any(PutObjectRequest.class), any(RequestBody.class));
 
-            assertEquals(testImageName, actualAmazonImage.imageKey());
+            assertEquals(testImageName, response.fileKey());
         }
     }
 
