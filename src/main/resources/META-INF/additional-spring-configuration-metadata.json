@@ -54,6 +54,11 @@
       "name": "app.email.reset-path",
       "type": "java.lang.String",
       "description": "The password reset link endpoint to be sent in mail."
+    },
+    {
+      "name": "app.cdn.origin",
+      "type": "java.lang.String",
+      "description": "The CDN address from where public images will be delivered."
     }
   ]
 }

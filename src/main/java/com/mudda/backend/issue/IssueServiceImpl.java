@@ -15,17 +15,14 @@ import com.mudda.backend.vote.VoteRepository;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -40,6 +37,9 @@ public class IssueServiceImpl implements IssueService {
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+
+    @Value("${app.cdn.origin}")
+    private String cdnOrigin;
 
     public IssueServiceImpl(
             IssueRepository issueRepository, CommentService commentService, VoteRepository voteRepository,
@@ -84,8 +84,6 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getId)
                 .toList();
 
-//        TODO: return CDN image links
-
         Set<Long> authorIds = issuePage.getContent()
                 .stream()
                 .map(Issue::getUserId)
@@ -115,9 +113,14 @@ public class IssueServiceImpl implements IssueService {
 
         return issuePage.map(issue -> {
 
+            issue.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
+
             MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
             if (muddaUser == null)
                 throw new IllegalStateException("User not found for issue: " + issue.getId());
+            // TODO: maybe continue and ignore bad data and cleanup later
+
+            muddaUser.changeProfileImageUrl(cdnOrigin.concat(muddaUser.getProfileImageUrl()));
 
             long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
 
@@ -137,9 +140,13 @@ public class IssueServiceImpl implements IssueService {
         if (issue == null)
             return Optional.empty();
 
+        issue.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
+
         MuddaUser author = userRepository.findById(issue.getUserId()).orElse(null);
         if (author == null)
             return Optional.empty();
+
+        author.changeProfileImageUrl(cdnOrigin.concat(author.getProfileImageUrl()));
 
         Location location = locationRepository.findById(issue.getLocationId()).orElse(null);
         if (location == null)
@@ -237,6 +244,10 @@ public class IssueServiceImpl implements IssueService {
             throw new IllegalArgumentException("Category ID for creating Issue not valid");
 
         Issue saved = issueRepository.save(issue);
+
+        saved.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
+        muddaUser.changeProfileImageUrl(cdnOrigin.concat(muddaUser.getProfileImageUrl()));
+
         log.info("Created Issue with id {} by user with id {}", saved.getId(), userId);
         return IssueMapper.toResponse(
                 saved, muddaUser, LocationMapper.toSummary(location.get()), category.get().getName(),

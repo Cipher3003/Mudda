@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.mudda.backend.utils.FileUtils.getPublicUrl;
-
 @Slf4j
 @Service
 public class AmazonImageServiceImpl implements AmazonImageService {
@@ -31,6 +29,8 @@ public class AmazonImageServiceImpl implements AmazonImageService {
     private final ImageValidator imageValidator;
     private final String bucketName;
 
+    @Value("${app.cdn.origin}")
+    private String cdnOrigin;
 
     public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName,
                                   S3Client amazonS3, ImageValidator imageValidator) {
@@ -53,7 +53,9 @@ public class AmazonImageServiceImpl implements AmazonImageService {
                     .build();
 
             ListObjectsV2Response response = amazonS3.listObjectsV2(request);
-            response.contents().forEach(s3Object -> objectKeys.add(getPublicUrl(s3Object.key())));
+            response.contents().forEach(s3Object ->
+                    objectKeys.add(cdnOrigin.concat(s3Object.key())));
+
         } catch (Exception e) {
             log.error("Failed to list objects in S3 bucket: {}", bucketName, e);
         }
