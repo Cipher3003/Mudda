@@ -1,45 +1,37 @@
 package com.mudda.backend.amazon;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.imageio.ImageIO;
-
+import com.mudda.backend.exceptions.*;
+import com.mudda.backend.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.mudda.backend.exceptions.S3ServiceException;
-import com.mudda.backend.exceptions.EmptyFileException;
-import com.mudda.backend.exceptions.FileConversionException;
-import com.mudda.backend.exceptions.NonImageFileException;
-import com.mudda.backend.exceptions.S3ClientException;
-import com.mudda.backend.exceptions.FileSizeLimitExceededException;
-import com.mudda.backend.exceptions.InvalidImageExtensionException;
-import com.mudda.backend.utils.FileUtils;
-import com.mudda.backend.utils.MessageCodes;
+import javax.imageio.ImageIO;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.mudda.backend.utils.FileUtils.getPublicUrl;
 
 @Slf4j
 @Service
 public class AmazonImageServiceImpl implements AmazonImageService {
 
-    private final String bucketName;
-    private final AmazonS3 amazonS3;
+//    TODO: detect images categories using s3
+//    TODO: upload image using presigned URL
 
-    public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName,
-            AmazonS3 amazonS3) {
+    private final String bucketName;
+    private final S3Client amazonS3;
+
+
+    public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName, S3Client amazonS3) {
         this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
     }
@@ -53,15 +45,12 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
         log.trace("Fetching bucket contents");
         try {
-            ObjectListing objectListing = amazonS3.listObjects(bucketName);
+            ListObjectsV2Request request = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .build();
 
-            do {
-                for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
-                    objectKeys.add(summary.getKey());
-                }
-                objectListing = amazonS3.listNextBatchOfObjects(objectListing);
-            } while (objectListing.isTruncated());
-
+            ListObjectsV2Response response = amazonS3.listObjectsV2(request);
+            response.contents().forEach(s3Object -> objectKeys.add(getPublicUrl(s3Object.key())));
         } catch (Exception e) {
             log.error("Failed to list objects in S3 bucket: {}", bucketName, e);
         }
@@ -75,19 +64,19 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
     @Transactional
     @Override
-    public AmazonImage uploadImageToAmazon(MultipartFile file) {
+    public AmazonImage uploadImageToAmazon(MultipartFile multipartFile) {
 
         log.trace("Validating image file before uploading to AWS");
         // Check if file is empty or null
-        if (file == null || file.isEmpty())
+        if (multipartFile == null || multipartFile.isEmpty())
             throw new EmptyFileException();
 
         // Check if file size exceeds maximum size (1MB default)
-        if (file.getSize() >= 1024 * 1024)
+        if (multipartFile.getSize() >= 1024 * 1024)
             throw new FileSizeLimitExceededException(1);
 
         List<String> validExtensions = List.of("jpeg", "png", "jpg");
-        String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
+        String fileExtension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
 
         // Check if file extensions are valid else throw InvalidImageExtensionException
         if (fileExtension == null ||
@@ -97,13 +86,13 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             throw new InvalidImageExtensionException(String.join(", ", validExtensions));
 
         // Check if file is an actual image and MIME type is an image
-        String fileContentType = file.getContentType();
+        String fileContentType = multipartFile.getContentType();
         if (fileContentType == null || !fileContentType.startsWith("image/"))
             throw new NonImageFileException();
 
         try {
             // TODO: this fails for webp fix it maybe
-            if (ImageIO.read(file.getInputStream()) == null)
+            if (ImageIO.read(multipartFile.getInputStream()) == null)
                 throw new NonImageFileException();
 
         } catch (IOException e) {
@@ -112,19 +101,23 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
         log.trace("Converting multipart file to image file for uploading to AWS");
         try {
-            File imageFile = FileUtils.convertMultipartToFile(file);
-            String fileName = FileUtils.generateFileName(file);
+            String fileName = FileUtils.generateFileName(multipartFile);
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileName)
+                    .contentType(fileContentType)
+                    .build();
 
-            amazonS3.putObject(new PutObjectRequest(bucketName, fileName, imageFile));
-            imageFile.delete();
+//            TODO: only good for small file (10-20MB) consider fromInputStream
+            amazonS3.putObject(putObjectRequest, RequestBody.fromBytes(multipartFile.getBytes()));
 
-            String fileUrl = getFileUrl(bucketName, amazonS3.getRegionName()).concat(fileName);
+            String fileUrl = getPublicUrl(fileName);
             log.info("Uploaded image to AWS: {}", fileUrl);
 
             return new AmazonImage(fileName, fileUrl);
         } catch (IOException e) {
             throw new FileConversionException();
-        } catch (AmazonS3Exception e) {
+        } catch (S3Exception e) {
             throw new S3ServiceException();
         } catch (SdkClientException e) {
             throw new S3ClientException();
@@ -136,23 +129,24 @@ public class AmazonImageServiceImpl implements AmazonImageService {
     public void removeImageFromAmazon(String imageFileName) {
 
         try {
-            amazonS3.deleteObject(new DeleteObjectRequest(bucketName, imageFileName));
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(imageFileName)
+                    .build();
+
+            amazonS3.deleteObject(deleteObjectRequest);
             log.info("Removed image from AWS: {}", imageFileName);
-        } catch (AmazonS3Exception e) {
+        } catch (S3Exception e) {
             throw new S3ServiceException();
         } catch (SdkClientException e) {
             throw new S3ClientException();
         }
     }
 
+//    TODO: add delete multiple images
+//    Image upload flow -> client send image to upload API get public url send them to issue API (maybe only send keys)
+//    then show issue when asked with public url
+
     // endregion
-
-    // ------------------------------
-    // Helpers
-    // ------------------------------
-
-    private String getFileUrl(String bucketName, String region) {
-        return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
-    }
 
 }
