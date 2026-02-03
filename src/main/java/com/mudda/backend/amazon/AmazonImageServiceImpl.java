@@ -1,10 +1,10 @@
 package com.mudda.backend.amazon;
 
-import com.mudda.backend.exceptions.*;
+import com.mudda.backend.exceptions.S3ClientException;
+import com.mudda.backend.exceptions.S3ServiceException;
+import com.mudda.backend.exceptions.UploadFailedException;
 import com.mudda.backend.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,14 +26,16 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 //    TODO: detect images categories using s3
 //    TODO: upload image using presigned URL -> maybe not worth it
 
-    private final String bucketName;
     private final S3Client amazonS3;
+    private final ImageValidator imageValidator;
+    private final String bucketName;
 
-    private final static Tika tika = new Tika();
 
-    public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName, S3Client amazonS3) {
+    public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName,
+                                  S3Client amazonS3, ImageValidator imageValidator) {
         this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
+        this.imageValidator = imageValidator;
     }
 
     // region Queries (Read Operations)
@@ -66,48 +68,16 @@ public class AmazonImageServiceImpl implements AmazonImageService {
     @Override
     public AmazonImage uploadImageToAmazon(MultipartFile multipartFile) {
 
-        log.trace("Validating image file before uploading to AWS");
-        // Check if file is empty or null
-        if (multipartFile == null || multipartFile.isEmpty())
-            throw new EmptyFileException();
-
-        // Check if file size exceeds maximum size (1MB default)
-        if (multipartFile.getSize() >= 1024 * 1024) // TODO: remove hardcoded constraints
-            throw new FileSizeLimitExceededException(1);
-
-        List<String> validExtensions = List.of("jpeg", "png", "jpg");
-        String fileExtension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-
-        // Check if file extensions are valid else throw InvalidImageExtensionException
-        if (fileExtension == null ||
-                validExtensions
-                        .stream()
-                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension)))
-            throw new InvalidImageExtensionException(String.join(", ", validExtensions));
-
-        // Check if file is an actual image and MIME type is an image
-        String fileContentType = multipartFile.getContentType();
-        if (fileContentType == null || !fileContentType.startsWith("image/"))
-            throw new NonImageFileException();
-
-        // TODO: this fails for webp fix it maybe
-        try {
-            String detectedType = tika.detect(multipartFile.getInputStream());
-            if (!detectedType.startsWith("image/")) throw new NonImageFileException();
-
-        } catch (IOException e) {
-            throw new NonImageFileException();
-        }
+        imageValidator.validateImage(multipartFile);
 
         try {
             String fileKey = FileUtils.generateFileName(multipartFile);
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(fileKey)
-                    .contentType(fileContentType)
+                    .contentType(multipartFile.getContentType())
                     .build();
 
-//            TODO: only good for small file (10-20MB) consider fromInputStream
             amazonS3.putObject(putObjectRequest, RequestBody.fromInputStream(
                     multipartFile.getInputStream(), multipartFile.getSize()
             ));

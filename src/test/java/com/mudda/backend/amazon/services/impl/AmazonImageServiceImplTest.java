@@ -3,6 +3,7 @@ package com.mudda.backend.amazon.services.impl;
 import com.mudda.backend.amazon.AmazonImage;
 import com.mudda.backend.amazon.AmazonImageServiceImpl;
 import com.mudda.backend.amazon.ContentType;
+import com.mudda.backend.amazon.ImageValidator;
 import com.mudda.backend.exceptions.*;
 import com.mudda.backend.utils.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,10 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -23,7 +24,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,25 +36,23 @@ public class AmazonImageServiceImplTest {
     @Mock
     private S3Client amazonS3;
 
+    @Mock
+    private ImageValidator imageValidator;
+
     private AmazonImageServiceImpl amazonImageServiceImpl;
 
     final String bucketName = "media-url-devbucket-2026";
     final String testImageName = "testImage.jpg";
 
-    private MockMultipartFile createMockFile(ContentType fileType, byte[] content) {
-        return new MockMultipartFile("file", "testImage.jpg", fileType.getValue(), content);
-    }
-
-    private MockMultipartFile createMockFileFromResource(
-            String originalFileName, ContentType fileType) throws IOException {
-        return new MockMultipartFile("file", originalFileName, fileType.getValue(),
-                new ClassPathResource(originalFileName).getInputStream());
+    private MockMultipartFile createMockFileFromResource() throws IOException {
+        return new MockMultipartFile("file", testImageName, ContentType.IMAGE_JPG.getValue(),
+                new ClassPathResource(testImageName).getInputStream());
     }
 
     @BeforeEach
     void setUp() {
         // AmazonImageServiceImpl setup
-        amazonImageServiceImpl = new AmazonImageServiceImpl(bucketName, amazonS3);
+        amazonImageServiceImpl = new AmazonImageServiceImpl(bucketName, amazonS3, imageValidator);
     }
 
     // #region Success Case
@@ -63,92 +61,31 @@ public class AmazonImageServiceImplTest {
 
         try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
 
-            mockedStatic.when(() -> FileUtils.generateFileName(any()))
-                    .thenReturn(testImageName);
-
-            MockMultipartFile mockMultipartFile = createMockFileFromResource(
-                    testImageName, ContentType.IMAGE_JPG);
+            mockedStatic.when(() -> FileUtils.generateFileName(any())).thenReturn(testImageName);
+            MockMultipartFile mockMultipartFile = createMockFileFromResource();
 
             AmazonImage actualAmazonImage = amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
 
-            assertEquals(testImageName, actualAmazonImage.imageName());
+            verify(imageValidator).validateImage(mockMultipartFile);
+
+            verify(amazonS3).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+
             assertEquals(testImageName, actualAmazonImage.imageKey());
         }
     }
 
     // #endregion
 
-    // #region Input Validation Tests
-    @Test
-    void shouldThrowWhenFileIsEmpty() {
-
-        MockMultipartFile mockMultipartFile = createMockFile(ContentType.IMAGE_JPG, "".getBytes());
-
-        assertThrows(EmptyFileException.class, () ->
-                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
-    }
-
-    @Test
-    void shouldThrowWhenFileIsNull() {
-
-        assertThrows(EmptyFileException.class, () ->
-                amazonImageServiceImpl.uploadImageToAmazon(null));
-    }
-
-    @Test
-    void shouldThrowWhenFileIsTooLarge() {
-
-        int MB = 1024 * 1024;
-        byte[] content = new byte[MB];
-        Arrays.fill(content, (byte) 0xff);
-
-        MockMultipartFile mockMultipartFile = createMockFile(ContentType.IMAGE_JPG, content);
-
-        assertThrows(FileSizeLimitExceededException.class, () ->
-                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
-    }
-
-    // #endregion
-
-    // #region File type & content validation tests
-    @Test
-    void shouldThrowWhenContentTypeIsNotImage() {
-
-        MockMultipartFile mockMultipartFile = createMockFile(ContentType.TEXT_PLAIN, testImageName.getBytes());
-
-        assertThrows(NonImageFileException.class, () ->
-                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
-    }
-
-    @Test
-    void shouldThrowWhenFileContentIsNotActualImage() {
-
-        MockMultipartFile mockMultipartFile = createMockFile(ContentType.IMAGE_JPG, testImageName.getBytes());
-
-        assertThrows(NonImageFileException.class, () ->
-                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
-    }
-
-    @Test
-    void shouldThrowWhenImageHasInvalidExtension() throws IOException {
-
-        String testImageName = "testImageInvalidExt.webp";
-        MockMultipartFile mockMultipartFile = createMockFileFromResource(testImageName, ContentType.IMAGE_WEBP);
-
-        assertThrows(InvalidImageExtensionException.class, () ->
-                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
-    }
-
-    // #endregion
-
     // #region Simulated internal failure scenarios
     @Test
-    void shouldThrowWhenFileConversionFails() throws IOException {
+    void shouldThrowWhenSourceStreamFails() throws IOException {
 
-        MockMultipartFile mockMultipartFile = createMockFileFromResource(testImageName, ContentType.IMAGE_JPG);
+        MultipartFile multipartFile = mock(MultipartFile.class);
 
-        assertThrows(UploadFailedException.class, () ->
-                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
+        when(multipartFile.getOriginalFilename()).thenReturn(testImageName);
+        when(multipartFile.getInputStream()).thenThrow(new IOException("Disk Error"));
+
+        assertThrows(UploadFailedException.class, () -> amazonImageServiceImpl.uploadImageToAmazon(multipartFile));
     }
 
     // #endregion
@@ -162,11 +99,9 @@ public class AmazonImageServiceImplTest {
 
         try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
 
-            mockedStatic.when(() -> FileUtils.generateFileName(any()))
-                    .thenReturn(testImageName);
+            mockedStatic.when(() -> FileUtils.generateFileName(any())).thenReturn(testImageName);
 
-            MockMultipartFile mockMultipartFile = createMockFileFromResource(
-                    testImageName, ContentType.IMAGE_JPG);
+            MockMultipartFile mockMultipartFile = createMockFileFromResource();
 
             assertThrows(S3ServiceException.class, () ->
                     amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
@@ -185,8 +120,7 @@ public class AmazonImageServiceImplTest {
             mockedStatic.when(() -> FileUtils.generateFileName(any()))
                     .thenReturn(testImageName);
 
-            MockMultipartFile mockMultipartFile = createMockFileFromResource(
-                    testImageName, ContentType.IMAGE_JPG);
+            MockMultipartFile mockMultipartFile = createMockFileFromResource();
 
             assertThrows(S3ClientException.class, () ->
                     amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
@@ -213,8 +147,7 @@ public class AmazonImageServiceImplTest {
         doThrow(S3Exception.builder().message("Unable to connect to S3").statusCode(500).build())
                 .when(amazonS3).deleteObject(any(DeleteObjectRequest.class));
 
-        assertThrows(S3ServiceException.class, () ->
-                amazonImageServiceImpl.removeImageFromAmazon(testImageName));
+        assertThrows(S3ServiceException.class, () -> amazonImageServiceImpl.removeImageFromAmazon(testImageName));
     }
 
     @Test
@@ -223,8 +156,7 @@ public class AmazonImageServiceImplTest {
         doThrow(SdkClientException.builder().message("Bad Request").build())
                 .when(amazonS3).deleteObject(any(DeleteObjectRequest.class));
 
-        assertThrows(S3ClientException.class, () ->
-                amazonImageServiceImpl.removeImageFromAmazon(testImageName));
+        assertThrows(S3ClientException.class, () -> amazonImageServiceImpl.removeImageFromAmazon(testImageName));
     }
 
 }

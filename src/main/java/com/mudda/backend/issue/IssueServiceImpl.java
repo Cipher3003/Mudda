@@ -84,6 +84,8 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getId)
                 .toList();
 
+//        TODO: return CDN image links
+
         Set<Long> authorIds = issuePage.getContent()
                 .stream()
                 .map(Issue::getUserId)
