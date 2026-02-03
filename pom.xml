@@ -105,6 +105,15 @@
             <version>1.19.0</version> <!-- or latest -->
         </dependency>
 
+        <!--    Apache Tika - validate files    -->
+        <!-- Source: https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>3.2.3</version>
+            <scope>compile</scope>
+        </dependency>
+
 		<!--    AWS SDK    -->
 		<!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/s3 -->
 		<dependency>

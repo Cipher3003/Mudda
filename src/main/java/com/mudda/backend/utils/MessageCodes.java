@@ -33,7 +33,7 @@ public class MessageCodes {
     public static final String FILE_NOT_IMAGE = "file.not.image";
     public static final String INVALID_IMAGE_EXTENSION = "file.invalid.extension";
     public static final String FILE_SIZE_EXCEED_LIMIT = "file.size.exceed.limit";
-    public static final String FILE_CONVERSION_FAILED = "file.conversion.failed";
+    public static final String UPLOAD_FAILED = "upload.failed";
 
     /* ---------- storage (S3) ---------- */
     public static final String STORAGE_UNAVAILABLE = "storage.unavailable";
