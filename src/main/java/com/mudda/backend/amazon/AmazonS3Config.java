@@ -12,9 +12,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 @Configuration
 public class AmazonS3Config {
     @Getter
-    private S3Client s3Client;  // TODO: maybe remove this local field
-
-    @Getter
     @Value("${amazon.s3.region}")
     private String region;
 
@@ -24,10 +21,10 @@ public class AmazonS3Config {
     @Value("${amazon.s3.secret-key}")
     private String secretKey;
 
-//    Use IAM role instead of static keys
+//    TODO: Use IAM role instead of static keys
 
     @Bean
-    S3Client s3() {
+    S3Client s3Client() {
         return S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(
