@@ -1,54 +1,44 @@
 package com.mudda.backend.amazon.services.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-
+import com.mudda.backend.amazon.AmazonImage;
 import com.mudda.backend.amazon.AmazonImageServiceImpl;
+import com.mudda.backend.amazon.ContentType;
+import com.mudda.backend.exceptions.*;
+import com.mudda.backend.utils.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.mudda.backend.amazon.ContentType;
-import com.mudda.backend.amazon.AmazonImage;
-import com.mudda.backend.exceptions.S3ClientException;
-import com.mudda.backend.exceptions.S3ServiceException;
-import com.mudda.backend.exceptions.EmptyFileException;
-import com.mudda.backend.exceptions.FileConversionException;
-import com.mudda.backend.exceptions.NonImageFileException;
-import com.mudda.backend.exceptions.FileSizeLimitExceededException;
-import com.mudda.backend.exceptions.InvalidImageExtensionException;
-import com.mudda.backend.utils.FileUtils;
+import java.io.IOException;
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AmazonImageServiceImplTest {
 
     @Mock
-    private AmazonS3 amazonS3;
+    private S3Client amazonS3;
 
     private AmazonImageServiceImpl amazonImageServiceImpl;
 
     final String bucketName = "media-url-devbucket-2026";
-    final String bucketRegion = "eu-north-1";
     final String testImageName = "testImage.jpg";
 
     private MockMultipartFile createMockFile(ContentType fileType, byte[] content) {
@@ -71,18 +61,10 @@ public class AmazonImageServiceImplTest {
     @Test
     void shouldUploadImageSuccessfully() throws IOException {
 
-        String testImageUrl = String.format("https://%s.s3.%s.amazonaws.com/%s",
-                bucketName, bucketRegion, testImageName);
-
-        // AmazonS3 setup
-        when(amazonS3.getRegionName()).thenReturn(bucketRegion);
-
         try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
 
             mockedStatic.when(() -> FileUtils.generateFileName(any()))
                     .thenReturn(testImageName);
-            mockedStatic.when(() -> FileUtils.convertMultipartToFile(any()))
-                    .thenReturn(new File(testImageName));
 
             MockMultipartFile mockMultipartFile = createMockFileFromResource(
                     testImageName, ContentType.IMAGE_JPG);
@@ -90,7 +72,7 @@ public class AmazonImageServiceImplTest {
             AmazonImage actualAmazonImage = amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
 
             assertEquals(testImageName, actualAmazonImage.imageName());
-            assertEquals(testImageUrl, actualAmazonImage.imageUrl());
+            assertEquals(testImageName, actualAmazonImage.imageKey());
         }
     }
 
@@ -165,15 +147,8 @@ public class AmazonImageServiceImplTest {
 
         MockMultipartFile mockMultipartFile = createMockFileFromResource(testImageName, ContentType.IMAGE_JPG);
 
-        try (MockedStatic<FileUtils> mockFileUtils = Mockito.mockStatic(FileUtils.class)) {
-
-            mockFileUtils.when(() -> FileUtils.convertMultipartToFile(mockMultipartFile))
-                    .thenThrow(IOException.class);
-
-            assertThrows(FileConversionException.class, () ->
-                    amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
-
-        }
+        assertThrows(UploadFailedException.class, () ->
+                amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
     }
 
     // #endregion
@@ -181,15 +156,14 @@ public class AmazonImageServiceImplTest {
     @Test
     void shouldThrowWhenUnableToConnectToAmazonS3OnUpload() throws IOException {
 
-        // AmazonS3 setup
-        when(amazonS3.putObject(any())).thenThrow(S3ServiceException.class);
+        // Amazon S3 setup
+        when(amazonS3.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(S3Exception.builder().message("Unable to connect to S3").statusCode(500).build());
 
         try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
 
             mockedStatic.when(() -> FileUtils.generateFileName(any()))
                     .thenReturn(testImageName);
-            mockedStatic.when(() -> FileUtils.convertMultipartToFile(any()))
-                    .thenReturn(new File(testImageName));
 
             MockMultipartFile mockMultipartFile = createMockFileFromResource(
                     testImageName, ContentType.IMAGE_JPG);
@@ -202,15 +176,14 @@ public class AmazonImageServiceImplTest {
     @Test
     void shouldThrowWhenBadPutRequest() throws IOException {
 
-        // AmazonS3 setup
-        when(amazonS3.putObject(any())).thenThrow(S3ClientException.class);
+        // Amazon S3 setup
+        when(amazonS3.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(SdkClientException.builder().message("Bad Request").build());
 
         try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
 
             mockedStatic.when(() -> FileUtils.generateFileName(any()))
                     .thenReturn(testImageName);
-            mockedStatic.when(() -> FileUtils.convertMultipartToFile(any()))
-                    .thenReturn(new File(testImageName));
 
             MockMultipartFile mockMultipartFile = createMockFileFromResource(
                     testImageName, ContentType.IMAGE_JPG);
@@ -223,17 +196,22 @@ public class AmazonImageServiceImplTest {
     @Test
     void shouldDeleteImageSuccessfully() {
 
+        ArgumentCaptor<DeleteObjectRequest> captor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
+
         amazonImageServiceImpl.removeImageFromAmazon(testImageName);
 
-        verify(amazonS3, times(1))
-                .deleteObject(argThat(request -> request.getBucketName().equals(bucketName) &&
-                        request.getKey().equals(testImageName)));
+        verify(amazonS3).deleteObject(captor.capture());
+
+        DeleteObjectRequest result = captor.getValue();
+        assertEquals(bucketName, result.bucket());
+        assertEquals(testImageName, result.key());
     }
 
     @Test
     void shouldThrowWhenUnableToConnectToAmazonOnDelete() {
 
-        doThrow(AmazonS3Exception.class).when(amazonS3).deleteObject(any());
+        doThrow(S3Exception.builder().message("Unable to connect to S3").statusCode(500).build())
+                .when(amazonS3).deleteObject(any(DeleteObjectRequest.class));
 
         assertThrows(S3ServiceException.class, () ->
                 amazonImageServiceImpl.removeImageFromAmazon(testImageName));
@@ -242,7 +220,8 @@ public class AmazonImageServiceImplTest {
     @Test
     void shouldThrowWhenBadDeleteRequest() {
 
-        doThrow(SdkClientException.class).when(amazonS3).deleteObject(any());
+        doThrow(SdkClientException.builder().message("Bad Request").build())
+                .when(amazonS3).deleteObject(any(DeleteObjectRequest.class));
 
         assertThrows(S3ClientException.class, () ->
                 amazonImageServiceImpl.removeImageFromAmazon(testImageName));
