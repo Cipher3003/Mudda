@@ -1,11 +1,11 @@
 package com.mudda.backend.exceptions;
 
-import com.amazonaws.services.inspector.model.NoSuchEntityException;
 import com.mudda.backend.token.TokenType;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +14,14 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +34,7 @@ public class GlobalExceptionHandler {
 
 //    TODO: LocalizedException is currently treated as always 400
 //    depends on where it’s thrown, not what it represents.
+//    TODO: throw cause to custom exceptions
 
     public GlobalExceptionHandler(MessageUtil messageUtil) {
         this.messageUtil = messageUtil;
@@ -80,6 +85,37 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiError> handleMultipartException(MultipartException e) {
+//        TODO: maybe add custom message
+        return ResponseEntity.badRequest()
+                .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiError> handleWrongMediaType(HttpMediaTypeNotSupportedException e) {
+//        TODO: maybe add custom message
+        return ResponseEntity.badRequest()
+                .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ApiError> handleMissingRequestPart(MissingServletRequestPartException e) {
+//        TODO: maybe add custom message
+        return ResponseEntity.badRequest()
+                .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
+    }
+
+    //    TODO: handle what to do when aborted mid request
+    //     (stop sending whole trace when fallback to default error handler)
+    @ExceptionHandler(value = {
+            AsyncRequestNotUsableException.class,
+            ClientAbortException.class
+    })
+    public void handleClientAbort(Exception e) {
+        log.warn("Client Abort Exception", e);
+    }
+
     //endregion
 
     //region 400 Series Handlers
@@ -107,8 +143,7 @@ public class GlobalExceptionHandler {
 
     //    404 - not found
     @ExceptionHandler(value = {
-            EntityNotFoundException.class,
-            NoSuchEntityException.class
+            EntityNotFoundException.class
     })
 //    TODO: add no resource found exception in this handler
     public ResponseEntity<ApiError> handleNotFound(Exception e) {

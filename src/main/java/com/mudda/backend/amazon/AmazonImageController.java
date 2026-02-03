@@ -5,6 +5,7 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,7 +46,7 @@ public class AmazonImageController {
     // ----------- AUTH COMMANDS -----------------
     // region Commands (Write Operations)
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<AmazonImage>> uploadImageToAmazon(@RequestParam List<MultipartFile> files) {
         log.info("Uploading image to Amazon");
 
@@ -56,6 +57,7 @@ public class AmazonImageController {
 
         List<AmazonImage> uploadedImages = new ArrayList<>();
 
+//        TODO: optimize this
         for (MultipartFile file : files)
             uploadedImages.add(amazonImageService.uploadImageToAmazon(file));
 
