@@ -90,6 +90,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
             return new ImageUploadResponse(
                     multipartFile.getOriginalFilename(),
                     fileKey,
+                    cdnOrigin.concat(fileKey),
                     UploadStatus.SUCCESS,
                     null
             );
@@ -124,6 +125,7 @@ public class AmazonImageServiceImpl implements AmazonImageService {
 
                         return new ImageUploadResponse(
                                 file.getOriginalFilename(),
+                                null,
                                 null,
                                 UploadStatus.FAILED,
                                 errorMessage
