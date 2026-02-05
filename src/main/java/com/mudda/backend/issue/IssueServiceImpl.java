@@ -7,27 +7,26 @@ import com.mudda.backend.location.Location;
 import com.mudda.backend.location.LocationDTO;
 import com.mudda.backend.location.LocationMapper;
 import com.mudda.backend.location.LocationRepository;
-import com.mudda.backend.user.User;
+import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.utils.EntityValidator;
 import com.mudda.backend.vote.Vote;
 import com.mudda.backend.vote.VoteRepository;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Service
 public class IssueServiceImpl implements IssueService {
 
@@ -38,6 +37,9 @@ public class IssueServiceImpl implements IssueService {
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+
+    @Value("${app.cdn.origin}")
+    private String cdnOrigin;
 
     public IssueServiceImpl(
             IssueRepository issueRepository, CommentService commentService, VoteRepository voteRepository,
@@ -52,10 +54,11 @@ public class IssueServiceImpl implements IssueService {
         this.userRepository = userRepository;
     }
 
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     @Override
     public Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, Long userId) {
+        log.debug("Finding all issues by filter request {}", filterRequest);
 
         List<Long> locationIds = locationRepository
                 .findByCityAndState(filterRequest.city(), filterRequest.state())
@@ -86,9 +89,9 @@ public class IssueServiceImpl implements IssueService {
                 .map(Issue::getUserId)
                 .collect(Collectors.toSet());
 
-        Map<Long, User> usersMap = userRepository.findAllById(authorIds)
+        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
                 .stream()
-                .collect(Collectors.toMap(User::getUserId, user -> user));
+                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
 
         Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
                 .stream()
@@ -103,16 +106,21 @@ public class IssueServiceImpl implements IssueService {
         // set even more
         Set<Long> issuesVotedByUser = isAuthenticated
                 ? voteRepository.findByUserIdAndIssueIdIn(userId, issueIds)
-                        .stream()
-                        .map(Vote::getIssueId)
-                        .collect(Collectors.toSet())
+                .stream()
+                .map(Vote::getIssueId)
+                .collect(Collectors.toSet())
                 : Set.of();
 
         return issuePage.map(issue -> {
 
-            User user = usersMap.getOrDefault(issue.getUserId(), null);
-            if (user == null)
+            issue.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
+
+            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
+            if (muddaUser == null)
                 throw new IllegalStateException("User not found for issue: " + issue.getId());
+            // TODO: maybe continue and ignore bad data and cleanup later
+
+            muddaUser.changeProfileImageUrl(cdnOrigin.concat(muddaUser.getProfileImageUrl()));
 
             long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
 
@@ -120,7 +128,7 @@ public class IssueServiceImpl implements IssueService {
 
             // TODO: maybe prevent self voting
             return IssueMapper.toSummary(
-                    issue, user, voteCount, hasUserVoted, isAuthenticated // canUserVote
+                    issue, muddaUser, voteCount, hasUserVoted, isAuthenticated // canUserVote
             );
         });
     }
@@ -132,9 +140,13 @@ public class IssueServiceImpl implements IssueService {
         if (issue == null)
             return Optional.empty();
 
-        User author = userRepository.findById(issue.getUserId()).orElse(null);
+        issue.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
+
+        MuddaUser author = userRepository.findById(issue.getUserId()).orElse(null);
         if (author == null)
             return Optional.empty();
+
+        author.changeProfileImageUrl(cdnOrigin.concat(author.getProfileImageUrl()));
 
         Location location = locationRepository.findById(issue.getLocationId()).orElse(null);
         if (location == null)
@@ -167,6 +179,8 @@ public class IssueServiceImpl implements IssueService {
     // https://sud-gajula.medium.com/handling-geo-spatial-data-in-postgres-with-h3-05838fb77fd8
     @Override
     public IssueClusterResponse findAllIssueClusters(IssueClusterRequest clusterRequest) {
+        log.debug("Finding all issue clusters by request {}", clusterRequest);
+
         double centerLat = (clusterRequest.minLatitude() + clusterRequest.maxLatitude()) / 2;
         double cellSize = getCellSize(clusterRequest.zoomLevel(), centerLat);
 
@@ -199,9 +213,9 @@ public class IssueServiceImpl implements IssueService {
         return new IssueClusterResponse(clusters);
     }
 
-    // #endregion
+    // endregion
 
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @Transactional
     @Override
@@ -211,12 +225,12 @@ public class IssueServiceImpl implements IssueService {
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
-        // TODO: maybe remove unnecessary validation since fetching entities validates
-        // it
+        // TODO: maybe remove unnecessary validation since fetching entities validates it
         validateReferences(issueRequest.locationId(), issueRequest.categoryId());
+        log.trace("Validated issue references");
 
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null)
+        MuddaUser muddaUser = userRepository.findById(userId).orElse(null);
+        if (muddaUser == null)
             throw new IllegalArgumentException("User not found for creating Issue");
 
         Issue issue = IssueMapper.toIssue(userId, issueRequest);
@@ -230,8 +244,14 @@ public class IssueServiceImpl implements IssueService {
             throw new IllegalArgumentException("Category ID for creating Issue not valid");
 
         Issue saved = issueRepository.save(issue);
+
+        saved.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
+        muddaUser.changeProfileImageUrl(cdnOrigin.concat(muddaUser.getProfileImageUrl()));
+
+        log.info("Created Issue with id {} by user with id {}", saved.getId(), userId);
         return IssueMapper.toResponse(
-                saved, user, LocationMapper.toSummary(location.get()), category.get().getName(), 0, false, true, true,
+                saved, muddaUser, LocationMapper.toSummary(location.get()), category.get().getName(),
+                0, false, true, true,
                 true, true);
     }
 
@@ -245,6 +265,7 @@ public class IssueServiceImpl implements IssueService {
                                 IssueMapper.toIssue(userIds.get(index), issueRequests.get(index)))
                         .toList());
 
+        log.info("Created {} Issues", issues.size());
         return issues.stream().map(Issue::getId).toList();
     }
 
@@ -252,6 +273,7 @@ public class IssueServiceImpl implements IssueService {
     @Override
     public void saveIssues(List<Issue> issues) {
         issueRepository.saveAll(issues);
+        log.info("Saved {} Issues", issues.size());
     }
 
     @Transactional
@@ -270,6 +292,8 @@ public class IssueServiceImpl implements IssueService {
 
         existing.updateDetails(issueRequest.title(), issueRequest.description(), issueRequest.status());
         Issue updated = issueRepository.save(existing);
+        log.info("Updated Issue with id {} by user with id {}", updated.getId(), userId);
+
         return IssueMapper.toResponse(updated);
     }
 
@@ -288,9 +312,14 @@ public class IssueServiceImpl implements IssueService {
         if (!isOwner)
             throw new IllegalStateException("Only author can delete their posted issue");
 
+        log.trace("Deleting all comments under issue {}", issue.getId());
         commentService.deleteAllCommentsByIssueId(issue.getId());
+
+        log.trace("Deleting all votes under issue {}", issue.getId());
         voteService.deleteAllVotesByIssueId(issue.getId());
+
         issueRepository.deleteById(id);
+        log.info("Deleted Issue with id {} by user with id {}", issue.getId(), userId);
     }
 
     // TODO: use delete flag to soft delete ?
@@ -302,16 +331,19 @@ public class IssueServiceImpl implements IssueService {
         if (issueIds.isEmpty())
             return;
 
+        log.trace("Deleting all comments under multiple issues");
         commentService.deleteAllCommentsByIssueIds(issueIds);
+
+        log.trace("Deleting all votes under multiple issues");
         voteService.deleteAllVotesByIssueIds(issueIds);
+
         issueRepository.deleteAllById(issueIds);
+        log.info("Deleted {} issues", issueIds.size());
     }
 
-    // #endregion
+    // endregion
 
-    // ------------------------------
-    // Helpers
-    // ------------------------------
+    //region Helpers
 
     private void validateReferences(long locationId, long categoryId) {
 
@@ -343,5 +375,7 @@ public class IssueServiceImpl implements IssueService {
     private double metersToDegrees(double meters, double latitude) {
         return meters / (111_320 * Math.cos(Math.toRadians(latitude)));
     }
+
+    //endregion
 
 }

@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
+
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             text-align: center;
             padding-top: 100px;
         }
@@ -21,31 +21,101 @@
             padding: 10px 20px;
             margin-top: 20px;
         }
+
+        .error {
+            color: red;
+        }
     </style>
 </head>
 
 <body>
 
+<div>
     <h2>Login</h2>
-    <input id="username" placeholder="Username"><br>
-    <input id="password" type="password" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
 
-    <p id="msg"></p>
+    <!-- Spring Security login -->
+    <form id="loginForm">
 
-    <script>
-        function login() {
-            const u = document.getElementById("username").value;
-            const p = document.getElementById("password").value;
+        <!-- Username -->
+        <label for="username">Username</label><br>
+        <input id="username"
+               name="username"
+               required
+               autofocus/><br>
 
-            // store credentials for Basic Auth
-            localStorage.setItem("auth", "Basic " + btoa(u + ":" + p));
-            // headers: { "Authorization": localStorage.getItem("auth") }
+        <!-- Password -->
+        <label for="password">Password</label><br>
+        <input id="password"
+               type="password"
+               name="password"
+               required/><br>
 
-            document.getElementById("msg").innerText = "Logged in! You can now use the app.";
+        <!-- Remember me -->
+        <label>
+            <input type="checkbox" name="remember-me">
+            Remember me
+        </label><br><br>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <!-- Feedback via redirect params -->
+    <p id="message" class="error"></p>
+</div>
+
+<script>
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    const form = document.getElementById("loginForm");
+    const msg = document.getElementById("message");
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        msg.textContent = ''
+
+        const rawFormData = new FormData(form);
+        const payload = new URLSearchParams();
+        rawFormData.forEach((value, key) => {
+            payload.append(key, value);
+        });
+
+        const csrfToken = getCookie('XSRF-TOKEN');
+        if (!csrfToken) {
+            msg.textContent = "CSRF token missing. Refresh page.";
+            return;
         }
-    </script>
+
+        console.log("CSRFToken", csrfToken);
+
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-XSRF-TOKEN": csrfToken
+            },
+            credentials: "same-origin",
+            body: payload
+        });
+
+        if (response.ok) {
+            form.reset();
+            window.location.href = "/index.html";
+        } else {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has("error")) {
+                console.log("Invalid username or password");
+            }
+            if (params.has("logout")) {
+                console.log("You have been logged out");
+            }
+        }
+    }
+
+</script>
 
 </body>
-
 </html>

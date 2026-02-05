@@ -22,7 +22,7 @@ public class VoteServiceImpl implements VoteService {
         this.issueRepository = issueRepository;
     }
 
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     @Override
     public Page<Vote> findAllVotes(Pageable pageable) {
@@ -34,9 +34,9 @@ public class VoteServiceImpl implements VoteService {
         return voteRepository.findById(id);
     }
 
-    // #endregion
+    // endregion
 
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
     @Transactional
     @Override
@@ -101,14 +101,9 @@ public class VoteServiceImpl implements VoteService {
         voteRepository.deleteAllByIssueIdIn(issueIds);
     }
 
-    // #endregion
-
-    // ------------------------------
-    // Helpers
-    // ------------------------------
+    // endregion
 
     private void validateReferences(long issueId) {
-
         EntityValidator.validateExists(issueRepository, issueId, "Issue");
     }
 

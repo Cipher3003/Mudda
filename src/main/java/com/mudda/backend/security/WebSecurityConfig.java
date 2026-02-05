@@ -1,85 +1,215 @@
 package com.mudda.backend.security;
 
+import com.mudda.backend.AppProperties;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+
+import static com.mudda.backend.security.SecurityEndpoints.*;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    // TODO: upgrade to JWT
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtAuthFilter jwtAuthFilter;
+    private final RateLimitFilter rateLimitFilter;
+    private final AppProperties appProperties;
+    private final PersistentTokenRepository persistentTokenRepository;
 
-    private final CustomUserDetailsService userDetailsService;
-
-    public WebSecurityConfig(CustomUserDetailsService userDetailsService) {
+    public WebSecurityConfig(UserDetailsService userDetailsService,
+                             PasswordEncoder passwordEncoder,
+                             JwtAuthFilter jwtAuthFilter,
+                             RateLimitFilter rateLimitFilter,
+                             AppProperties appProperties,
+                             PersistentTokenRepository persistentTokenRepository) {
         this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.rateLimitFilter = rateLimitFilter;
+        this.appProperties = appProperties;
+        this.persistentTokenRepository = persistentTokenRepository;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        (requests) -> requests
-                                // Public Reads
-                                .requestMatchers(
-                                        "/swagger-ui.html",
-                                        "/swagger-ui/**",
-                                        "/v3/api-docs/**",
-                                        "/v3/api-docs")
-                                .permitAll()
-                                .requestMatchers(
-                                        "/",
-                                        "/index.html",
-                                        "/home.html",
-                                        "/issue.html",
-                                        "/login.html")
-                                .permitAll()
-                                .requestMatchers("/seed.html")
-                                .permitAll()
-                                .requestMatchers("/api/v1/seed/**")
-                                .permitAll()
-                                .requestMatchers("/media_url.html")
-                                .permitAll()
-                                .requestMatchers("/api/v1/votes/**")
-                                .permitAll()
-                                .requestMatchers("/api/v1/roles/**")
-                                .permitAll()
-                                .requestMatchers("/api/v1/users/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/amazon/images/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/issues/categories/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/comments/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/issues/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/locations/**")
-                                .permitAll()
-                                // Everything Else Needs Login
-                                .anyRequest()
-                                .authenticated())
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, e) -> {
-                            System.err.println("AUTH ERROR -> " + e.getMessage());
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
-                        })
-                        .accessDeniedHandler((request, response, e) -> {
-                            System.err.println("ACCESS DENIED -> " + e.getMessage());
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
-                        }))
-                .userDetailsService(userDetailsService)
-                .httpBasic(Customizer.withDefaults());
+
+        enableCors(http);   // enable CORS for web
+        configureCsrf(http);  // CSRF not needed in jwt
+        configureAuthorization(http);   // add public and protected endpoints
+        configureExceptionHandling(http);   // Handles authentication and authorization error
+        configureSession(http); // Makes sessions as needed for web
+        configureRememberMe(http);   // Add remember me cookie
+        configureForms(http);   // Add login and logout forms
+        configureAuthentication(http);  // Set userDetails, authenticationProvider, JwtFilter, httpBasic
+        configureRateLimit(http);   // Set rateLimitFilter before authentication
 
         return http.build();
     }
+
+    private void enableCors(HttpSecurity http) throws Exception {
+        http.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer
+                .configurationSource(corsConfigurationSource()));
+    }
+
+    private void configureCsrf(HttpSecurity http) throws Exception {
+        CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
+        csrfHandler.setCsrfRequestAttributeName(null);  // forces spring to generate csrf for all request
+
+        http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(csrfHandler) // TODO: transition to handshake endpoint to send csrf token
+                .requireCsrfProtectionMatcher(request -> {
+//                    Ignore if request is safe (non-state changing)
+                    if (List.of("GET", "HEAD", "TRACE", "OPTIONS").contains(request.getMethod())) return false;
+
+//                    Ignore if request from mobile
+                    String clientType = request.getHeader("X-Client-Type");
+                    if (clientType != null && List.of("mobile", "mobile-android", "mobile-ios").contains(clientType))
+                        return false;
+
+//                    Ignore if request has bearer token (jwt)
+                    String authorization = request.getHeader("Authorization");
+                    return authorization == null || !authorization.startsWith("Bearer ");
+//                    Force everything else to from browser with csrf
+                }));
+    }
+
+    private void configureAuthorization(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -> auth
+
+                // ===== PUBLIC ENDPOINTS =====
+                .requestMatchers(SEED_ENDPOINTS).permitAll()
+                .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
+                .requestMatchers(PUBLIC_STATIC_PAGES).permitAll()
+                .requestMatchers(AUTH_PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.GET, PUBLIC_READONLY_ENDPOINTS).permitAll()
+
+                // ===== PROTECTED ENDPOINTS =====
+                .anyRequest().authenticated());
+    }
+
+    // TODO: handle auth error for mobile only endpoints and redirect to login for web
+    private void configureExceptionHandling(HttpSecurity http) throws Exception {
+        http.exceptionHandling(exception -> exception
+
+//                Not logged in
+                .authenticationEntryPoint((request, response, e) -> {
+                    System.err.println("AUTH ERROR -> " + e.getMessage());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=utf-8");
+                    response.getWriter().write("""
+                            {
+                            "error":"UNAUTHORIZED",
+                            "message":"Authentication required or token expired"
+                            }
+                            """);
+                })
+
+//                Logged in but not allowed
+                .accessDeniedHandler((request, response, e) -> {
+                    System.err.println("ACCESS DENIED -> " + e.getMessage());
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                    response.setContentType("application/json;charset=utf-8");
+                    response.getWriter().write("""
+                            {
+                            "error":"FORBIDDEN",
+                            "message":"You do not have permission to access this resource"
+                            }
+                            """);
+                }));
+    }
+
+    //    TODO: configure session side effects for resetting login failure and count
+    private void configureSession(HttpSecurity http) throws Exception {
+        http.sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+    }
+
+    private void configureRememberMe(HttpSecurity http) throws Exception {
+        http.rememberMe(rememberMe -> rememberMe
+                        .key(appProperties.getSession().getKey())
+                        .tokenRepository(persistentTokenRepository)
+                        .userDetailsService(userDetailsService)
+//              .tokenValiditySeconds()   // Set if not happy with default (2 weeks)
+//              .rememberMeParameter()    // set if not happy with default (remember-me)
+        );
+    }
+
+    // TODO: handle session login, logout errors
+    private void configureForms(HttpSecurity http) throws Exception {
+        http.formLogin(formLogin -> formLogin
+                .loginPage("/login.html")
+                .loginProcessingUrl("/login")
+                .defaultSuccessUrl("/index.html")
+                .permitAll()
+        );
+
+        http.logout(logout -> logout
+                .logoutUrl("/auth/web/logout")  // TODO: maybe change logout and login web url to default
+                .logoutSuccessUrl("/login.html?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", "remember-me")
+                .permitAll()
+        );
+    }
+
+    private void configureAuthentication(HttpSecurity http) throws Exception {
+        http
+                .userDetailsService(userDetailsService)
+                .authenticationProvider(getAuthenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    }
+
+    private AuthenticationProvider getAuthenticationProvider() {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
+        return daoAuthenticationProvider;
+    }
+
+    private void configureRateLimit(HttpSecurity http) {
+        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
+    }
+
+    //    Get the spring authentication manager (Should never create our own)
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(appProperties.getCors().getAllowedOrigins().split(",")));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "X-XSRF-TOKEN", "X-Client-Type", "Content-Type"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
 }

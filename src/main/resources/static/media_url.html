@@ -4,79 +4,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Image Upload to S3</title>
+    <title>Test Image Upload to S3 (Session + Batch)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+        }
+
+        /* Form Styling */
+        form {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .fileLabel {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .fileLabel:hover {
+            background: #d5d5d5;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-delete {
+            background: #e53935;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            background: #c62828;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Upload Results Area */
+        #summary {
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .summary-success {
+            color: #2e7d32;
+        }
+
+        .summary-fail {
+            color: #c62828;
+        }
+
+        #imageContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 15px;
+        }
+
+        .result-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            background: #fff;
+            position: relative;
+        }
+
+        .result-card.success {
+            border-left: 5px solid #2e7d32;
+        }
+
+        .result-card.failed {
+            border-left: 5px solid #c62828;
+        }
+
+        .result-card img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #eee;
+        }
+
+        .result-info {
+            font-size: 12px;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .bg-success {
+            background: #2e7d32;
+        }
+
+        .bg-fail {
+            background: #c62828;
+        }
+
+        .error-msg {
+            color: #c62828;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        /* Bucket List */
+        .bucket-section {
+            margin-top: 40px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+
+        .bucketItem {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #f9f9f9;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Test Image Upload to S3</h1>
-    <form action="/api/v1/amazon/images" method="post" enctype="multipart/form-data">
-        <label for="files">Select an image to upload:</label>
-        <input type="file" id="files" name="files" accept="image/*" multiple required>
-        <button type="submit">Upload</button>
+<div class="container">
+    <h1>Batch Image Upload</h1>
+
+    <form id="imageForm">
+        <label class="fileLabel" for="fileInput">Choose Images</label>
+        <input type="file" id="fileInput" name="files" accept="image/jpeg,image/png,image/jpg" multiple hidden>
+        <span id="fileNameSpan" style="flex: 1; color: #666;">No images selected</span>
+        <button type="submit" class="btn-primary">Upload Batch</button>
     </form>
 
-    <h2>Uploaded Image</h2>
-    <img id="uploadedImage" src="" alt="Uploaded Image will appear here after upload."
-        style="max-width: 100%; height: auto;">
+    <p id="msg"></p>
 
-    <br>
-    <br>
+    <div id="summary"></div>
+    <div id="imageContainer"></div>
 
-    <button id="bucket_list_btn" onclick="listBucketContents()">List Bucket Contents</button>
-    <ul id="bucket_list"></ul>
-</body>
+    <div class="bucket-section">
+        <h2>S3 Bucket Contents</h2>
+        <button onclick="listBucketContents()" style="margin-bottom: 15px;">Refresh List</button>
+        <div id="bucketList"></div>
+    </div>
+</div>
 
 <script>
-    async function listBucketContents() {
-        const BASE_URL = window.location.origin
-        const AMAZON_IMAGE_URL = BASE_URL + "/api/v1/amazon/images"
-        const response = await fetch(AMAZON_IMAGE_URL)
-        if (!response.ok) {
-            throw new Error(`Response Status: ${response.status}, ${response.statusText}`)
-        }
+    // --- CONFIGURATION ---
+    const URLS = {
+        AMAZON_BASE: '/api/v1/amazon/images',
+        AMAZON_BATCH: '/api/v1/amazon/images/batch',
+        LOGIN_PAGE: '/login.html' // Change if your login route is different
+    };
 
-        const bucket_items = await response.json();
-        console.log(bucket_items)
+    // --- DOM ELEMENTS ---
+    const els = {
+        form: document.getElementById('imageForm'),
+        input: document.getElementById('fileInput'),
+        msg: document.getElementById('msg'),
+        container: document.getElementById('imageContainer'),
+        summary: document.getElementById('summary'),
+        fileNameSpan: document.getElementById('fileNameSpan'),
+        bucketList: document.getElementById('bucketList')
+    };
 
-        const bucket_list = document.getElementById("bucket_list")
+    // --- EVENT LISTENERS ---
+    els.input.onchange = () => {
+        const count = els.input.files.length;
+        els.fileNameSpan.textContent = count === 0 ? 'No images selected'
+            : count === 1 ? els.input.files[0].name
+                : `${count} files selected`;
+    };
 
-        bucket_list.innerHTML = ""
+    els.form.onsubmit = uploadBatch;
 
-        bucket_items.forEach(item => {
-            const list_item = document.createElement("li")
-            list_item.style.display = "flex"
-            list_item.style.alignItems = "center"
-            list_item.style.marginBottom = "8px"
-
-            const nameSpan = document.createElement("span")
-            nameSpan.innerText = item
-
-            const deleteButton = document.createElement("button")
-            deleteButton.innerText = "Delete"
-            deleteButton.style.marginLeft = "12px"
-            deleteButton.onclick = async () => {
-                try {
-                    const res = await fetch(`${AMAZON_IMAGE_URL}/${encodeURIComponent(item)}`, {
-                        method: "DELETE"
-                    })
-
-                    if (res.ok) {
-                        list_item.remove()
-                        console.log(`Deleted ${item}`)
-                    } else {
-                        console.log(`Failed to delete file: ${item}`);
-                    }
-                } catch (error) {
-                    console.error("Error: " + error);
-                }
-            }
-
-            list_item.appendChild(nameSpan)
-            list_item.appendChild(deleteButton)
-            bucket_list.appendChild(list_item)
-        });
+    // --- CSRF HELPER ---
+    // Reads the XSRF-TOKEN cookie typically set by Spring Security
+    function getCsrfToken() {
+        return document.cookie.replace(/(?:^|.*;\s*)XSRF-TOKEN\s*=\s*([^;]*).*$|^.*$/, "$1");
     }
 
-</script>
+    // --- CORE FUNCTIONS ---
 
+    async function uploadBatch(event) {
+        event.preventDefault();
+        resetUI();
+
+        const files = els.input.files;
+        if (files.length === 0) {
+            showMsg('Please select at least one file', 'red');
+            return;
+        }
+
+        // UI Loading State
+        const btn = els.form.querySelector("button");
+        btn.disabled = true;
+        btn.textContent = "Uploading...";
+        showMsg('Uploading batch...', 'blue');
+
+        const formData = new FormData();
+        for (const file of files) {
+            formData.append('files', file);
+        }
+
+        try {
+            const response = await fetch(URLS.AMAZON_BATCH, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': getCsrfToken() // CSRF Header
+                },
+                body: formData
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                window.location.href = URLS.LOGIN_PAGE;
+                return;
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                // assumes errorData matches ApiError record
+                showMsg(`Upload Failed: ${errorData.message}`, "red");
+                return;
+            }
+
+            const data = await response.json();
+            renderBatchResults(data);
+
+        } catch (error) {
+            console.error(error);
+            showMsg("Network error or Server error occurred.", "red");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Upload Batch";
+        }
+    }
+
+    function renderBatchResults(data) {
+        // 1. Show Summary
+        els.summary.innerHTML = `
+                Result: <span class="summary-success">${data.successCount} Success</span>,
+                <span class="summary-fail">${data.failureCount} Failed</span>
+            `;
+
+        // 2. Render Cards
+        data.results.forEach(item => {
+            const isSuccess = item.status === 'SUCCESS';
+
+            const imageUrl = isSuccess ? item.url : '/error-placeholder.png';
+
+            const card = document.createElement("div");
+            card.className = `result-card ${isSuccess ? 'success' : 'failed'}`;
+
+            card.innerHTML = `
+            <span class="status-badge ${isSuccess ? 'bg-success' : 'bg-fail'}">
+                ${item.status}
+            </span>
+            <img src="${imageUrl}" alt="Preview">
+
+            <div class="result-info">
+                <strong>${item.originalFileName}</strong>
+                ${isSuccess
+                ? `<div style="color:#555; margin-top:4px;">
+                         <a href="${item.url}" target="_blank">View Link</a>
+                       </div>`
+                : `<div class="error-msg">${item.errorMessage}</div>`
+            }
+            </div>
+        `;
+            els.container.appendChild(card);
+        });
+
+        showMsg("Batch processing complete.", "green");
+    }
+
+    async function listBucketContents() {
+        try {
+            const response = await fetch(URLS.AMAZON_BASE, {
+                method: 'GET'
+            });
+
+            if (response.status === 401) {
+                window.location.href = URLS.LOGIN_PAGE;
+                return;
+            }
+
+            const items = await response.json();
+            els.bucketList.innerHTML = "";
+
+            if (items.length === 0) {
+                els.bucketList.innerHTML = "<p style='color:#777; font-style:italic;'>Bucket is empty</p>";
+                return;
+            }
+
+            items.forEach(fileName => {
+                const row = document.createElement("div");
+                row.className = "bucketItem";
+                row.innerHTML = `
+                        <span>${fileName}</span>
+                        <button class="btn-delete" onclick="deleteImage('${fileName}')">Delete</button>
+                    `;
+                els.bucketList.appendChild(row);
+            });
+
+        } catch (error) {
+            console.error(error);
+            alert("Failed to fetch bucket contents");
+        }
+    }
+
+    function extractS3Key(urlOrKey) {
+        // If it's not a full URL (just a key already), return it as is
+        if (!urlOrKey.startsWith("http")) {
+            return urlOrKey;
+        }
+
+        try {
+            const urlObj = new URL(urlOrKey);
+            // urlObj.pathname returns "/folder/image.jpg"
+            // substring(1) removes the leading "/" to get "folder/image.jpg"
+            const path = urlObj.pathname;
+            return path.startsWith('/') ? path.substring(1) : path;
+        } catch (e) {
+            console.error("Failed to parse URL:", e);
+            return urlOrKey; // Fallback
+        }
+    }
+
+    async function deleteImage(inputUrl) {
+        const fileKey = extractS3Key(inputUrl);
+
+        if (!confirm(`Are you sure you want to delete ${fileKey}?`)) return;
+
+        try {
+            const url = `${URLS.AMAZON_BASE}/${encodeURIComponent(fileKey)}`;
+
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-XSRF-TOKEN': getCsrfToken() // CSRF Header is REQUIRED for DELETE
+                }
+            });
+
+            if (response.ok) {
+                console.log("Deleted:", fileKey);
+                await listBucketContents(); // Refresh list
+            } else {
+                const err = await response.json().catch(() => ({}));
+                alert(`Failed to delete: ${err.message || response.statusText}`);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error occurred while deleting.");
+        }
+    }
+
+    function showMsg(text, color) {
+        els.msg.textContent = text;
+        els.msg.style.color = color;
+    }
+
+    function resetUI() {
+        els.msg.textContent = '';
+        els.container.innerHTML = '';
+        els.summary.innerHTML = '';
+    }
+</script>
+</body>
 </html>

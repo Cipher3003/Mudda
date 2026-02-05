@@ -12,13 +12,11 @@ import com.mudda.backend.category.CategorySeed;
 import com.mudda.backend.comment.CommentSeed;
 import com.mudda.backend.issue.IssueSeed;
 import com.mudda.backend.location.LocationSeed;
-import com.mudda.backend.role.RoleSeed;
 import com.mudda.backend.user.UserSeed;
 
 import java.util.List;
 
 public record SeedData(
-        List<RoleSeed> roles,
         List<UserSeed> users,
         List<LocationSeed> locations,
         List<CategorySeed> categories,

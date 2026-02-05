@@ -2,12 +2,40 @@ package com.mudda.backend.utils;
 
 public class MessageCodes {
 
-    public static final String INVALID_IMAGE_EXTENSION = "invalid.image.extension";
-    public static final String MULTIPART_TO_FILE_CONVERT_EXCEPT = "multipart.to.file.convert.except";
-    public static final String FILE_SIZE_EXCEED_LIMIT = "file.size.exceed.limit";
-    public static final String EMPTY_FILE = "empty.file";
-    public static final String DATABASE_SAVE_ERROR = "database.save.error"; // TODO: Remove if not used
+    /* ---------- generic / fallback ---------- */
+    public static final String BAD_REQUEST = "error.bad.request";
+    public static final String CONFLICT = "error.conflict";
+    public static final String PAYLOAD_TOO_LARGE = "error.payload.too.large";
+    public static final String AUTHENTICATION_REQUIRED = "error.authentication.required";
+    public static final String UNEXPECTED_ERROR = "error.unexpected";
+    public static final String NOT_FOUND = "error.not.found";
+
+    /* ---------- auth ---------- */
+    public static final String INVALID_REFRESH_TOKEN = "auth.invalid.refresh.token";
+    public static final String INVALID_VERIFICATION_TOKEN = "auth.invalid.verification.token";
+    public static final String TOKEN_USED = "auth.token.used";
+    public static final String TOKEN_EXPIRED = "auth.token.expired";
+    public static final String USER_ALREADY_EXISTS = "auth.user.already.exists";
+    public static final String USERNAME_ALREADY_EXISTS = "auth.username.already.exists";
+    public static final String PHONE_ALREADY_EXISTS = "auth.phone.already.exists";
+    public static final String ACCOUNT_LOCKED = "auth.account.locked";
+    public static final String INVALID_CREDENTIALS = "auth.invalid.credentials";
+    public static final String ACCOUNT_NOT_VERIFIED = "auth.account.not.verified";
+    public static final String PASSWORD_SAME_AS_OLD = "auth.password.same.as.old";
+    public static final String REGISTRATION_SUCCESS = "auth.registration.success";
+    public static final String VERIFICATION_EMAIL_SENT = "auth.verification.email.sent";
+    public static final String EMAIL_VERIFIED = "auth.email.verified";
+    public static final String PASSWORD_RESET_LINK_SENT = "auth.password.reset.link.sent";
+    public static final String PASSWORD_RESET_SUCCESS = "auth.password.reset.success";
+
+    /* ---------- file upload ---------- */
+    public static final String EMPTY_FILE = "file.empty";
     public static final String FILE_NOT_IMAGE = "file.not.image";
-    public static final String AMAZON_ERROR = "amazon.error";
-    public static final String AMAZON_CLIENT_ERROR = "amazon.client.error";
+    public static final String INVALID_IMAGE_EXTENSION = "file.invalid.extension";
+    public static final String FILE_SIZE_EXCEED_LIMIT = "file.size.exceed.limit";
+    public static final String UPLOAD_FAILED = "upload.failed";
+
+    /* ---------- storage (S3) ---------- */
+    public static final String STORAGE_UNAVAILABLE = "storage.unavailable";
+    public static final String STORAGE_CLIENT_ERROR = "storage.client.error";
 }

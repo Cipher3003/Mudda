@@ -19,6 +19,46 @@
       "name": "amazon.s3.secret-key",
       "type": "java.lang.String",
       "description": "The AWS secret key associated with the access key for authenticating requests to Amazon S3."
+    },
+    {
+      "name": "security.jwt.access-ttl-min",
+      "type": "java.lang.Long",
+      "description": "The Time to Live for JWT Access Token after creation in Minutes."
+    },
+    {
+      "name": "security.jwt.secret-key",
+      "type": "java.lang.String",
+      "description": "The JWT secret key used to sign and verify tokens."
+    },
+    {
+      "name": "security.jwt.refresh-ttl-days",
+      "type": "java.lang.String",
+      "description": "The Time to Live for JWT Refresh Token after creation in Days."
+    },
+    {
+      "name": "app.email.retry.max-attempts",
+      "type": "java.lang.Integer",
+      "description": "The maximum number of retries for sending a mail."
+    },
+    {
+      "name": "app.email.retry.backoff-ms",
+      "type": "java.lang.Long",
+      "description": "The cooldown period after sending a mail and trying again."
+    },
+    {
+      "name": "app.email.verify-path",
+      "type": "java.lang.String",
+      "description": "The account verification email link endpoint to be sent in mail."
+    },
+    {
+      "name": "app.email.reset-path",
+      "type": "java.lang.String",
+      "description": "The password reset link endpoint to be sent in mail."
+    },
+    {
+      "name": "app.cdn.origin",
+      "type": "java.lang.String",
+      "description": "The CDN address from where public images will be delivered."
     }
   ]
 }

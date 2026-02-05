@@ -1,7 +1,3 @@
-package com.mudda.backend.user;
-
-import lombok.Getter;
-
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
@@ -10,6 +6,10 @@ import lombok.Getter;
  * Created : 13-11-2025
  * ---------------------------------------------------------------
  */
+package com.mudda.backend.user;
+
+import lombok.Getter;
+
 @Getter
 public enum UserSortBy {
     ID("id"),

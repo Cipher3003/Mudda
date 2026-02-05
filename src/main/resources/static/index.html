@@ -6,7 +6,7 @@
     <title>Mudda — Dev Tools</title>
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             text-align: center;
             padding-top: 80px;
             background: #f5f5f5;
@@ -30,39 +30,161 @@
         .btn:hover {
             background: #125a9c;
         }
+
+        #header {
+            position: relative;
+        }
+
+        #authButton {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 6px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #4caf50;
+            color: white;
+            display: none; /* Hidden until we know login status */
+        }
+
+        #authButton:hover {
+            background: #43a047;
+        }
+
+        /* Different style for Logout state */
+        #authButton.logout-mode {
+            background: #f44336;
+        }
+
+        #authButton.logout-mode:hover {
+            background: #d32f2f;
+        }
     </style>
 </head>
 
 <body>
 
-    <h1>Mudda — Development Panel</h1>
+<div>
 
-    <!-- Home Page -->
+    <div id="header">
+        <h1>Mudda — Development Panel</h1>
+        <button id="authButton"></button>
+    </div>
+
     <button class="btn" onclick="openTab('/home.html')">
         Open Home Page
     </button>
 
-    <!-- Seed Page -->
     <button class="btn" onclick="openTab('/seed.html')">
         Open Seed Page
     </button>
 
-    <!-- Swagger / API Docs -->
     <button class="btn" onclick="openTab('/swagger-ui/index.html')">
         Open API Docs
     </button>
 
-    <!-- Media URL Page -->
     <button class="btn" onclick="openTab('/media_url.html')">
         Open Media URL
     </button>
 
-    <script>
-        function openTab(url) {
-            window.open(url, '_blank');
+</div>
+
+<script>
+
+    // region Constants
+    const URLS = {
+        LOGIN_PAGE: '/login.html',
+        // Matches the .logoutUrl("/auth/web/logout") you set in Spring
+        LOGOUT_API: '/auth/web/logout',
+        // Helper to check status (you need to create this Controller endpoint!)
+        ME_API: '/account/me'
+    }
+    // endregion
+
+    const authButton = document.getElementById('authButton');
+
+    // 1. Initialize Page
+    checkLoginStatus();
+
+    // 2. Check if User is Logged In (Session/Cookie based)
+    async function checkLoginStatus() {
+        try {
+            // We call the backend to see if the session is valid
+            const response = await fetch(URLS.ME_API, {
+                method: 'GET',
+                headers: {'Accept': 'application/json'}
+            });
+
+            if (response.ok) {
+                const user = await response.json();
+                // User is logged in
+                setupLogoutButton(user.username || 'User');
+            } else {
+                // User is anonymous / session expired
+                setupLoginButton();
+            }
+        } catch (error) {
+            console.error("Failed to check auth status", error);
+            setupLoginButton();
         }
-    </script>
+    }
+
+    // 3. Setup UI States
+    function setupLoginButton() {
+        authButton.textContent = 'Login';
+        authButton.className = ''; // Reset class
+        authButton.style.display = 'block';
+        authButton.onclick = () => window.location.href = URLS.LOGIN_PAGE;
+    }
+
+    function setupLogoutButton(username) {
+        authButton.textContent = `Logout (${username})`;
+        authButton.className = 'logout-mode'; // Make it red
+        authButton.style.display = 'block';
+        authButton.onclick = handleLogout;
+    }
+
+    // 4. Handle Logout with CSRF
+    async function handleLogout() {
+        try {
+            const csrfToken = getCookie('XSRF-TOKEN');
+
+            const response = await fetch(URLS.LOGOUT_API, {
+                method: "POST",
+                headers: {
+                    // Spring Security expects this header for POST requests
+                    "X-XSRF-TOKEN": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            });
+
+            if (response.ok || response.redirected) {
+                // Reload to reset state or go to Log in
+                window.location.href = URLS.LOGIN_PAGE + "?logout=true";
+            } else {
+                console.error("Logout failed", response.status);
+                alert("Logout failed. Try refreshing the page.");
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // 5. Helper to read Cookies
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    function openTab(url) {
+        window.open(url, '_blank');
+    }
+
+</script>
 
 </body>
-
 </html>

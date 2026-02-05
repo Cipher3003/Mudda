@@ -4,12 +4,7 @@ import com.google.gson.Gson;
 import com.mudda.backend.category.CategorySeed;
 import com.mudda.backend.category.CategoryService;
 import com.mudda.backend.category.CreateCategoryRequest;
-import com.mudda.backend.comment.CommentLike;
-import com.mudda.backend.comment.CommentLikeSeed;
-import com.mudda.backend.comment.CommentLikeService;
-import com.mudda.backend.comment.CommentSeed;
-import com.mudda.backend.comment.CommentService;
-import com.mudda.backend.comment.CreateCommentRequest;
+import com.mudda.backend.comment.*;
 import com.mudda.backend.issue.CreateIssueRequest;
 import com.mudda.backend.issue.IssueSeed;
 import com.mudda.backend.issue.IssueService;
@@ -17,18 +12,16 @@ import com.mudda.backend.location.CoordinateDTO;
 import com.mudda.backend.location.CreateLocationRequest;
 import com.mudda.backend.location.LocationSeed;
 import com.mudda.backend.location.LocationService;
-import com.mudda.backend.role.CreateRoleRequest;
-import com.mudda.backend.role.RoleSeed;
-import com.mudda.backend.role.RoleService;
 import com.mudda.backend.user.CreateUserRequest;
+import com.mudda.backend.user.MuddaUserRole;
 import com.mudda.backend.user.UserSeed;
 import com.mudda.backend.user.UserService;
 import com.mudda.backend.vote.Vote;
 import com.mudda.backend.vote.VoteSeed;
 import com.mudda.backend.vote.VoteService;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.Text;
 import org.springframework.stereotype.Service;
@@ -45,6 +38,7 @@ import java.util.stream.IntStream;
 import static net.datafaker.providers.base.Text.DIGITS;
 import static net.datafaker.providers.base.Text.EN_UPPERCASE;
 
+@Slf4j
 @Service
 public class SeedService {
 
@@ -55,7 +49,6 @@ public class SeedService {
 
     // In a real application, these services would be injected.
     // For this example, we are instantiating them directly.
-    private final RoleService roleService;
     private final CategoryService categoryService;
     private final LocationService locationService;
     private final UserService userService;
@@ -64,15 +57,13 @@ public class SeedService {
     private final CommentService commentService;
     private final CommentLikeService commentLikeService;
 
-    public SeedService(RoleService roleService,
-            CategoryService categoryService,
-            LocationService locationService,
-            UserService userService,
-            VoteService voteService,
-            IssueService issueService,
-            CommentService commentService,
-            CommentLikeService commentLikeService) {
-        this.roleService = roleService;
+    public SeedService(CategoryService categoryService,
+                       LocationService locationService,
+                       UserService userService,
+                       VoteService voteService,
+                       IssueService issueService,
+                       CommentService commentService,
+                       CommentLikeService commentLikeService) {
         this.categoryService = categoryService;
         this.locationService = locationService;
         this.userService = userService;
@@ -90,6 +81,7 @@ public class SeedService {
      */
     @Transactional
     public List<String> clearDatabase() {
+        log.info("Clearing database");
         List<String> feedback = new ArrayList<>();
         feedback.add("Starting database cleanup using manual deletion...");
 
@@ -103,10 +95,11 @@ public class SeedService {
                 "Comment",
                 "Vote",
                 "Issue",
-                "User",
+                "MuddaUser",
                 "Location",
-                "Category",
-                "Role");
+                "Category"
+//                TODO: add token tables and sequences
+        );
 
         try {
             for (String entityName : entityNamesInDeletionOrder) {
@@ -129,8 +122,8 @@ public class SeedService {
                     "issues_id_seq",
                     "users_id_seq",
                     "locations_id_seq",
-                    "categories_id_seq",
-                    "roles_id_seq");
+                    "categories_id_seq"
+            );
 
             for (String sequenceName : sequenceNames) {
                 try {
@@ -153,15 +146,16 @@ public class SeedService {
             // The @Transactional annotation will automatically handle rolling back the
             // transaction
             // in case of an error, preventing a partially cleared database.
+            log.error("Unexpected error while clearing the database.", e);
         }
         return feedback;
     }
 
     @Transactional
     public List<String> seedDatabase(CreateSeedRequest request) {
+        log.info("Seeding database with request");
         // --- Data stores to simulate database primary keys for relationships ---
         List<String> feedback = new ArrayList<>();
-        List<Long> roleIds = new ArrayList<>();
         List<Long> userIds = new ArrayList<>();
         List<Long> locationIds = new ArrayList<>();
         List<Long> categoryIds = new ArrayList<>();
@@ -175,11 +169,8 @@ public class SeedService {
                 .forEach(dto -> generationMap.put(dto.entity(), dto.count()));
 
         // --- Process entities in a fixed order that respects dependencies ---
-        if (generationMap.containsKey(Entity.Role))
-            generateRoles(generationMap.get(Entity.Role), roleIds, feedback);
-
         if (generationMap.containsKey(Entity.User))
-            generateUsers(generationMap.get(Entity.User), userIds, roleIds, feedback);
+            generateUsers(generationMap.get(Entity.User), userIds, feedback);
 
         if (generationMap.containsKey(Entity.Location))
             generateLocations(generationMap.get(Entity.Location), locationIds, feedback);
@@ -206,6 +197,7 @@ public class SeedService {
 
     @Transactional
     public List<String> seedDatabaseFromJson() {
+        log.info("Seeding database from JSON");
         Gson gson = new Gson();
         List<String> feedback = new ArrayList<>();
 
@@ -217,9 +209,6 @@ public class SeedService {
 
             try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
                 SeedData seedData = gson.fromJson(reader, SeedData.class);
-
-                roleService.saveRoles(seedData.roles().stream().map(RoleSeed::toRole).toList());
-                feedback.add("Roles seeded: " + seedData.roles().size());
 
                 userService.saveUsers(seedData.users().stream().map(UserSeed::toUser).toList());
                 feedback.add("Users seeded: " + seedData.users().size());
@@ -275,8 +264,8 @@ public class SeedService {
 
             }
         } catch (IOException e) {
-            feedback.add("Error during JSON seeding: "+e.getMessage());
-            e.printStackTrace();
+            feedback.add("Error during JSON seeding: " + e.getMessage());
+            log.error("Unexcepted error while seeding from json", e);
         }
 
         return feedback;
@@ -284,22 +273,7 @@ public class SeedService {
 
     // --- Generation Logic for each Entity ---
 
-    private void generateRoles(int count, List<Long> roleIds, List<String> feedback) {
-        feedback.add("Generating " + count + " roles...");
-        List<CreateRoleRequest> roleRequests = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            // Appending a random number to ensure the role name is unique
-            String uniqueRoleName = faker.job().title() + " " + random.nextInt(100000);
-            roleRequests.add(new CreateRoleRequest(uniqueRoleName));
-        }
-        roleIds.addAll(roleService.createRoles(roleRequests));
-    }
-
-    private void generateUsers(int count, List<Long> userIds, List<Long> roleIds, List<String> feedback) {
-        if (roleIds.isEmpty()) {
-            feedback.add("Cannot generate users: No roles found. Add roles in request.");
-            return;
-        }
+    private void generateUsers(int count, List<Long> userIds, List<String> feedback) {
         feedback.add("Generating " + count + " users...");
 
         List<CreateUserRequest> userRequests = new ArrayList<>();
@@ -326,7 +300,7 @@ public class SeedService {
                     faker.timeAndDate().birthday(),
                     uniquePhoneNumber,
                     password,
-                    getRandomId(roleIds), // Get a random existing role ID
+                    getRandomMuddaUserRole(), // Get a random existing role
                     faker.avatar().image()));
         }
         userIds.addAll(userService.createUsers(userRequests));
@@ -367,7 +341,7 @@ public class SeedService {
     }
 
     private void generateIssues(int count, List<Long> issueIds, List<Long> userIds,
-            List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
+                                List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
         if (userIds.isEmpty() || locationIds.isEmpty() || categoryIds.isEmpty()) {
             feedback.add("Cannot generate issues: Missing Users, Locations, or Categories. " +
                     "Add users, locations, categories in request.");
@@ -401,7 +375,7 @@ public class SeedService {
     }
 
     private void generateComments(int count, List<Long> parentCommentIds, List<Long> issueIds,
-            List<Long> userIds, List<String> feedback) {
+                                  List<Long> userIds, List<String> feedback) {
         if (issueIds.isEmpty() || userIds.isEmpty()) {
             feedback.add("Cannot generate comments: Missing Issues or Users. Add issues, users in request");
             return;
@@ -424,7 +398,7 @@ public class SeedService {
     }
 
     private void generateReplies(int count, List<Long> parentCommentIds, List<Long> issueIds,
-            List<Long> userIds, List<String> feedback) {
+                                 List<Long> userIds, List<String> feedback) {
         if (parentCommentIds.isEmpty() || userIds.isEmpty() || issueIds.isEmpty()) {
             feedback.add("Cannot generate replies: Missing parent Comments, Users, or Issues. " +
                     "Add comments, users, issues in request");
@@ -456,5 +430,10 @@ public class SeedService {
             return null;
 
         return idList.get(random.nextInt(idList.size()));
+    }
+
+    private MuddaUserRole getRandomMuddaUserRole() {
+        MuddaUserRole[] muddaUserRoles = MuddaUserRole.values();
+        return muddaUserRoles[random.nextInt(muddaUserRoles.length)];
     }
 }

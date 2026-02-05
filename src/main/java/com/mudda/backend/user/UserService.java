@@ -11,16 +11,25 @@ import java.util.Optional;
 public interface UserService {
     Page<UserSummaryResponse> findAllUsers(UserFilterRequest filterRequest, Pageable pageable);
 
-    Optional<UserDetailResponse> findById(long id);
+    Optional<MuddaUser> findById(long id);
+
+    Optional<MuddaUser> findByEmail(String email);
 
     UserDetailResponse createUser(CreateUserRequest userRequest);
 
+    void recordFailedLogin(String username);
+
+    void resetLoginFailures(long id);
+
+    void updatePassword(Long id, String password);
+
     List<Long> createUsers(List<CreateUserRequest> userRequests);
 
-    void saveUsers(List<User> users);
+    void saveUsers(List<MuddaUser> users);
 
     UserSummaryResponse updateUser(long id, UpdateUserRequest userRequest);
 
     void deleteUser(long id);
 
+    void verifyUser(Long userId);
 }

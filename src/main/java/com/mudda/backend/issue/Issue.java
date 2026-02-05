@@ -59,6 +59,7 @@ public class Issue {
     @Type(ListArrayType.class)
     @Column(name = "media_urls", columnDefinition = "text[]")
     private List<String> mediaUrls;
+//    TODO: store image in table with metadata instead of array
 
     // Flags
     @Column(name = "delete_flag", nullable = false)

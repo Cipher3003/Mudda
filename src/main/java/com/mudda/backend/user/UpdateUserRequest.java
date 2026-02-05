@@ -1,5 +1,3 @@
-package com.mudda.backend.user;
-
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
@@ -8,6 +6,8 @@ package com.mudda.backend.user;
  * Created : 13-11-2025
  * ---------------------------------------------------------------
  */
+package com.mudda.backend.user;
+
 public record UpdateUserRequest(
         String phoneNumber,
         String profileImageUrl

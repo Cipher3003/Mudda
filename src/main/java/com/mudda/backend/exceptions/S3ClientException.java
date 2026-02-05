@@ -1,17 +1,11 @@
 package com.mudda.backend.exceptions;
 
-import lombok.Getter;
+import com.mudda.backend.utils.MessageCodes;
 
-@Getter
-public class S3ClientException extends RuntimeException {
+public class S3ClientException extends LocalizedException {
 
-    private final String errorMessageCode;
-    private final Object[] args;
-
-    public S3ClientException(String errorMessageCode, Object... args) {
-        super(errorMessageCode);
-        this.errorMessageCode = errorMessageCode;
-        this.args = args;
+    public S3ClientException() {
+        super(MessageCodes.STORAGE_CLIENT_ERROR);
     }
 
 }

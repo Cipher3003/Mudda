@@ -1,65 +1,60 @@
 package com.mudda.backend.amazon;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.imageio.ImageIO;
-
-import org.apache.commons.io.FilenameUtils;
+import com.mudda.backend.exceptions.S3ClientException;
+import com.mudda.backend.exceptions.S3ServiceException;
+import com.mudda.backend.exceptions.UploadFailedException;
+import com.mudda.backend.utils.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.mudda.backend.exceptions.S3ServiceException;
-import com.mudda.backend.exceptions.EmptyFileException;
-import com.mudda.backend.exceptions.FileConversionException;
-import com.mudda.backend.exceptions.NonImageFileException;
-import com.mudda.backend.exceptions.S3ClientException;
-import com.mudda.backend.exceptions.FileSizeLimitExceededException;
-import com.mudda.backend.exceptions.InvalidImageExtensionException;
-import com.mudda.backend.utils.FileUtils;
-import com.mudda.backend.utils.MessageCodes;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import lombok.extern.log4j.Log4j2;
-
+@Slf4j
 @Service
-@Log4j2
 public class AmazonImageServiceImpl implements AmazonImageService {
 
+//    TODO: detect images categories using s3
+//    TODO: upload image using presigned URL -> maybe not worth it
+
+    private final S3Client amazonS3;
+    private final ImageValidator imageValidator;
     private final String bucketName;
-    private final AmazonS3 amazonS3;
+
+    @Value("${app.cdn.origin}")
+    private String cdnOrigin;
 
     public AmazonImageServiceImpl(@Value("${amazon.s3.bucket-name}") String bucketName,
-                                  AmazonS3 amazonS3) {
+                                  S3Client amazonS3, ImageValidator imageValidator) {
         this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
+        this.imageValidator = imageValidator;
     }
 
-    // #region Queries (Read Operations)
+    // region Queries (Read Operations)
 
     // NOTE: For testing only
     @Override
     public List<String> getBucketContents() {
         List<String> objectKeys = new ArrayList<>();
-        try {
-            ObjectListing objectListing = amazonS3.listObjects(bucketName);
 
-            do {
-                for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
-                    objectKeys.add(summary.getKey());
-                }
-                objectListing = amazonS3.listNextBatchOfObjects(objectListing);
-            } while (objectListing.isTruncated());
+        log.trace("Fetching bucket contents");
+        try {
+            ListObjectsV2Request request = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .build();
+
+            ListObjectsV2Response response = amazonS3.listObjectsV2(request);
+            response.contents().forEach(s3Object ->
+                    objectKeys.add(cdnOrigin.concat(s3Object.key())));
 
         } catch (Exception e) {
             log.error("Failed to list objects in S3 bucket: {}", bucketName, e);
@@ -68,94 +63,109 @@ public class AmazonImageServiceImpl implements AmazonImageService {
         return objectKeys;
     }
 
-    // #endregion
+    // endregion
 
-    // #region Commands (Write Operations)
+    // region Commands (Write Operations)
 
-    @Transactional
+    //    TODO: maybe cache file to database to resume uploads to handle fallback ?
     @Override
-    public AmazonImage uploadImageToAmazon(MultipartFile file) {
+    public ImageUploadResponse uploadImageToAmazon(MultipartFile multipartFile) {
 
-        // Check if file is empty or null
-        if (file == null || file.isEmpty())
-            throw new EmptyFileException(MessageCodes.EMPTY_FILE);
-
-        // Check if file size exceeds maximum size (1MB default)
-        if (file.getSize() >= 1024 * 1024)
-            throw new FileSizeLimitExceededException(
-                    MessageCodes.FILE_SIZE_EXCEED_LIMIT,
-                    file.getSize(),
-                    1024 * 1024
-            );
-
-        List<String> validExtensions = List.of("jpeg", "png", "jpg");
-        String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
-
-        // Check if file extensions are valid else throw InvalidImageExtensionException
-        if (fileExtension == null ||
-                validExtensions
-                        .stream()
-                        .noneMatch(ext -> ext.equalsIgnoreCase(fileExtension))
-        ) {
-            throw new InvalidImageExtensionException(
-                    MessageCodes.INVALID_IMAGE_EXTENSION,
-                    String.join(", ", validExtensions)
-            );
-        }
-
-        // Check if file is an actual image and MIME type is an image
-        String fileContentType = file.getContentType();
-        if (fileContentType == null || !fileContentType.startsWith("image/"))
-            throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
+        imageValidator.validateImage(multipartFile);
 
         try {
-            if (ImageIO.read(file.getInputStream()) == null)
-                throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
+            String fileKey = FileUtils.generateFileName(multipartFile);
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .contentType(multipartFile.getContentType())
+                    .build();
+
+            amazonS3.putObject(putObjectRequest, RequestBody.fromInputStream(
+                    multipartFile.getInputStream(), multipartFile.getSize()
+            ));
+
+            log.info("Uploaded image to AWS: {}", fileKey);
+
+            return new ImageUploadResponse(
+                    multipartFile.getOriginalFilename(),
+                    fileKey,
+                    cdnOrigin.concat(fileKey),
+                    UploadStatus.SUCCESS,
+                    null
+            );
 
         } catch (IOException e) {
-            throw new NonImageFileException(MessageCodes.FILE_NOT_IMAGE);
-        }
-
-        try {
-            File imageFile = FileUtils.convertMultipartToFile(file);
-            String fileName = FileUtils.generateFileName(file);
-
-            amazonS3.putObject(new PutObjectRequest(bucketName, fileName, imageFile));
-            imageFile.delete();
-
-            String fileUrl = getFileUrl(bucketName, amazonS3.getRegionName()).concat(fileName);
-
-            return new AmazonImage(fileName, fileUrl);
-        } catch (IOException e) {
-            throw new FileConversionException(MessageCodes.MULTIPART_TO_FILE_CONVERT_EXCEPT);
-        } catch (AmazonS3Exception e) {
-            throw new S3ServiceException(MessageCodes.AMAZON_ERROR);
+            throw new UploadFailedException();
+        } catch (S3Exception e) {
+            throw new S3ServiceException();
         } catch (SdkClientException e) {
-            throw new S3ClientException(MessageCodes.AMAZON_CLIENT_ERROR);
+            throw new S3ClientException();
         }
     }
 
-    @Transactional
+    @Override
+    public BatchImageUploadResponse uploadImagesToAmazon(List<MultipartFile> files) {
+        log.trace("Starting batch upload for {} images", files != null ? files.size() : 0);
+        if (files == null || files.isEmpty())
+            return new BatchImageUploadResponse(0, 0, Collections.emptyList());
+
+//        Process all files in parallel
+        List<ImageUploadResponse> responses = files.parallelStream()
+                .map(file -> {
+                    try {
+                        return this.uploadImageToAmazon(file);
+                    } catch (Exception e) {
+                        log.error("Failed to upload image to AWS: {}", file.getOriginalFilename(), e);
+
+                        String errorMessage = e.getMessage();
+//                        TODO: give better error messages
+                        if (errorMessage == null || errorMessage.isEmpty())
+                            errorMessage = "Unknown error occurred (%s)".formatted(e.getClass().getSimpleName());
+
+                        return new ImageUploadResponse(
+                                file.getOriginalFilename(),
+                                null,
+                                null,
+                                UploadStatus.FAILED,
+                                errorMessage
+                        );
+                    }
+                })
+                .toList();
+
+        int successCount = (int) responses.stream()
+                .filter(response -> response.status().equals(UploadStatus.SUCCESS)).count();
+        int failureCount = responses.size() - successCount;
+
+        return new BatchImageUploadResponse(successCount, failureCount, responses);
+    }
+
+
     @Override
     public void removeImageFromAmazon(String imageFileName) {
 
         try {
-            amazonS3.deleteObject(new DeleteObjectRequest(bucketName, imageFileName));
-        } catch (AmazonS3Exception e) {
-            throw new S3ServiceException(MessageCodes.AMAZON_ERROR);
-        } catch (SdkClientException e) {
-            throw new S3ClientException(MessageCodes.AMAZON_CLIENT_ERROR);
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(imageFileName)
+                    .build();
+
+            amazonS3.deleteObject(deleteObjectRequest);
+            log.info("Removed image from AWS: {}", imageFileName);
+        } catch (S3Exception e) {
+            throw new S3ServiceException();
+        }
+//        catch (AwsServiceException e) {
+//        TODO: handle no such entity in aws s3
+//        }
+        catch (SdkClientException e) {
+            throw new S3ClientException();
         }
     }
 
-    // #endregion
+//    TODO: add delete multiple images
 
-//    ------------------------------
-//    Helpers
-//    ------------------------------
-
-    private String getFileUrl(String bucketName, String region) {
-        return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
-    }
+    // endregion
 
 }

@@ -1,8 +1,3 @@
-package com.mudda.backend.utils;
-
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.data.repository.CrudRepository;
-
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
@@ -11,6 +6,11 @@ import org.springframework.data.repository.CrudRepository;
  * Created : 12-11-2025
  * ---------------------------------------------------------------
  */
+package com.mudda.backend.utils;
+
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.repository.CrudRepository;
+
 public class EntityValidator {
 
     public static <T, ID> void validateExists(CrudRepository<T, ID> repo, ID id, String entityName) {
