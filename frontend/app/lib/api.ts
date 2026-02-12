@@ -34,3 +34,21 @@ export const api = {
     });
   },
 };
+
+export const apiClient = {
+  get: async <T>(endpoint: string, headers: HeadersInit = {}): Promise<T> => {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok)
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+
+    return response.json();
+  },
+};
