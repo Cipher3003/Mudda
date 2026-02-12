@@ -83,7 +83,8 @@ public class SmtpEmailService implements EmailService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(
                     mimeMessage, true, StandardCharsets.UTF_8.name());
-
+            
+            helper.setFrom("no-reply@mudda.dev");
             helper.setTo(email);
             helper.setSubject(subject);
             helper.setText(html, true);
