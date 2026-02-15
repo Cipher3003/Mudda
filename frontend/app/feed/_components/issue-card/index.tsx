@@ -3,11 +3,19 @@ import { IssueCardProps } from "../../type";
 import CardHeader from "./header";
 import CardFooter from "./footer";
 
+// TODO: add share button in footer, and implement share functionality (copy link to clipboard)
+
 export default function IssueCard(props: IssueCardProps) {
+  const { isDetail = false } = props;
+
   return (
     <div
-      onClick={props.onClick}
-      className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-200 max-w-2xl mx-auto mb-6"
+      onClick={!isDetail ? props.onClick : undefined}
+      className={`bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 transition-all duration-200 ${
+        !isDetail
+          ? "hover:shadow-md cursor-pointer max-w-2xl mx-auto" // Feed Mode: Constrained width, hover effects
+          : "w-full shadow-sm" // Detail Mode: Full width of parent, subtle shadow
+      }`}
     >
       <CardHeader
         authorId={props.authorId}
@@ -19,7 +27,7 @@ export default function IssueCard(props: IssueCardProps) {
         severity={props.severity}
         status={props.status}
       />
-      <CardContent title={props.title} desc={props.desc} />
+      <CardContent title={props.title} desc={props.desc} isDetail={isDetail} />
       <IssueImageGrid images={props.images} />
       <CardFooter
         votes={props.votes}
@@ -28,18 +36,23 @@ export default function IssueCard(props: IssueCardProps) {
         address={props.address}
         hasVoted={props.hasVoted}
         canVote={props.canVote}
+        onCommentClick={props.onCommentClick}
       />
     </div>
   );
 }
 
-const CardContent = ({ title, desc }: any) => {
+const CardContent = ({ title, desc, isDetail }: any) => {
   return (
     <div className="px-4 pb-3">
       <h3 className="text-xl font-bold text-slate-900 mb-2 leading-tight">
         {title}
       </h3>
-      <p className="text-slate-600 text-sm leading-relaxed line-clamp-2">
+      <p
+        className={`text-slate-600 text-sm leading-relaxed ${
+          isDetail ? "" : "line-clamp-2"
+        }`}
+      >
         {desc}
       </p>
     </div>

@@ -12,6 +12,7 @@ const CardFooter = ({
   address,
   hasVoted,
   canVote,
+  onCommentClick,
 }: any) => {
   return (
     <div className="px-4 py-3 flex items-center justify-between">
@@ -41,7 +42,10 @@ const CardFooter = ({
         </button>
 
         {/* Comment Button */}
-        <button className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors group">
+        <button
+          className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors group"
+          onClick={onCommentClick}
+        >
           <div className="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
             <MessageSquare size={20} />
           </div>

@@ -14,7 +14,7 @@ export default function FeedStream({ issues }: { issues: IssueCardData[] }) {
         <IssueCard
           key={issue.id}
           {...issue}
-          onClick={() => router.push(`/issue/${issue.id}`)}
+          onClick={() => router.push(`/feed/${issue.id}`)}
         />
       ))}
     </div>

@@ -1,3 +1,5 @@
+//#region Feed types
+
 export interface IssueFeedDTO {
   id: number;
   title: string;
@@ -8,8 +10,8 @@ export interface IssueFeedDTO {
   author_id: number;
   author_name: string;
   author_image_url: string | null;
-  has_user_voted: boolean; //missing
-  can_user_vote: boolean; //missing
+  has_user_voted: boolean;
+  can_user_vote: boolean;
 }
 
 export interface IssuePageResponse {
@@ -50,6 +52,97 @@ export interface IssueCardProps {
 
   // Actions
   onClick: () => void;
+  onCommentClick?: () => void;
+  isDetail?: boolean;
 }
 
 export type IssueCardData = Omit<IssueCardProps, "onClick">;
+
+//#endregion
+
+//#region Feed/[id] types
+
+export interface IssueDetailDTO extends IssueFeedDTO {
+  description: string;
+  locationSummary: {
+    city: string;
+    state: string;
+  };
+  category: string;
+  severity_score: number;
+  updated_at: string;
+  can_user_comment: boolean;
+  can_user_edit: boolean;
+  can_user_delete: boolean;
+}
+
+export interface IssueDetailData extends IssueCardData {
+  // TODO: Not used
+  canComment: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  updatedAt: string;
+}
+
+export interface CommentPageResponse {
+  content: CommentDTO[];
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+export interface CommentDTO {
+  comment_id: number;
+  text: string;
+  author_id: number;
+  issue_id: number; // TODO: not utilized
+  like_count: number;
+  reply_count: number;
+  created_at: string;
+  has_user_liked: boolean;
+  can_user_like: boolean;
+  can_user_update: boolean;
+  can_user_delete: boolean;
+}
+
+export interface CommentData {
+  id: number;
+  authorName: string;
+  createdAt: string;
+  content: string;
+  likeCount: number;
+  replyCount: number;
+  replies: CommentData[];
+  hasLiked: boolean;
+  canLike: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+}
+
+export interface ReplyDTO {
+  reply_id: number;
+  text: string;
+  author_id: number;
+  comment_id: number;
+  like_count: number;
+  created_at: string;
+  has_user_liked: boolean;
+  can_user_like: boolean;
+  can_user_update: boolean;
+  can_user_delete: boolean;
+}
+
+export interface ReplyPageResponse {
+  content: ReplyDTO[];
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+//#endregion

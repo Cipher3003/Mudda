@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import formatTimeAgo from "../format-time-ago";
+import { formatToRelativeTime } from "../format-dates";
 
 export default function TimeAgo({ timestamp }: { timestamp: string }) {
   const [time, setTime] = useState<string | null>(null);
 
   useEffect(() => {
     function update() {
-      setTime(formatTimeAgo(timestamp));
+      setTime(formatToRelativeTime(timestamp));
     }
 
     update();
