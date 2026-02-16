@@ -86,6 +86,7 @@ export default function CommentItem(props: CommentItemProps) {
         </div>
       </div>
 
+      {/* TODO: maybe move the replies state to CommentReplies */}
       {/* Reply Input Section */}
       {isReplying && (
         <div

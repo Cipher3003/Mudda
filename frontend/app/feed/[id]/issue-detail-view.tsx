@@ -24,7 +24,6 @@ export default function IssueDetailView(props: IssueDetailViewProps) {
         <IssueCard
           {...props.issue}
           isDetail={true}
-          onClick={() => {}} // TODO: remove by using link to wrap issue card
           onCommentClick={handleCommentClick}
         />
         {/* Timeline Connector Line */}

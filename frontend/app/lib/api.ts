@@ -1,54 +1,35 @@
-import { LoginRequest, RegisterRequest } from "../types/auth";
-
-const BASE_URL =
+export const BASE_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/";
 
-export const api = {
-  register: async (payload: RegisterRequest, xsrfToken: string) => {
-    return await fetch(`${BASE_URL}auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-XSRF-TOKEN": xsrfToken || "",
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-  },
-
-  login: async (payload: LoginRequest, xsrfToken: string) => {
-    const params = new URLSearchParams();
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value !== undefined) params.append(key, String(value));
-    });
-
-    return await fetch(`${BASE_URL}login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-XSRF-TOKEN": xsrfToken || "",
-      },
-      credentials: "include",
-      body: params,
-      // redirect:"follow"  // redirects to where backend sends us
-    });
-  },
+export type FetchOptions = {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  headers?: HeadersInit;
+  body?: unknown;
+  credentials?: RequestCredentials;
+  cache?: RequestCache;
 };
 
-export const apiClient = {
-  get: async <T>(endpoint: string, headers: HeadersInit = {}): Promise<T> => {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...headers,
-      },
-      credentials: "include",
-    });
+export async function api<T>(
+  url: string,
+  options: FetchOptions = {},
+): Promise<T> {
+  const response = await fetch(url, {
+    method: options.method ?? "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    credentials: options.credentials,
+    cache: options.cache ?? "no-store",
+  });
 
-    if (!response.ok)
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  if (!response.ok) {
+    const body = response.json();
+    throw new ApiError(response.status, body);
+  }
 
-    return response.json();
-  },
-};
+  if (response.status === 204) return {} as T;
+
+  return response.json();
+}

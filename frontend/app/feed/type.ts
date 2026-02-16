@@ -51,12 +51,9 @@ export interface IssueCardProps {
   canVote: boolean;
 
   // Actions
-  onClick: () => void;
   onCommentClick?: () => void;
   isDetail?: boolean;
 }
-
-export type IssueCardData = Omit<IssueCardProps, "onClick">;
 
 //#endregion
 
@@ -76,7 +73,7 @@ export interface IssueDetailDTO extends IssueFeedDTO {
   can_user_delete: boolean;
 }
 
-export interface IssueDetailData extends IssueCardData {
+export interface IssueDetailData extends IssueCardProps {
   // TODO: Not used
   canComment: boolean;
   canEdit: boolean;

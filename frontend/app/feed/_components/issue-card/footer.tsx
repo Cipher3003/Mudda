@@ -1,9 +1,13 @@
+"use client";
+
+import { apiClient } from "@/app/lib/api-client";
 import {
   MapPin,
   MessageSquare,
   MoreHorizontal,
   TrendingUp,
 } from "lucide-react";
+import React, { useState } from "react";
 
 const CardFooter = ({
   votes,
@@ -11,15 +15,32 @@ const CardFooter = ({
   isResolved,
   address,
   hasVoted,
-  canVote,
+  canVote, // TODO: should i get auth flag from server or decide on frontend middleware
   onCommentClick,
+  issueId,
 }: any) => {
+  const [showModal, setShowModal] = useState(false);
+  const handleLike = (event: React.MouseEvent<HTMLButtonElement>) => {
+    // TODO: Optimistic UI update the states to reflect update
+    event.preventDefault();
+    if (canVote) {
+      console.log("Vote button click");
+      if (hasVoted) apiClient.delete(`api/v1/issues/${issueId}/votes`);
+      else apiClient.post(`api/v1/issues/${issueId}/votes`);
+    } else {
+      console.log("Please sign in for liking");
+      setShowModal(!showModal); //TODO: don't toggle modal show purely
+      console.log("Modal status:", showModal);
+    }
+  };
+
   return (
     <div className="px-4 py-3 flex items-center justify-between">
       {/* Left Side: Actions */}
       <div className="flex items-center gap-4 sm:gap-6">
         {/* Vote / Support Button */}
         <button
+          onClick={handleLike}
           className={`flex items-center gap-2 transition-colors group ${
             hasVoted ? "text-blue-600" : "text-slate-600 hover:text-blue-600"
           }`}

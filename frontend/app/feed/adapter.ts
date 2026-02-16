@@ -1,7 +1,7 @@
 import {
   CommentData,
   CommentDTO,
-  IssueCardData,
+  IssueCardProps,
   IssueDetailData,
   IssueDetailDTO,
   IssueFeedDTO,
@@ -13,7 +13,7 @@ const getStableRandom = (seed: number) => {
   return x - Math.floor(x);
 };
 
-export function adaptIssueFeedDTO(dto: IssueFeedDTO): IssueCardData {
+export function adaptIssueFeedDTO(dto: IssueFeedDTO): IssueCardProps {
   const seed = getStableRandom(dto.id);
   // Randomly pick a severity based on ID
   const severities = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
@@ -31,7 +31,7 @@ export function adaptIssueFeedDTO(dto: IssueFeedDTO): IssueCardData {
   const mockAddress =
     seed > 0.5 ? "Sector 20, Gurugram" : "Cyber City, DLF Phase 2";
   const mockDesc = `This is a reported issue regarding ${dto.title.toLowerCase()}... (ID #${dto.id})`;
-  const mockComments = Math.floor(seed * 20);
+  const mockCommentCount = Math.floor(seed * 20);
 
   return {
     id: dto.id,
@@ -46,7 +46,7 @@ export function adaptIssueFeedDTO(dto: IssueFeedDTO): IssueCardData {
     isResolved: dto.status === "RESOLVED",
     severity: severity,
     votes: dto.vote_count,
-    comments: mockComments,
+    comments: mockCommentCount,
     images: dto.media_urls,
     address: mockAddress,
     hasVoted: dto.has_user_voted,

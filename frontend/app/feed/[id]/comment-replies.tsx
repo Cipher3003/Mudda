@@ -1,8 +1,8 @@
-import { apiClient } from "@/app/lib/api";
 import useSWR from "swr";
 import { adaptReplyDTO } from "../adapter";
 import { ReplyPageResponse } from "../type";
 import CommentList from "./comment-list";
+import { apiClient } from "@/app/lib/api-client";
 
 interface CommentRepliesProps {
   indentation: string;

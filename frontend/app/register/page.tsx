@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RegisterForm } from "./register-form";
-import { api } from "@/app/lib/api";
+import { apiClient } from "../lib/api-client";
 import { RegisterRequest } from "../types/auth";
 
 export default function Register() {
@@ -21,13 +21,8 @@ export default function Register() {
       profileImageUrl: formData.get("profile_picture") as string,
     };
 
-    const xsrfToken = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1];
-
     try {
-      const response = await api.register(payload, xsrfToken || "");
+      const response = await apiClient.register(payload);
 
       if (response.ok) router.push("/login");
       else {

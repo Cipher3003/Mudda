@@ -1,26 +1,15 @@
-import { apiClient } from "../lib/api";
-import { getCookies } from "../lib/cookie-utils";
+import { apiServer } from "../lib/api-server";
 import {
   adaptCommentDTO,
   adaptIssueDetailDTO,
   adaptIssueFeedDTO,
-  adaptReplyDTO,
 } from "./adapter";
-import {
-  CommentPageResponse,
-  IssueCardData,
-  IssuePageResponse,
-  ReplyPageResponse,
-} from "./type";
+import { CommentPageResponse, IssueCardData, IssuePageResponse } from "./type";
 import { CommentData, IssueDetailData, IssueDetailDTO } from "./type";
 
 export async function getIssueFeed(): Promise<IssueCardData[]> {
   try {
-    const headers = await getCookies();
-    const data = await apiClient.get<IssuePageResponse>(
-      "api/v1/issues",
-      headers,
-    );
+    const data = await apiServer.get<IssuePageResponse>("api/v1/issues");
 
     return data.content.map(adaptIssueFeedDTO);
   } catch (error) {
@@ -31,10 +20,8 @@ export async function getIssueFeed(): Promise<IssueCardData[]> {
 
 export async function getIssueById(issueId: number): Promise<IssueDetailData> {
   try {
-    const headers = await getCookies();
-    const data = await apiClient.get<IssueDetailDTO>(
+    const data = await apiServer.get<IssueDetailDTO>(
       `api/v1/issues/${issueId}`,
-      headers,
     );
     return adaptIssueDetailDTO(data);
   } catch (error) {
@@ -43,35 +30,17 @@ export async function getIssueById(issueId: number): Promise<IssueDetailData> {
   }
 }
 
+// TODO: unify comments and replies response types
 export async function getCommentsByIssueId(
   issueId: number,
 ): Promise<CommentData[]> {
   try {
-    const headers = await getCookies();
-    const data = await apiClient.get<CommentPageResponse>(
+    const data = await apiServer.get<CommentPageResponse>(
       `api/v1/issues/${issueId}/comments`,
-      headers,
     );
     return data.content.map(adaptCommentDTO);
   } catch (error) {
     console.error(`Error fetching comments for issue ${issueId}:`, error);
-    throw error;
-  }
-}
-
-// TODO: unify these two types
-export async function getRepliesByCommentId(
-  commentId: number,
-): Promise<CommentData[]> {
-  try {
-    const headers = await getCookies();
-    const data = await apiClient.get<ReplyPageResponse>(
-      `api/v1/comments/${commentId}/replies`,
-      headers,
-    );
-    return data.content.map(adaptReplyDTO);
-  } catch (error) {
-    console.error(`Error fetching replies for comment ${commentId}:`, error);
     throw error;
   }
 }

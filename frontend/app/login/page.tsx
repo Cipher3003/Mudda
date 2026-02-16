@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { SubmitButton } from "../components/submit-btn";
 import { LoginForm } from "./login-form";
-import { api } from "../lib/api";
+import { apiClient } from "../lib/api-client";
 import { useRouter } from "next/navigation";
 import { LoginRequest } from "../types/auth";
 
+// TODO: use server actions are make auth pages server side
+// TODO: hide the backend url from client requests
 // TODO: make a failsafe to allow login,register when in incognito mode (without cookies),
 // ask backend for cookie or handshake
 // TODO: redirect user when logged in from login and register page
@@ -14,11 +16,6 @@ import { LoginRequest } from "../types/auth";
 export default function Login() {
   const router = useRouter();
   async function login(formData: FormData) {
-    const xsrfToken = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1];
-
     const payload: LoginRequest = {
       username: formData.get("username") as string,
       password: formData.get("password") as string,
@@ -26,7 +23,7 @@ export default function Login() {
     };
 
     try {
-      const response = await api.login(payload, xsrfToken || "");
+      const response = await apiClient.login(payload);
 
       if (response.ok) {
         router.refresh();

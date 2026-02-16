@@ -10,7 +10,6 @@ export default function IssueCard(props: IssueCardProps) {
 
   return (
     <div
-      onClick={!isDetail ? props.onClick : undefined}
       className={`bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 transition-all duration-200 ${
         !isDetail
           ? "hover:shadow-md cursor-pointer max-w-2xl mx-auto" // Feed Mode: Constrained width, hover effects
@@ -37,6 +36,7 @@ export default function IssueCard(props: IssueCardProps) {
         hasVoted={props.hasVoted}
         canVote={props.canVote}
         onCommentClick={props.onCommentClick}
+        issueId={props.id}
       />
     </div>
   );
