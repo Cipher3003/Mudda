@@ -1,6 +1,5 @@
 // "use client";
 
-import Link from "next/link";
 import { IssueCardProps } from "../type";
 import IssueCard from "./issue-card";
 
@@ -10,9 +9,7 @@ export default function FeedStream({ issues }: { issues: IssueCardProps[] }) {
   return (
     <div className="py-2 space-y-2">
       {issues.map((issue) => (
-        <Link key={issue.id} href={`/feed/${issue.id}`}>
-          <IssueCard key={issue.id} {...issue} />
-        </Link>
+        <IssueCard key={issue.id} {...issue} />
       ))}
     </div>
   );

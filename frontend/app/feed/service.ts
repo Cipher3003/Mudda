@@ -4,10 +4,10 @@ import {
   adaptIssueDetailDTO,
   adaptIssueFeedDTO,
 } from "./adapter";
-import { CommentPageResponse, IssueCardData, IssuePageResponse } from "./type";
+import { CommentPageResponse, IssueCardProps, IssuePageResponse } from "./type";
 import { CommentData, IssueDetailData, IssueDetailDTO } from "./type";
 
-export async function getIssueFeed(): Promise<IssueCardData[]> {
+export async function getIssueFeed(): Promise<IssueCardProps[]> {
   try {
     const data = await apiServer.get<IssuePageResponse>("api/v1/issues");
 

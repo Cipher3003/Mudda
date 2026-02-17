@@ -42,6 +42,18 @@ export const apiClient = {
     });
   },
 
+  logout: async () => {
+    return await fetch(`${BASE_URL}auth/web/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-XSRF-TOKEN": getXsrfToken() || "",
+      },
+      credentials: "include",
+      cache: "no-store",
+    });
+  },
+
   get: <T>(endpoint: string): Promise<T> =>
     api<T>(`${BASE_URL}${endpoint}`, {
       credentials: "include",

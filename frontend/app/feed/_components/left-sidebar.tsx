@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Map,
 } from "lucide-react";
+import ProfileMiniCard from "./profile-mini-card";
 
 export default function LeftSidebar() {
   return (
@@ -22,7 +23,7 @@ export default function LeftSidebar() {
       </div>
 
       {/* 2. Navigation List (Clean, not blocky) */}
-      <nav className="flex-1 space-y-1 px-2">
+      <nav className="flex-1 space-y-1 px-4">
         <NavItem icon={<Home size={20} />} text="Feed" active />
         <NavItem icon={<Map size={20} />} text="Explore Map" />
         <NavItem icon={<Bell size={20} />} text="Notifications" badge="3" />
@@ -30,7 +31,7 @@ export default function LeftSidebar() {
         <NavItem icon={<User size={20} />} text="Profile" />
 
         <div className="pt-4 mt-4 border-t border-slate-200">
-          <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+          <p className="px-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
             Community
           </p>
           <NavItem icon={<TrendingUp size={20} />} text="Neighborhood Stats" />
@@ -38,7 +39,7 @@ export default function LeftSidebar() {
       </nav>
 
       {/* 3. "Your Impact" Widget (You liked this) */}
-      <div className="mx-2 mt-6 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-lg shadow-blue-200">
+      <div className="mx-4 mt-6 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-lg shadow-blue-200">
         <div className="flex justify-between items-start mb-2">
           <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
             <CheckCircle size={20} className="text-blue-100" />
@@ -53,15 +54,8 @@ export default function LeftSidebar() {
         </p>
       </div>
 
-      {/* 4. Profile Mini-Card (Restored) */}
-      <div className="mt-6 mx-2 flex items-center gap-3 p-3 hover:bg-white rounded-xl cursor-pointer transition border border-transparent hover:border-slate-200">
-        <div className="w-10 h-10 bg-slate-300 rounded-full" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-800 truncate">
-            Alex Johnson
-          </p>
-          <p className="text-xs text-slate-500 truncate">@alex_civic</p>
-        </div>
+      <div className="mt-4 px-4">
+        <ProfileMiniCard />
       </div>
     </aside>
   );

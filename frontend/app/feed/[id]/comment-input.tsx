@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import UserAvatar from "../_components/user-avatar";
 
 export interface CommentInputProps {
   isCompact: boolean;
@@ -16,12 +17,7 @@ export default function CommentInput(props: CommentInputProps) {
 
   return (
     <div className={`flex gap-3 ${props.isCompact ? "mb-4" : "mb-8"}`}>
-      <div
-        className={`rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0
-        ${props.isCompact ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm"}`}
-      >
-        ME
-      </div>
+      <UserAvatar size={props.isCompact ? "sm" : "md"} />
       <div className="flex-1 mt-0.5">
         <AutoResizeTextarea
           placeholder={placeholder}

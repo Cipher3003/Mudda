@@ -14,7 +14,7 @@ export default async function Feed() {
   return (
     <div className="flex items-start gap-6 h-full text-slate-900 font-sans selection:bg-blue-100">
       {/* --- CENTER COLUMN: THE FEED --- */}
-      <main className="flex-1 min-w-0 min-h-screen border-x border-slate-200 bg-white">
+      <main className="flex-1 min-w-0 min-h-screen border-x border-slate-200 bg-slate-100">
         {/* 1. Header & Sticky Tabs */}
         <div className="sticky top-0 z-20 bg-slate-100/95 backdrop-blur-md border-b border-slate-200">
           <div className="px-4 py-3">

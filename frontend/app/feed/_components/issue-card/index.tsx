@@ -2,6 +2,7 @@ import IssueImageGrid from "../issue-image-grid";
 import { IssueCardProps } from "../../type";
 import CardHeader from "./header";
 import CardFooter from "./footer";
+import Link from "next/link";
 
 // TODO: add share button in footer, and implement share functionality (copy link to clipboard)
 
@@ -10,12 +11,19 @@ export default function IssueCard(props: IssueCardProps) {
 
   return (
     <div
-      className={`bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 transition-all duration-200 ${
+      className={`relative bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 transition-all duration-200 ${
         !isDetail
           ? "hover:shadow-md cursor-pointer max-w-2xl mx-auto" // Feed Mode: Constrained width, hover effects
           : "w-full shadow-sm" // Detail Mode: Full width of parent, subtle shadow
       }`}
     >
+      {!isDetail && (
+        <Link
+          href={`/feed/${props.id}`}
+          className="absolute inset-0 z-0"
+          aria-label="View issue details"
+        />
+      )}
       <CardHeader
         authorId={props.authorId}
         authorName={props.authorName}
