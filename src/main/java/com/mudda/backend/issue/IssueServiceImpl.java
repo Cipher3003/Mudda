@@ -201,6 +201,54 @@ public class IssueServiceImpl implements IssueService {
         return new IssueClusterResponse(clusters);
     }
 
+    @Override
+    public Page<IssueDashboardResponse> findAllIssuesDashboard(Pageable pageable) {
+        // TODO: refactor this method whole dashboard endpoint and service
+        Page<Issue> issuePage = issueRepository.findAll(pageable);
+
+        List<Long> issueIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getId)
+                .toList();
+
+        List<Long> locationIds = issuePage.getContent().stream().map(Issue::getLocationId).toList();
+        List<Long> categoryIds = issuePage.getContent().stream().map(Issue::getCategoryId).toList();
+
+        Set<Long> authorIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getUserId)
+                .collect(Collectors.toSet());
+
+        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
+                .stream()
+                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
+
+        Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0], // issueId
+                        row -> (Long) row[1] // count
+                ));
+
+        Map<Long, Location> locationMap = locationRepository.findAllById(locationIds).stream()
+                .collect(Collectors.toMap(Location::getLocationId, location -> location));
+        Map<Long, String> categoryMap = categoryRepository.findAllById(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName));
+
+        return issuePage.map(issue -> {
+
+            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
+            if (muddaUser == null)
+                throw new IllegalStateException("User not found for issue: " + issue.getId());
+
+            long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
+
+            return IssueMapper.forDashboard(
+                    issue, muddaUser, voteCount, LocationMapper.toResponse(locationMap.get(issue.getLocationId())),
+                    categoryMap.get(issue.getCategoryId()));
+        });
+    }
+
     // endregion
 
     // region Commands (Write Operations)

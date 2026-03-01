@@ -14,6 +14,8 @@ public interface IssueService {
 
     IssueClusterResponse findAllIssueClusters(IssueClusterRequest clusterRequest);
 
+    Page<IssueDashboardResponse> findAllIssuesDashboard(Pageable pageable);
+
     IssueResponse createIssue(Long userId, CreateIssueRequest issueRequest);
 
     List<Long> createIssues(List<Long> userIds, List<CreateIssueRequest> issueRequests);
