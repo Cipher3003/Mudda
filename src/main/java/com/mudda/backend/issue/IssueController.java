@@ -72,6 +72,16 @@ public class IssueController {
         return ResponseEntity.ok(issueService.findAllIssueClusters(clusterRequest));
     }
 
+    @GetMapping("/dashboard")
+    public ResponseEntity<Page<IssueDashboardResponse>> getIssueForDashboard(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return ResponseEntity.ok(issueService.findAllIssuesDashboard(pageable));
+    }
+
     // endregion
 
     // ----------- AUTH COMMANDS -----------------
