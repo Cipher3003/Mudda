@@ -10,9 +10,13 @@ public interface IssueService {
 
     Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, Long userId);
 
+    Page<IssueSummaryResponse> findAllIssuesByAuthor(Pageable pageable, Long userId);
+
     Optional<IssueResponse> findById(long id, Long userId);
 
     IssueClusterResponse findAllIssueClusters(IssueClusterRequest clusterRequest);
+
+    Page<IssueDashboardResponse> findAllIssuesDashboard(Pageable pageable);
 
     IssueResponse createIssue(Long userId, CreateIssueRequest issueRequest);
 

@@ -1,6 +1,7 @@
 package com.mudda.backend.issue;
 
 import com.mudda.backend.location.LocationDTO;
+import com.mudda.backend.location.LocationResponse;
 import com.mudda.backend.user.MuddaUser;
 
 public class IssueMapper {
@@ -16,9 +17,9 @@ public class IssueMapper {
     }
 
     public static IssueResponse toResponse(Issue issue, MuddaUser muddaUser, LocationDTO locationSummary,
-                                           String category, long voteCount, boolean hasUserLiked,
-                                           boolean canUserVote, boolean canUserComment,
-                                           boolean canUserEdit, boolean canUserDelete) {
+            String category, long voteCount, boolean hasUserLiked,
+            boolean canUserVote, boolean canUserComment,
+            boolean canUserEdit, boolean canUserDelete) {
         return new IssueResponse(
                 // Issue details
                 issue.getId(),
@@ -41,8 +42,7 @@ public class IssueMapper {
                 canUserVote,
                 canUserComment,
                 canUserEdit,
-                canUserDelete
-        );
+                canUserDelete);
     }
 
     public static IssueUpdateResponse toResponse(Issue issue) {
@@ -54,7 +54,7 @@ public class IssueMapper {
     }
 
     public static IssueSummaryResponse toSummary(Issue issue, MuddaUser muddaUser, long voteCount,
-                                                 boolean hasUserVoted, boolean canUserVote) {
+            boolean hasUserVoted, boolean canUserVote) {
         return new IssueSummaryResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -69,5 +69,13 @@ public class IssueMapper {
                 // Flags
                 hasUserVoted,
                 canUserVote);
+    }
+
+    public static IssueDashboardResponse forDashboard(Issue issue, MuddaUser muddaUser, long voteCount,
+            LocationResponse locationResponse, String category) {
+        return new IssueDashboardResponse(issue.getId(), issue.getTitle(), issue.getDescription(), issue.getStatus(),
+                locationResponse, category, voteCount, issue.getMediaUrls(), issue.getSeverityScore(),
+                issue.getCreatedAt(), issue.getUpdatedAt(), muddaUser.getUserId(), muddaUser.getUsername(),
+                muddaUser.getProfileImageUrl());
     }
 }

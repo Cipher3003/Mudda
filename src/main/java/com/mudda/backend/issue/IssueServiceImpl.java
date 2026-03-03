@@ -15,7 +15,6 @@ import com.mudda.backend.vote.VoteRepository;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -37,9 +36,6 @@ public class IssueServiceImpl implements IssueService {
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
-
-    @Value("${app.cdn.origin}")
-    private String cdnOrigin;
 
     public IssueServiceImpl(
             IssueRepository issueRepository, CommentService commentService, VoteRepository voteRepository,
@@ -113,14 +109,10 @@ public class IssueServiceImpl implements IssueService {
 
         return issuePage.map(issue -> {
 
-            issue.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
-
             MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
             if (muddaUser == null)
                 throw new IllegalStateException("User not found for issue: " + issue.getId());
             // TODO: maybe continue and ignore bad data and cleanup later
-
-            muddaUser.changeProfileImageUrl(cdnOrigin.concat(muddaUser.getProfileImageUrl()));
 
             long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
 
@@ -134,19 +126,65 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
+    public Page<IssueSummaryResponse> findAllIssuesByAuthor(Pageable pageable, Long userId) {
+
+        Page<Issue> issuePage = issueRepository.findByUserId(userId, pageable);
+
+        List<Long> issueIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getId)
+                .toList();
+
+        Set<Long> authorIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getUserId)
+                .collect(Collectors.toSet());
+
+        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
+                .stream()
+                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
+
+        Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0], // issueId
+                        row -> (Long) row[1] // count
+                ));
+
+        // TODO: maybe use Vote entity's own check vote casted by user to filter this
+        // set even more
+        Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds)
+                .stream()
+                .map(Vote::getIssueId)
+                .collect(Collectors.toSet());
+
+        return issuePage.map(issue -> {
+
+            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
+            if (muddaUser == null)
+                throw new IllegalStateException("User not found for issue: " + issue.getId());
+            // TODO: maybe continue and ignore bad data and cleanup later
+
+            long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
+
+            boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
+
+            // TODO: maybe prevent self voting
+            return IssueMapper.toSummary(issue, muddaUser, voteCount, hasUserVoted, true);
+            // canUserVote true since this method is called by protected endpoint
+        });
+    }
+
+    @Override
     public Optional<IssueResponse> findById(long id, Long userId) {
 
         Issue issue = issueRepository.findById(id).orElse(null);
         if (issue == null)
             return Optional.empty();
 
-        issue.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
-
         MuddaUser author = userRepository.findById(issue.getUserId()).orElse(null);
         if (author == null)
             return Optional.empty();
-
-        author.changeProfileImageUrl(cdnOrigin.concat(author.getProfileImageUrl()));
 
         Location location = locationRepository.findById(issue.getLocationId()).orElse(null);
         if (location == null)
@@ -213,6 +251,54 @@ public class IssueServiceImpl implements IssueService {
         return new IssueClusterResponse(clusters);
     }
 
+    @Override
+    public Page<IssueDashboardResponse> findAllIssuesDashboard(Pageable pageable) {
+        // TODO: refactor this method whole dashboard endpoint and service
+        Page<Issue> issuePage = issueRepository.findAll(pageable);
+
+        List<Long> issueIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getId)
+                .toList();
+
+        List<Long> locationIds = issuePage.getContent().stream().map(Issue::getLocationId).toList();
+        List<Long> categoryIds = issuePage.getContent().stream().map(Issue::getCategoryId).toList();
+
+        Set<Long> authorIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getUserId)
+                .collect(Collectors.toSet());
+
+        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
+                .stream()
+                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
+
+        Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0], // issueId
+                        row -> (Long) row[1] // count
+                ));
+
+        Map<Long, Location> locationMap = locationRepository.findAllById(locationIds).stream()
+                .collect(Collectors.toMap(Location::getLocationId, location -> location));
+        Map<Long, String> categoryMap = categoryRepository.findAllById(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName));
+
+        return issuePage.map(issue -> {
+
+            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
+            if (muddaUser == null)
+                throw new IllegalStateException("User not found for issue: " + issue.getId());
+
+            long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
+
+            return IssueMapper.forDashboard(
+                    issue, muddaUser, voteCount, LocationMapper.toResponse(locationMap.get(issue.getLocationId())),
+                    categoryMap.get(issue.getCategoryId()));
+        });
+    }
+
     // endregion
 
     // region Commands (Write Operations)
@@ -225,7 +311,8 @@ public class IssueServiceImpl implements IssueService {
         if (userId == null)
             throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
 
-        // TODO: maybe remove unnecessary validation since fetching entities validates it
+        // TODO: maybe remove unnecessary validation since fetching entities validates
+        // it
         validateReferences(issueRequest.locationId(), issueRequest.categoryId());
         log.trace("Validated issue references");
 
@@ -245,9 +332,6 @@ public class IssueServiceImpl implements IssueService {
 
         Issue saved = issueRepository.save(issue);
 
-        saved.setMediaUrls(issue.getMediaUrls().stream().map(url -> cdnOrigin.concat(url)).toList());
-        muddaUser.changeProfileImageUrl(cdnOrigin.concat(muddaUser.getProfileImageUrl()));
-
         log.info("Created Issue with id {} by user with id {}", saved.getId(), userId);
         return IssueMapper.toResponse(
                 saved, muddaUser, LocationMapper.toSummary(location.get()), category.get().getName(),
@@ -261,8 +345,7 @@ public class IssueServiceImpl implements IssueService {
         List<Issue> issues = issueRepository.saveAll(
                 IntStream
                         .range(0, userIds.size())
-                        .mapToObj(index ->
-                                IssueMapper.toIssue(userIds.get(index), issueRequests.get(index)))
+                        .mapToObj(index -> IssueMapper.toIssue(userIds.get(index), issueRequests.get(index)))
                         .toList());
 
         log.info("Created {} Issues", issues.size());
@@ -343,7 +426,7 @@ public class IssueServiceImpl implements IssueService {
 
     // endregion
 
-    //region Helpers
+    // region Helpers
 
     private void validateReferences(long locationId, long categoryId) {
 
@@ -376,6 +459,6 @@ public class IssueServiceImpl implements IssueService {
         return meters / (111_320 * Math.cos(Math.toRadians(latitude)));
     }
 
-    //endregion
+    // endregion
 
 }
