@@ -21,6 +21,8 @@ public interface UserService {
 
     void resetLoginFailures(long id);
 
+    void updateProfileImage(Long id, String imageKey);
+
     void updatePassword(Long id, String password);
 
     List<Long> createUsers(List<CreateUserRequest> userRequests);

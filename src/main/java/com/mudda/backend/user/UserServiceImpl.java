@@ -132,6 +132,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Transactional
     @Override
+    public void updateProfileImage(Long id, String imageKey) {
+        log.trace("Updating profile image for user with id {}", id);
+        MuddaUser user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+//        TODO: update method to use SET for JPA dirty checking and updation
+        user.changeProfileImageUrl(imageKey);
+        userRepository.save(user);
+        log.info("Updated profile image for user with id {}", id);
+    }
+
+    @Transactional
+    @Override
     public void updatePassword(Long id, String password) {
         log.trace("Validating password for user with id {}", id);
         MuddaUser user = userRepository.findById(id)

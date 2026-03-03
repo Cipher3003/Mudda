@@ -1,16 +1,14 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : AccountInfo
+ * File    : UpdateAccountRequest
  * Author  : Vikas Kumar
- * Created : 02-02-2026
+ * Created : 03-03-2026
  * ---------------------------------------------------------------
  */
 package com.mudda.backend.account;
 
-public record AccountInfo(
-        Long id,
-        String username,
-        String profileImageUrl
+public record UpdateAccountRequest(
+        String imageKey
 ) {
 }

@@ -9,7 +9,7 @@ import java.time.Instant;
 public record IssueFilterRequest(
         String search,
         IssueStatus status,
-        Long userId,
+        Long userId,    // TODO: remove fields not needed or makes no sense in filter request
         @JsonProperty("category_id") Long categoryId,
         String city,
         String state,

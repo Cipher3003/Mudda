@@ -70,6 +70,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             String username = jwtService.extractUsername(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+//            TODO: use spring security to create authentication instead of manual
+//            TODO: use jwt to load account info into authentication without DB query
 
             if (jwtService.validateAccessToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

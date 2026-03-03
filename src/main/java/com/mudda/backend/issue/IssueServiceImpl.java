@@ -102,9 +102,9 @@ public class IssueServiceImpl implements IssueService {
         // set even more
         Set<Long> issuesVotedByUser = isAuthenticated
                 ? voteRepository.findByUserIdAndIssueIdIn(userId, issueIds)
-                        .stream()
-                        .map(Vote::getIssueId)
-                        .collect(Collectors.toSet())
+                .stream()
+                .map(Vote::getIssueId)
+                .collect(Collectors.toSet())
                 : Set.of();
 
         return issuePage.map(issue -> {
@@ -122,6 +122,56 @@ public class IssueServiceImpl implements IssueService {
             return IssueMapper.toSummary(
                     issue, muddaUser, voteCount, hasUserVoted, isAuthenticated // canUserVote
             );
+        });
+    }
+
+    @Override
+    public Page<IssueSummaryResponse> findAllIssuesByAuthor(Pageable pageable, Long userId) {
+
+        Page<Issue> issuePage = issueRepository.findByUserId(userId, pageable);
+
+        List<Long> issueIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getId)
+                .toList();
+
+        Set<Long> authorIds = issuePage.getContent()
+                .stream()
+                .map(Issue::getUserId)
+                .collect(Collectors.toSet());
+
+        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
+                .stream()
+                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
+
+        Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0], // issueId
+                        row -> (Long) row[1] // count
+                ));
+
+        // TODO: maybe use Vote entity's own check vote casted by user to filter this
+        // set even more
+        Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds)
+                .stream()
+                .map(Vote::getIssueId)
+                .collect(Collectors.toSet());
+
+        return issuePage.map(issue -> {
+
+            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
+            if (muddaUser == null)
+                throw new IllegalStateException("User not found for issue: " + issue.getId());
+            // TODO: maybe continue and ignore bad data and cleanup later
+
+            long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
+
+            boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
+
+            // TODO: maybe prevent self voting
+            return IssueMapper.toSummary(issue, muddaUser, voteCount, hasUserVoted, true);
+            // canUserVote true since this method is called by protected endpoint
         });
     }
 

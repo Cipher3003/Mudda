@@ -1,5 +1,7 @@
 package com.mudda.backend.issue;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +14,8 @@ import java.util.List;
 public interface IssueRepository extends JpaRepository<Issue, Long>, JpaSpecificationExecutor<Issue> {
 
     List<Issue> findByUserId(long userId);
+
+    Page<Issue> findByUserId(long userId, Pageable pageable);
 
     @Query(value = """
             SELECT
