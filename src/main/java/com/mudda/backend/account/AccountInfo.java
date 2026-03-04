@@ -8,9 +8,18 @@
  */
 package com.mudda.backend.account;
 
+import com.mudda.backend.user.MuddaUserRole;
+
+import java.time.Instant;
+
 public record AccountInfo(
         Long id,
         String username,
-        String profileImageUrl
+        String name,
+        String email,
+        String phoneNumber,
+        String profileImageUrl,
+        MuddaUserRole role,
+        Instant createAt
 ) {
 }
