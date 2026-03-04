@@ -49,8 +49,10 @@ public class AccountController {
         MuddaUser currentUser = (MuddaUser) authentication.getPrincipal();
 
         return ResponseEntity.ok(new AccountInfo(
-                currentUser.getUserId(), currentUser.getUsername(), currentUser.getProfileImageUrl())
-        );
+                currentUser.getUserId(), currentUser.getUsername(), currentUser.getName(),
+                currentUser.getEmail(), currentUser.getPhoneNumber(), currentUser.getProfileImageUrl(),
+                currentUser.getRole(), currentUser.getCreatedAt()
+        ));
 //        TODO: modify it store user quick info in authentication maybe to avoid database usage in JWT
 //        TODO: sync logged in user info with DB changes in session
 
