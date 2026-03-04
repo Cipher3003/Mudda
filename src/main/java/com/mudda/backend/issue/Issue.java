@@ -1,24 +1,15 @@
 package com.mudda.backend.issue;
 
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.SequenceGenerator;
-import lombok.*;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.List;
-
-import org.hibernate.annotations.Type;
-
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 
 @Getter
 @Setter
@@ -56,8 +47,8 @@ public class Issue {
     private Long categoryId;
 
     // Media URLs stored as a Postgres text[] array
-    @Type(ListArrayType.class)
-    @Column(name = "media_urls", columnDefinition = "text[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "media_urls")
     private List<String> mediaUrls;
 //    TODO: store image in table with metadata instead of array
 
@@ -96,11 +87,11 @@ public class Issue {
     // ----- Domain Constructor -----
 
     public Issue(String title,
-            String description,
-            Long userId,
-            Long locationId,
-            Long categoryId,
-            List<String> mediaUrls) {
+                 String description,
+                 Long userId,
+                 Long locationId,
+                 Long categoryId,
+                 List<String> mediaUrls) {
 
         if (title == null || title.isBlank())
             throw new IllegalArgumentException("Issue title cannot be empty");
