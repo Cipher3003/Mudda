@@ -1,6 +1,8 @@
 package com.mudda.backend.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mudda.backend.AppProperties;
+import com.mudda.backend.exceptions.ApiError;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +26,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.mudda.backend.security.SecurityEndpoints.*;
 
@@ -37,19 +40,22 @@ public class WebSecurityConfig {
     private final RateLimitFilter rateLimitFilter;
     private final AppProperties appProperties;
     private final PersistentTokenRepository persistentTokenRepository;
+    private final ObjectMapper objectMapper;
 
     public WebSecurityConfig(UserDetailsService userDetailsService,
                              PasswordEncoder passwordEncoder,
                              JwtAuthFilter jwtAuthFilter,
                              RateLimitFilter rateLimitFilter,
                              AppProperties appProperties,
-                             PersistentTokenRepository persistentTokenRepository) {
+                             PersistentTokenRepository persistentTokenRepository,
+                             ObjectMapper objectMapper) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitFilter = rateLimitFilter;
         this.appProperties = appProperties;
         this.persistentTokenRepository = persistentTokenRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Bean
@@ -157,19 +163,46 @@ public class WebSecurityConfig {
         );
     }
 
-    // TODO: handle session login, logout errors
+//    TODO: handle spring success and failure event to record login attempts
     private void configureForms(HttpSecurity http) throws Exception {
         http.formLogin(formLogin -> formLogin
-                .loginPage("/login.html")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/index.html")
+                .successHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setContentType("application/json;charset=utf-8");
+
+                    Map<String, Object> map = Map.of(
+                            "status", "SUCCESS",
+                            "username", authentication.getName(),
+                            "timestamp", System.currentTimeMillis()
+                    );
+                    response.getWriter().write(objectMapper.writeValueAsString(map));
+                })
+                .failureHandler((request, response, exception) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=utf-8");
+
+                    ApiError apiError = new ApiError(HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED",
+                            exception.getMessage(), null);
+                    response.getWriter().write(objectMapper.writeValueAsString(apiError));
+                })
                 .permitAll()
         );
 
         http.logout(logout -> logout
                 .logoutUrl("/auth/web/logout")  // TODO: maybe change logout and login web url to default
-                .logoutSuccessUrl("/login.html?logout")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setContentType("application/json;charset=utf-8");
+
+                    Map<String, Object> map = Map.of(
+                            "status", "SUCCESS",
+                            "message", "Logout successful"
+                    );
+                    response.getWriter().write(objectMapper.writeValueAsString(map));
+                })
                 .invalidateHttpSession(true)
+                .clearAuthentication(true)
                 .deleteCookies("JSESSIONID", "remember-me")
                 .permitAll()
         );
