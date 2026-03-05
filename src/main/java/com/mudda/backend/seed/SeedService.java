@@ -42,13 +42,13 @@ import static net.datafaker.providers.base.Text.EN_UPPERCASE;
 @Service
 public class SeedService {
 
+    // In a real application, these services would be injected.
+    // For this example, we are instantiating them directly.
     @PersistenceContext
     private EntityManager entityManager;
     private final Random random = new Random();
     private final Faker faker = new Faker(random);
 
-    // In a real application, these services would be injected.
-    // For this example, we are instantiating them directly.
     private final CategoryService categoryService;
     private final LocationService locationService;
     private final UserService userService;
@@ -86,19 +86,18 @@ public class SeedService {
         feedback.add("Starting database cleanup using manual deletion...");
 
         // The order of deletion is crucial to avoid foreign key constraint violations.
-        // We delete from entities that have dependencies first, moving towards root
-        // entities.
-        // For example, Comments depend on Issues and Users, so they must be deleted
-        // first.
+        // We delete from entities that have dependencies first, moving towards root entities.
+        // For example, Comments depend on Issues and Users, so comment must be deleted first.
         List<String> entityNamesInDeletionOrder = List.of(
                 "CommentLike",
                 "Comment",
                 "Vote",
                 "Issue",
-                "MuddaUser",
                 "Location",
-                "Category"
-//                TODO: add token tables and sequences
+                "Category",
+                "VerificationToken",
+                "RefreshToken",
+                "MuddaUser"
         );
 
         try {
@@ -109,20 +108,19 @@ public class SeedService {
             }
             feedback.add("All records deleted successfully.");
 
-            // --- New Step: Reset all primary key sequences ---
+            // --- Next Step: Reset all primary key sequences ---
             feedback.add("Resetting all table sequences...");
-            // Note: These sequence names are based on default Hibernate/JPA naming
-            // conventions.
-            // You may need to adjust them if your entity definitions specify custom
-            // sequence names.
+            // Note: Use custom sequence names that are based on Hibernate/JPA naming conventions.
             List<String> sequenceNames = List.of(
                     "comment_likes_id_seq",
                     "comments_id_seq",
                     "votes_id_seq",
                     "issues_id_seq",
-                    "users_id_seq",
                     "locations_id_seq",
-                    "categories_id_seq"
+                    "categories_id_seq",
+                    "action_tokens_id_seq",
+                    "refresh_token_id_seq",
+                    "users_id_seq"
             );
 
             for (String sequenceName : sequenceNames) {
@@ -131,8 +129,7 @@ public class SeedService {
                             .executeUpdate();
                     feedback.add("Sequence '" + sequenceName + "' reset to 1.");
                 } catch (Exception e) {
-                    // This might fail if a sequence doesn't exist or name is different, which is
-                    // okay.
+                    // This might fail if a sequence doesn't exist or name is different, which is okay.
                     // We log it as a warning instead of a fatal error.
                     feedback.add("WARN: Could not reset sequence '" + sequenceName
                             + "'. It might not exist or name is incorrect. Skipping.");
@@ -143,9 +140,6 @@ public class SeedService {
         } catch (Exception e) {
             feedback.add("ERROR: An unexpected error occurred while clearing the database.");
             feedback.add("Error Details: " + e.getMessage());
-            // The @Transactional annotation will automatically handle rolling back the
-            // transaction
-            // in case of an error, preventing a partially cleared database.
             log.error("Unexpected error while clearing the database.", e);
         }
         return feedback;
