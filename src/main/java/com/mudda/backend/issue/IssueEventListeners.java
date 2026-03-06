@@ -35,8 +35,9 @@ public class IssueEventListeners {
         this.notificationService = notificationService;
     }
 
-    @SqsListener(value = RESPONSE_QUEUE_NAME, pollTimeoutSeconds = "30")
+    @SqsListener(value = RESPONSE_QUEUE_NAME, pollTimeoutSeconds = "20")
     public void onIssueFlagResponse(IssueFlagResponse response) {
+        log.info("Received response from SQS: {}", response);
         if (response.hate()) {
             issueRepository.findById(response.id()).ifPresent(issue -> {
                 issue.setDeleteFlag(true);

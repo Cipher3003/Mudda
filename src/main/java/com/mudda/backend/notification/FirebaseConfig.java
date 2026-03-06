@@ -22,8 +22,8 @@ public class FirebaseConfig {
 
     @PostConstruct
     public void init() throws IOException {
-        FileInputStream serviceAccount =
-                new FileInputStream("src/main/resources/mudda-dev-firebase-key.json");
+        String path = System.getenv("FIREBASE_CREDENTIALS");
+        FileInputStream serviceAccount = new FileInputStream(path);
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
