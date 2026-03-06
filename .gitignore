@@ -67,3 +67,6 @@ terraform.rc
 # Terminal files
 *.fish
 *.sh
+
+# Files
+/src/main/resources/mudda-dev-firebase-key.json

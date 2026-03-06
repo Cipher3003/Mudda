@@ -13,6 +13,8 @@ import com.mudda.backend.utils.EntityValidator;
 import com.mudda.backend.vote.Vote;
 import com.mudda.backend.vote.VoteRepository;
 import com.mudda.backend.vote.VoteService;
+import io.awspring.cloud.sqs.operations.SendResult;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,11 +38,14 @@ public class IssueServiceImpl implements IssueService {
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final SqsTemplate sqsTemplate;
+
+    private static final String QUEUE_NAME = "mudda-hate-speech-queue";
 
     public IssueServiceImpl(
             IssueRepository issueRepository, CommentService commentService, VoteRepository voteRepository,
             VoteService voteService, LocationRepository locationRepository, CategoryRepository categoryRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, SqsTemplate sqsTemplate) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteRepository = voteRepository;
@@ -48,6 +53,7 @@ public class IssueServiceImpl implements IssueService {
         this.locationRepository = locationRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
+        this.sqsTemplate = sqsTemplate;
     }
 
     // region Queries (Read Operations)
@@ -69,6 +75,7 @@ public class IssueServiceImpl implements IssueService {
                 .and(IssueSpecifications.hasCategoryId(filterRequest.categoryId()))
                 .and(IssueSpecifications.hasLocationIds(locationIds))
                 .and(IssueSpecifications.isUrgent(filterRequest.urgency()))
+                .and(IssueSpecifications.isDeleted(true))
                 .and(IssueSpecifications.severityBetween(filterRequest.minSeverity(), filterRequest.maxSeverity()))
                 .and(IssueSpecifications.createdAfter(filterRequest.createdAfter()))
                 .and(IssueSpecifications.createdBefore(filterRequest.createdBefore()));
@@ -254,7 +261,9 @@ public class IssueServiceImpl implements IssueService {
     @Override
     public Page<IssueDashboardResponse> findAllIssuesDashboard(Pageable pageable) {
         // TODO: refactor this method whole dashboard endpoint and service
-        Page<Issue> issuePage = issueRepository.findAll(pageable);
+        Specification<Issue> specification = IssueSpecifications.isDeleted(true);
+
+        Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
 
         List<Long> issueIds = issuePage.getContent()
                 .stream()
@@ -331,8 +340,15 @@ public class IssueServiceImpl implements IssueService {
             throw new IllegalArgumentException("Category ID for creating Issue not valid");
 
         Issue saved = issueRepository.save(issue);
-
         log.info("Created Issue with id {} by user with id {}", saved.getId(), userId);
+
+
+        IssueCreatedEvent issueCreatedEvent = new IssueCreatedEvent(
+                saved.getId(), userId, false, saved.getTitle() + saved.getDescription());
+        SendResult<IssueCreatedEvent> result = sqsTemplate.send(QUEUE_NAME, issueCreatedEvent);
+        log.trace("Event: {} result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
+        log.info("Sent event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
+
         return IssueMapper.toResponse(
                 saved, muddaUser, LocationMapper.toSummary(location.get()), category.get().getName(),
                 0, false, true, true,
@@ -376,6 +392,12 @@ public class IssueServiceImpl implements IssueService {
         existing.updateDetails(issueRequest.title(), issueRequest.description(), issueRequest.status());
         Issue updated = issueRepository.save(existing);
         log.info("Updated Issue with id {} by user with id {}", updated.getId(), userId);
+
+        IssueCreatedEvent issueCreatedEvent = new IssueCreatedEvent(
+                updated.getId(), userId, true, updated.getTitle() + updated.getDescription());
+        SendResult<IssueCreatedEvent> result = sqsTemplate.send(QUEUE_NAME, issueCreatedEvent);
+        log.trace("Update Event: {} result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
+        log.info("Sent update event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
 
         return IssueMapper.toResponse(updated);
     }

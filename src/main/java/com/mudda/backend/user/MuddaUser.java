@@ -46,6 +46,9 @@ public class MuddaUser implements UserDetails {
     @Column
     private String profileImageUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String fcmToken;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private MuddaUserRole role;
@@ -138,6 +141,10 @@ public class MuddaUser implements UserDetails {
 
     public void changeProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+
+    public void changeFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 
     public void verify() {

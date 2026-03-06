@@ -48,6 +48,14 @@ public class IssueSpecifications {
         };
     }
 
+    public static Specification<Issue> isDeleted(Boolean deleted) {
+        return (root, query, criteriaBuilder) -> {
+            if (deleted == null) return null;
+            return deleted ? criteriaBuilder.isTrue(root.get("deletedFlag"))
+                    : criteriaBuilder.isFalse(root.get("deletedFlag"));
+        };
+    }
+
     public static Specification<Issue> createdAfter(Instant date) {
         return (root, query, criteriaBuilder) ->
                 date == null ? null : criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), date);

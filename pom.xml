@@ -114,14 +114,39 @@
             <scope>compile</scope>
         </dependency>
 
-		<!--    AWS SDK    -->
-		<!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/s3 -->
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>s3</artifactId>
-			<version>2.41.5</version>
-			<scope>compile</scope>
-		</dependency>
+        <!--    AWS SDK    -->
+        <!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/s3 -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.41.5</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--    AWS SQS    -->
+        <!-- Source: https://mvnrepository.com/artifact/io.awspring.cloud/spring-cloud-aws-starter-sqs -->
+        <dependency>
+            <groupId>io.awspring.cloud</groupId>
+            <artifactId>spring-cloud-aws-starter-sqs</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <!--    AWS S3    -->
+        <!-- Source: https://mvnrepository.com/artifact/io.awspring.cloud/spring-cloud-aws-starter-sqs -->
+        <!--        <dependency>-->
+        <!--            <groupId>io.awspring.cloud</groupId>-->
+        <!--            <artifactId>spring-cloud-aws-starter-s3</artifactId>-->
+        <!--            <version>4.0.0</version>-->
+        <!--        </dependency>-->
+
+        <!--    Firebase Admin    -->
+        <!-- Source: https://mvnrepository.com/artifact/com.google.firebase/firebase-admin -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.8.0</version>
+            <!--            <scope>compile</scope>-->
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
         <dependency>

@@ -101,6 +101,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         MuddaUser muddaUser = UserMapper.toUser(userRequest);
         muddaUser.changePasswordHash(passwordEncoder.encode(userRequest.password()));
 
+        if (userRequest.fcmToken() != null) muddaUser.changeFcmToken(userRequest.fcmToken());
+
         MuddaUser saved = userRepository.save(muddaUser);
         log.info("Created user with email {}", saved.getEmail());
 
