@@ -14,21 +14,27 @@ import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Base64;
 
 @Configuration
 public class FirebaseConfig {
 
     @PostConstruct
     public void init() throws IOException {
-        String path = System.getenv("FIREBASE_CREDENTIALS");
-        FileInputStream serviceAccount = new FileInputStream(path);
+        String base64Config = System.getenv("FIREBASE_CREDENTIALS");
+
+        if (base64Config == null || base64Config.isEmpty())
+            throw new RuntimeException("Missing FIREBASE_CREDENTIALS");
+
+        byte[] decoded = Base64.getDecoder().decode(base64Config);
+        ByteArrayInputStream serviceAccount = new ByteArrayInputStream(decoded);
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
 
-        FirebaseApp.initializeApp(options);
+        if (FirebaseApp.getApps().isEmpty()) FirebaseApp.initializeApp(options);
     }
 }
