@@ -51,8 +51,8 @@ public class IssueSpecifications {
     public static Specification<Issue> isDeleted(Boolean deleted) {
         return (root, query, criteriaBuilder) -> {
             if (deleted == null) return null;
-            return deleted ? criteriaBuilder.isTrue(root.get("deletedFlag"))
-                    : criteriaBuilder.isFalse(root.get("deletedFlag"));
+            return deleted ? criteriaBuilder.isTrue(root.get("deleteFlag"))
+                    : criteriaBuilder.isFalse(root.get("deleteFlag"));
         };
     }
 
