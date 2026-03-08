@@ -75,7 +75,7 @@ public class IssueServiceImpl implements IssueService {
                 .and(IssueSpecifications.hasCategoryId(filterRequest.categoryId()))
                 .and(IssueSpecifications.hasLocationIds(locationIds))
                 .and(IssueSpecifications.isUrgent(filterRequest.urgency()))
-                .and(IssueSpecifications.isDeleted(true))
+                .and(IssueSpecifications.isDeleted(false))
                 .and(IssueSpecifications.severityBetween(filterRequest.minSeverity(), filterRequest.maxSeverity()))
                 .and(IssueSpecifications.createdAfter(filterRequest.createdAfter()))
                 .and(IssueSpecifications.createdBefore(filterRequest.createdBefore()));
@@ -261,7 +261,7 @@ public class IssueServiceImpl implements IssueService {
     @Override
     public Page<IssueDashboardResponse> findAllIssuesDashboard(Pageable pageable) {
         // TODO: refactor this method whole dashboard endpoint and service
-        Specification<Issue> specification = IssueSpecifications.isDeleted(true);
+        Specification<Issue> specification = IssueSpecifications.isDeleted(false);
 
         Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
 
