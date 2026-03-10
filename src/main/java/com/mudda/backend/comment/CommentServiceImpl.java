@@ -9,10 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -68,16 +65,14 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Optional<CommentDetailResponse> findById(long commentId, Long userId) {
-        boolean hasUserLiked = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
-
-        return commentRepository
-                .findById(commentId)
+        boolean hasUserLiked = userId != null && commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
+        return commentRepository.findById(commentId)
                 .map(comment -> getCommentResponseFromComment(
                         comment,
                         hasUserLiked,
                         true,
-                        comment.getUserId().equals(userId),
-                        comment.getUserId().equals(userId)
+                        Objects.equals(comment.getUserId(), userId),
+                        Objects.equals(comment.getUserId(), userId)
                 ));
     }
 

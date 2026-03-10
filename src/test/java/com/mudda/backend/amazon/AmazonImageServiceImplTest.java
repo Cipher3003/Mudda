@@ -1,9 +1,5 @@
-package com.mudda.backend.amazon.services.impl;
+package com.mudda.backend.amazon;
 
-import com.mudda.backend.amazon.ImageUploadResponse;
-import com.mudda.backend.amazon.AmazonImageServiceImpl;
-import com.mudda.backend.amazon.ContentType;
-import com.mudda.backend.amazon.ImageValidator;
 import com.mudda.backend.exceptions.*;
 import com.mudda.backend.utils.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +49,11 @@ public class AmazonImageServiceImplTest {
     void setUp() {
         // AmazonImageServiceImpl setup
         amazonImageServiceImpl = new AmazonImageServiceImpl(bucketName, amazonS3, imageValidator);
+        // cdnOrigin is a @Value field (not a constructor param) so Spring never injects
+        // it
+        // in plain unit tests — set it manually via reflection.
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                amazonImageServiceImpl, "cdnOrigin", "https://cdn.example.com/");
     }
 
     // #region Success Case

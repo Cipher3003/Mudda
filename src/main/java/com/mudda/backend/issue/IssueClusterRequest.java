@@ -13,7 +13,7 @@ public record IssueClusterRequest(
         @NotNull @Range(min = -180, max = 180) Double maxLongitude,
         @NotNull @Range(min = -90, max = 90) Double maxLatitude,
         @NotNull @Range(min = 0, max = 17) Integer zoomLevel // max zoom 1.2 meters/pixel
-// Zoom leve reference:
+// Zoom level reference:
 // https://support.plexearth.com/hc/en-us/articles/6325794324497-Understanding-Zoom-Level-in-Maps-and-Imagery
 ) {
 

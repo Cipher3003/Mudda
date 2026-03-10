@@ -1,0 +1,237 @@
+package com.mudda.backend.vote;
+
+import com.mudda.backend.AbstractIntegrationTest;
+import com.mudda.backend.TestDataFactory;
+import com.mudda.backend.category.Category;
+import com.mudda.backend.category.CategoryRepository;
+import com.mudda.backend.issue.Issue;
+import com.mudda.backend.issue.IssueRepository;
+import com.mudda.backend.location.Location;
+import com.mudda.backend.location.LocationRepository;
+import com.mudda.backend.location.PointFactory;
+import com.mudda.backend.user.MuddaUser;
+import com.mudda.backend.user.UserMapper;
+import com.mudda.backend.user.UserRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Integration tests for {@link VoteController}.
+ *
+ * <p>
+ * Each test is fully isolated via {@code @Transactional} — data seeded inside a
+ * test method is rolled back automatically after the test completes. No shared
+ * state or ordered test execution is required.
+ * </p>
+ *
+ * <p>
+ * Every test case provisions its own user, location, category, and issue so
+ * that vote state is always predictable (clean slate: no prior votes on the
+ * issue).
+ * </p>
+ */
+@Transactional
+class VoteControllerTest extends AbstractIntegrationTest {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private IssueRepository issueRepository;
+
+    @Autowired
+    private LocationRepository locationRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    private static final String USERNAME = "vote_test_user";
+    private static final String EMAIL = "vote_test@test.com";
+    private static final String PASSWORD = "Password123!";
+
+    private MuddaUser seedUser() {
+        MuddaUser user = UserMapper.toUser(
+                TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD)));
+        user.setEnabled(true);
+        return userRepository.save(user);
+    }
+
+    private Issue seedIssue(long userId) {
+        Location location = locationRepository.save(
+                new Location("Address", "122333", "City", "State",
+                        PointFactory.createPoint(new Coordinate(90.0, 90.0)))
+        );
+
+        Category category = categoryRepository.save(new Category("Category"));
+
+        return issueRepository.save(new Issue("Title", "Description", userId,
+                location.getLocationId(), category.getId(), null));
+    }
+
+    // region POST
+
+    @Test
+    @DisplayName("POST /api/v1/issues/{id}/votes → 200 OK, has_user_voted=true (authenticated)")
+    void castVote_authenticated_shouldReturn200WithVotedTrue() throws Exception {
+        MuddaUser user = seedUser();
+        Issue issue = seedIssue(user.getUserId());
+        String token = loginAndGetToken(USERNAME, PASSWORD);
+
+        mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
+                        .header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.has_user_voted").value(true))
+                .andExpect(jsonPath("$.vote_count").isNumber());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/issues/{id}/votes → 401 Unauthorized when no token provided")
+    void castVote_unauthenticated_shouldReturn401() throws Exception {
+        MuddaUser user = seedUser();
+        Issue issue = seedIssue(user.getUserId());
+
+        mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
+                        .header("X-Client-Type", "mobile"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/issues/{id}/votes → vote_count increases by 1 after casting")
+    void castVote_authenticated_shouldIncrementVoteCount() throws Exception {
+        MuddaUser user = seedUser();
+        Issue issue = seedIssue(user.getUserId());
+        String token = loginAndGetToken(USERNAME, PASSWORD);
+
+        MvcResult result = mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
+                        .header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        long voteCount = objectMapper.readTree(result.getResponse().getContentAsString())
+                .get("vote_count").asLong();
+
+        assertTrue(voteCount >= 1, "Vote count must be at least 1 after casting a vote");
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/issues/999999/votes → 404 Not Found for non-existent issue")
+    void castVote_nonExistentIssue_shouldReturn404() throws Exception {
+        seedUser();
+        String token = loginAndGetToken(USERNAME, PASSWORD);
+
+        mockMvc.perform(post("/api/v1/issues/999999/votes")
+                        .header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    // endregion
+
+    // region DELETE
+
+    @Test
+    @DisplayName("DELETE /api/v1/issues/{id}/votes → 200 OK, has_user_voted=false after removing vote")
+    void removeVote_authenticated_shouldReturn200WithVotedFalse() throws Exception {
+        MuddaUser user = seedUser();
+        Issue issue = seedIssue(user.getUserId());
+        String token = loginAndGetToken(USERNAME, PASSWORD);
+
+        mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
+                        .header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.has_user_voted").value(true));
+
+        mockMvc.perform(delete("/api/v1/issues/%d/votes".formatted(issue.getId()))
+                        .header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.has_user_voted").value(false))
+                .andExpect(jsonPath("$.vote_count").isNumber());
+    }
+
+    @Test
+    @DisplayName("DELETE /api/v1/issues/{id}/votes → 401 Unauthorized when no token provided")
+    void removeVote_unauthenticated_shouldReturn401() throws Exception {
+        MuddaUser user = seedUser();
+        Issue issue = seedIssue(user.getUserId());
+
+        mockMvc.perform(delete("/api/v1/issues/%d/votes".formatted(issue.getId()))
+                        .header("X-Client-Type", "mobile"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("DELETE /api/v1/issues/999999/votes → 404 Not Found for non-existent issue")
+    void removeVote_nonExistentIssue_shouldReturn404() throws Exception {
+        seedUser();
+        String token = loginAndGetToken(USERNAME, PASSWORD);
+
+        mockMvc.perform(delete("/api/v1/issues/999999/votes")
+                        .header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    // endregion
+
+    // region GET
+
+    @Test
+    @DisplayName("GET /api/v1/votes → 200 OK with paginated vote list (developer endpoint)")
+    void getAllVotes_shouldReturn200WithPaginatedVotes() throws Exception {
+        mockMvc.perform(get("/api/v1/votes")
+                        .header("X-Client-Type", "mobile")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    // endregion
+
+    @Test
+    @DisplayName("Vote lifecycle: cast then remove → vote_count returns to 0")
+    void voteLifecycle_castThenRemove_voteCountReturnsToZero() throws Exception {
+        MuddaUser user = seedUser();
+        Issue issue = seedIssue(user.getUserId());
+        String token = loginAndGetToken(USERNAME, PASSWORD);
+
+        MvcResult castResult = mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
+                        .header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        long countAfterVote = objectMapper.readTree(castResult.getResponse().getContentAsString())
+                .get("vote_count").asLong();
+        assertEquals(1L, countAfterVote);
+
+        MvcResult removeResult = mockMvc.perform(delete("/api/v1/issues/%d/votes".formatted(issue.getId()))
+                        .header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        long countAfterRemove = objectMapper.readTree(removeResult.getResponse().getContentAsString())
+                .get("vote_count").asLong();
+
+        assertEquals(0L, countAfterRemove);
+    }
+}

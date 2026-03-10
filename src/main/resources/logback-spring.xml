@@ -45,4 +45,15 @@
         <logger name="com.mudda.backend" level="INFO"/>
     </springProfile>
 
+    <!--  Test  -->
+    <springProfile name="test">
+        <root level="WARN">
+            <appender-ref ref="Console"/>
+        </root>
+        <logger name="com.mudda.backend" level="DEBUG"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.hibernate" level="ERROR"/>
+        <logger name="software.amazon.awssdk" level="ERROR"/>
+    </springProfile>
+
 </configuration>

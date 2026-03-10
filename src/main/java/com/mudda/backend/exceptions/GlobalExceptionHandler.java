@@ -1,5 +1,6 @@
 package com.mudda.backend.exceptions;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.mudda.backend.token.TokenType;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
@@ -9,16 +10,18 @@ import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
@@ -29,6 +32,8 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+//    TODO: Wrap exceptions in base exception with already defined status and code
 
     private final MessageUtil messageUtil;
 
@@ -76,6 +81,38 @@ public class GlobalExceptionHandler {
                 .body(ApiError.validation(errors));
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
+        // TODO: localized message for these responses
+        String message = String.format("The parameter '%s' has an invalid value: '%s'", e.getName(), e.getValue());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleReadableException(HttpMessageNotReadableException e) {
+        // TODO: localize and flexible logic for other errors, hardcoded for enum only
+        if (e.getCause() instanceof InvalidFormatException ife) {
+            if (ife.getTargetType().isEnum()) {
+                String message = String.format("Invalid value '%s' for type %s.",
+                        ife.getValue(), ife.getTargetType().getSimpleName());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
+            }
+        }
+
+        String message = "Invalid JSON format or field value.";
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiError> handLeInvalidToken(Exception e) {
+        String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -83,6 +120,21 @@ public class GlobalExceptionHandler {
                         HttpStatus.UNAUTHORIZED,
                         messageUtil.getMessage(MessageCodes.INVALID_CREDENTIALS)
                 ));
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ApiError> handleAccountLocked(LockedException e) {
+        String message = resolveMessage(e, MessageCodes.ACCOUNT_LOCKED);
+        return ResponseEntity.status(HttpStatus.LOCKED)
+                .body(ApiError.of(HttpStatus.LOCKED, message));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiError> handleAccountDisabled(DisabledException e) {
+//            TODO: maybe allow user to login without verification with limited activity as guest
+        String message = resolveMessage(e, MessageCodes.ACCOUNT_NOT_VERIFIED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
     }
 
     @ExceptionHandler(MultipartException.class)
@@ -101,6 +153,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestPartException.class)
     public ResponseEntity<ApiError> handleMissingRequestPart(MissingServletRequestPartException e) {
+//        TODO: maybe add custom message
+        return ResponseEntity.badRequest()
+                .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError> handleMissingRequestParameter(MissingServletRequestParameterException e) {
 //        TODO: maybe add custom message
         return ResponseEntity.badRequest()
                 .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
@@ -134,17 +193,15 @@ public class GlobalExceptionHandler {
     }
 
     //    401 - unauthorized
-    @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<ApiError> handLeInvalidToken(Exception e) {
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAuthenticationError(AuthenticationException e) {
         String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
     }
 
     //    404 - not found
-    @ExceptionHandler(value = {
-            EntityNotFoundException.class
-    })
+    @ExceptionHandler(EntityNotFoundException.class)
 //    TODO: add no resource found exception in this handler
     public ResponseEntity<ApiError> handleNotFound(Exception e) {
         String message = resolveMessage(e, MessageCodes.NOT_FOUND);
@@ -178,36 +235,11 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(HttpStatus.PAYLOAD_TOO_LARGE, message));
     }
 
-    //    423 - account locked
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiError> handleAccountLocked(AuthenticationException e) {
-        if (e instanceof InternalAuthenticationServiceException iae) {
-
-            if (iae.getCause() instanceof LockedException)
-                return ResponseEntity.status(HttpStatus.LOCKED)
-                        .body(ApiError.of(
-                                HttpStatus.LOCKED,
-                                messageUtil.getMessage(MessageCodes.ACCOUNT_LOCKED)
-                        ));
-
-//            TODO: maybe allow user to login without verification with limited activity as guest
-            if (iae.getCause() instanceof DisabledException)
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(ApiError.of(
-                                HttpStatus.FORBIDDEN,
-                                messageUtil.getMessage(MessageCodes.ACCOUNT_NOT_VERIFIED)
-                        ));
-        }
-
-        String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
-    }
-
-    //endregion
+//endregion
 
     //region 500 Series Handlers
 
+    //    TODO: add more external services exception
     //    503 - unavailable services
     @ExceptionHandler(value = {
             S3ClientException.class,
@@ -215,7 +247,7 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ApiError> handleStorage(Exception e) {
         String message = resolveMessage(e, MessageCodes.STORAGE_UNAVAILABLE);
-        log.error("Unexcepted exception caught in GlobalExceptionHandler", e);
+        log.error("unexpected exception caught in GlobalExceptionHandler", e);
         return ResponseEntity
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiError.of(HttpStatus.SERVICE_UNAVAILABLE, message));
@@ -225,7 +257,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception e) {
         String message = resolveMessage(e, MessageCodes.UNEXPECTED_ERROR);
-        log.error("Unexcepted exception caught in GlobalExceptionHandler", e);
+        log.error("unexpected exception caught in GlobalExceptionHandler", e);
         return ResponseEntity
                 .internalServerError()
                 .body(ApiError.of(HttpStatus.INTERNAL_SERVER_ERROR, message));

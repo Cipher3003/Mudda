@@ -24,7 +24,7 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAll(
-            @RequestParam(required = false) String search) {
+            @RequestParam(name = "search", required = false) String search) {
         log.debug("Get all categories request with search {}", search);
         return ResponseEntity.ok(categoryService.findAllCategories(search));
     }

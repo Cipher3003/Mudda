@@ -68,7 +68,7 @@ public class IssueController {
     public ResponseEntity<IssueClusterResponse> getIssueClusters(
             @Valid @ModelAttribute IssueClusterRequest clusterRequest) {
 
-        log.debug("Finding clusters: " + clusterRequest);
+        log.debug("Finding clusters: {}", clusterRequest);
         return ResponseEntity.ok(issueService.findAllIssueClusters(clusterRequest));
     }
 
