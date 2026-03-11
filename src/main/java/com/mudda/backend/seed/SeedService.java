@@ -58,12 +58,12 @@ public class SeedService {
     private final CommentLikeService commentLikeService;
 
     public SeedService(CategoryService categoryService,
-                       LocationService locationService,
-                       UserService userService,
-                       VoteService voteService,
-                       IssueService issueService,
-                       CommentService commentService,
-                       CommentLikeService commentLikeService) {
+            LocationService locationService,
+            UserService userService,
+            VoteService voteService,
+            IssueService issueService,
+            CommentService commentService,
+            CommentLikeService commentLikeService) {
         this.categoryService = categoryService;
         this.locationService = locationService;
         this.userService = userService;
@@ -86,8 +86,10 @@ public class SeedService {
         feedback.add("Starting database cleanup using manual deletion...");
 
         // The order of deletion is crucial to avoid foreign key constraint violations.
-        // We delete from entities that have dependencies first, moving towards root entities.
-        // For example, Comments depend on Issues and Users, so comment must be deleted first.
+        // We delete from entities that have dependencies first, moving towards root
+        // entities.
+        // For example, Comments depend on Issues and Users, so comment must be deleted
+        // first.
         List<String> entityNamesInDeletionOrder = List.of(
                 "CommentLike",
                 "Comment",
@@ -97,8 +99,7 @@ public class SeedService {
                 "Category",
                 "VerificationToken",
                 "RefreshToken",
-                "MuddaUser"
-        );
+                "MuddaUser");
 
         try {
             for (String entityName : entityNamesInDeletionOrder) {
@@ -110,7 +111,8 @@ public class SeedService {
 
             // --- Next Step: Reset all primary key sequences ---
             feedback.add("Resetting all table sequences...");
-            // Note: Use custom sequence names that are based on Hibernate/JPA naming conventions.
+            // Note: Use custom sequence names that are based on Hibernate/JPA naming
+            // conventions.
             List<String> sequenceNames = List.of(
                     "comment_likes_id_seq",
                     "comments_id_seq",
@@ -120,8 +122,7 @@ public class SeedService {
                     "categories_id_seq",
                     "action_tokens_id_seq",
                     "refresh_token_id_seq",
-                    "users_id_seq"
-            );
+                    "users_id_seq");
 
             for (String sequenceName : sequenceNames) {
                 try {
@@ -129,7 +130,8 @@ public class SeedService {
                             .executeUpdate();
                     feedback.add("Sequence '" + sequenceName + "' reset to 1.");
                 } catch (Exception e) {
-                    // This might fail if a sequence doesn't exist or name is different, which is okay.
+                    // This might fail if a sequence doesn't exist or name is different, which is
+                    // okay.
                     // We log it as a warning instead of a fatal error.
                     feedback.add("WARN: Could not reset sequence '" + sequenceName
                             + "'. It might not exist or name is incorrect. Skipping.");
@@ -181,6 +183,9 @@ public class SeedService {
         if (generationMap.containsKey(Entity.Reply))
             generateReplies(generationMap.get(Entity.Reply), topLevelCommentIds, issueIds, userIds, feedback);
 
+        if (generationMap.containsKey(Entity.Vote))
+            generateVotes(generationMap.get(Entity.Vote), issueIds, userIds, feedback);
+
         if (feedback.isEmpty())
             feedback.add("No entities requested for generation.");
         else if (feedback.stream().noneMatch(msg -> msg.startsWith("ERROR:")))
@@ -229,8 +234,7 @@ public class SeedService {
                     for (int voteId = 0; voteId < voteCount; voteId++) {
                         votesList.add(VoteSeed.toVote(new VoteSeed(
                                 issueId,
-                                random.nextInt(1, userCount + 1)
-                        )));
+                                random.nextInt(1, userCount + 1))));
                     }
                 }
 
@@ -246,8 +250,7 @@ public class SeedService {
                         commentLikes.add(CommentLikeSeed
                                 .toCommentLike(new CommentLikeSeed(
                                         commentId,
-                                        random.nextInt(1, userCount + 1)
-                                )));
+                                        random.nextInt(1, userCount + 1))));
                     }
                 }
 
@@ -336,7 +339,7 @@ public class SeedService {
     }
 
     private void generateIssues(int count, List<Long> issueIds, List<Long> userIds,
-                                List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
+            List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
         if (userIds.isEmpty() || locationIds.isEmpty() || categoryIds.isEmpty()) {
             feedback.add("Cannot generate issues: Missing Users, Locations, or Categories. " +
                     "Add users, locations, categories in request.");
@@ -370,7 +373,7 @@ public class SeedService {
     }
 
     private void generateComments(int count, List<Long> parentCommentIds, List<Long> issueIds,
-                                  List<Long> userIds, List<String> feedback) {
+            List<Long> userIds, List<String> feedback) {
         if (issueIds.isEmpty() || userIds.isEmpty()) {
             feedback.add("Cannot generate comments: Missing Issues or Users. Add issues, users in request");
             return;
@@ -393,7 +396,7 @@ public class SeedService {
     }
 
     private void generateReplies(int count, List<Long> parentCommentIds, List<Long> issueIds,
-                                 List<Long> userIds, List<String> feedback) {
+            List<Long> userIds, List<String> feedback) {
         if (parentCommentIds.isEmpty() || userIds.isEmpty() || issueIds.isEmpty()) {
             feedback.add("Cannot generate replies: Missing parent Comments, Users, or Issues. " +
                     "Add comments, users, issues in request");
@@ -415,6 +418,37 @@ public class SeedService {
         }
 
         commentService.createReplies(parents, users, issues, replyRequests);
+    }
+
+    private void generateVotes(int count, List<Long> issueIds, List<Long> userIds, List<String> feedback) {
+        if (issueIds.isEmpty() || userIds.isEmpty()) {
+            feedback.add("Cannot generate votes: Missing Issues or Users. Add issues, users in request");
+            return;
+        }
+        feedback.add("Generating " + count + " votes...");
+
+        List<Vote> votes = new ArrayList<>();
+        Set<String> uniqueVotes = new HashSet<>();
+
+        // Ensure we don't loop forever if count is larger than possible combinations
+        long maxPossible = (long) issueIds.size() * userIds.size();
+        int toGenerate = (int) Math.min(count, maxPossible);
+
+        int attempts = 0;
+        int maxAttempts = toGenerate * 3; // To avoid infinite loop if distribution is bad
+
+        while (votes.size() < toGenerate && attempts < maxAttempts) {
+            Long issueId = getRandomId(issueIds);
+            Long userId = getRandomId(userIds);
+            String key = issueId + "-" + userId;
+
+            if (uniqueVotes.add(key)) {
+                votes.add(Vote.castVote(issueId, userId));
+            }
+            attempts++;
+        }
+
+        voteService.saveVotes(votes);
     }
 
     /**

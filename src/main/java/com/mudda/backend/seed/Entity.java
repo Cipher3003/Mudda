@@ -6,5 +6,6 @@ public enum Entity {
     User,
     Issue,
     Comment,
-    Reply
+    Reply,
+    Vote
 }

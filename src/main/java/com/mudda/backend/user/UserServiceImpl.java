@@ -47,8 +47,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             CommentService commentService,
             CommentLikeService commentLikeService,
             VoteService voteService,
-            AppProperties appProperties
-    ) {
+            AppProperties appProperties) {
         this.issueService = issueService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -101,7 +100,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         MuddaUser muddaUser = UserMapper.toUser(userRequest);
         muddaUser.changePasswordHash(passwordEncoder.encode(userRequest.password()));
 
-        if (userRequest.fcmToken() != null) muddaUser.changeFcmToken(userRequest.fcmToken());
+        if (userRequest.fcmToken() != null)
+            muddaUser.changeFcmToken(userRequest.fcmToken());
 
         MuddaUser saved = userRepository.save(muddaUser);
         log.info("Created user with email {}", saved.getEmail());
@@ -116,8 +116,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         userRepository.findByUsername(username).ifPresent(muddaUser -> {
             muddaUser.recordFailedLoginAttempt(
                     appProperties.getSecurity().getLogin().getMaxAttempts(),
-                    Duration.ofMinutes(appProperties.getSecurity().getLogin().getLockDurationMinutes())
-            );
+                    Duration.ofMinutes(appProperties.getSecurity().getLogin().getLockDurationMinutes()));
             userRepository.save(muddaUser);
         });
     }
@@ -139,7 +138,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         MuddaUser user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-//        TODO: update method to use SET for JPA dirty checking and updation
+        // TODO: update method to use SET for JPA dirty checking and updation
         user.changeProfileImageUrl(imageKey);
         userRepository.save(user);
         log.info("Updated profile image for user with id {}", id);
@@ -163,18 +162,21 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Transactional
     @Override
     public List<Long> createUsers(List<CreateUserRequest> userRequests) {
-        List<MuddaUser> users = userRepository.saveAll(
-                userRequests
-                        .stream()
-                        .map(UserMapper::toUser)
-                        .toList()
-        );
+        List<MuddaUser> muddaUsers = userRequests.stream().map(
+                request -> {
+                    MuddaUser user = UserMapper.toUser(request);
+                    user.setEnabled(true);
+                    return user;
+                })
+                .toList();
+
+        List<MuddaUser> users = userRepository.saveAll(muddaUsers);
 
         log.info("Created {} users", users.size());
         return users.stream().map(MuddaUser::getUserId).toList();
     }
 
-//    TODO: merge createUser and saveUsers
+    // TODO: merge createUser and saveUsers
 
     @Transactional
     @Override
@@ -235,14 +237,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Transactional
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        MuddaUser user = userRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User not found with username: %s".formatted(username)));
+        MuddaUser user = userRepository.findByUsername(username).orElseThrow(
+                () -> new UsernameNotFoundException("User not found with username: %s".formatted(username)));
 
-        if (user.unlockIfExpires()) userRepository.save(user);
+        if (user.unlockIfExpires())
+            userRepository.save(user);
 
-        if (user.isLocked()) throw new LockedException("Account is locked. Please try again later.");
+        if (user.isLocked())
+            throw new LockedException("Account is locked. Please try again later.");
 
-        if (!user.isEnabled()) throw new DisabledException("Account not verified. Please verify your email.");
+        if (!user.isEnabled())
+            throw new DisabledException("Account not verified. Please verify your email.");
 
         return user;
     }
