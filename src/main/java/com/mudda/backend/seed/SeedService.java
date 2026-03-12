@@ -34,6 +34,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import static net.datafaker.providers.base.Text.DIGITS;
 import static net.datafaker.providers.base.Text.EN_UPPERCASE;
@@ -152,7 +153,7 @@ public class SeedService {
         log.info("Seeding database with request");
         // --- Data stores to simulate database primary keys for relationships ---
         List<String> feedback = new ArrayList<>();
-        List<Long> userIds = new ArrayList<>();
+        List<Long> userIds = LongStream.rangeClosed(0, 10_000).boxed().toList();
         List<Long> locationIds = new ArrayList<>();
         List<Long> categoryIds = new ArrayList<>();
         List<Long> issueIds = new ArrayList<>();
@@ -165,8 +166,9 @@ public class SeedService {
                 .forEach(dto -> generationMap.put(dto.entity(), dto.count()));
 
         // --- Process entities in a fixed order that respects dependencies ---
-        if (generationMap.containsKey(Entity.User))
-            generateUsers(generationMap.get(Entity.User), userIds, feedback);
+        // TODO: better seeding for relationship
+        // if (generationMap.containsKey(Entity.User))
+        // generateUsers(generationMap.get(Entity.User), userIds, feedback);
 
         if (generationMap.containsKey(Entity.Location))
             generateLocations(generationMap.get(Entity.Location), locationIds, feedback);

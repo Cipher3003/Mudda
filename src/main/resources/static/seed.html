@@ -112,6 +112,12 @@
         const seedJsonBtn = document.getElementById('seed-json-btn');
         const feedbackConsole = document.getElementById('feedback-console');
 
+        const getXSRFToken = () =>
+            document.cookie.split('; ')
+                .find((row) => row.startsWith("XSRF-TOKEN="))
+                ?.split("=")[1]
+
+
         // --- Function to handle API requests and update UI ---
         const handleApiRequest = async (url, options, button) => {
             const originalContent = button.innerHTML;
@@ -163,7 +169,7 @@
 
             handleApiRequest('/api/v1/seed', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {'Content-Type': 'application/json', 'X-XSRF-TOKEN': getXSRFToken()},
                 body: JSON.stringify(payload),
             }, generateBtn);
         });
@@ -172,7 +178,7 @@
         seedJsonBtn.addEventListener('click', () => {
             handleApiRequest('/api/v1/seed/json', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {'Content-Type': 'application/json', 'X-XSRF-TOKEN': getXSRFToken()},
             }, seedJsonBtn);
         });
 
@@ -182,6 +188,7 @@
             if (confirm('Are you sure you want to clear the entire database? This action cannot be undone.')) {
                 handleApiRequest('/api/v1/seed/clear', {
                     method: 'DELETE',
+                    headers: {'X-XSRF-TOKEN': getXSRFToken()}
                 }, clearBtn);
             }
         });

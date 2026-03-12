@@ -70,3 +70,4 @@ terraform.rc
 
 # Files
 /src/main/resources/code.txt
+*.csv
