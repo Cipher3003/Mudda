@@ -9,10 +9,10 @@
 package com.mudda.backend.seed;
 
 import com.mudda.backend.category.CategorySeed;
-import com.mudda.backend.comment.CommentSeed;
-import com.mudda.backend.issue.IssueSeed;
-import com.mudda.backend.location.LocationSeed;
-import com.mudda.backend.user.UserSeed;
+import com.mudda.backend.comment.dto.CommentSeed;
+import com.mudda.backend.issue.dto.IssueSeed;
+import com.mudda.backend.location.dto.LocationSeed;
+import com.mudda.backend.user.dto.UserSeed;
 
 import java.util.List;
 

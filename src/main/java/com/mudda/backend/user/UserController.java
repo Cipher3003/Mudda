@@ -1,5 +1,6 @@
 package com.mudda.backend.user;
 
+import com.mudda.backend.user.dto.*;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDetailResponse> getUserById(@PathVariable(name = "id") long id) {
+    public ResponseEntity<UserDetailResponse> getUserById(@PathVariable long id) {
         return userService.findById(id)
                 .map(UserMapper::toDetail)
                 .map(ResponseEntity::ok)
@@ -62,14 +63,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserSummaryResponse> updateUser(@PathVariable(name = "id") long id,
+    public ResponseEntity<UserSummaryResponse> updateUser(@PathVariable long id,
                                                           @RequestBody UpdateUserRequest userRequest) {
         log.debug("Updating user with request {}", userRequest);
         return ResponseEntity.ok(userService.updateUser(id, userRequest));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable(name = "id") long id) {
+    public ResponseEntity<Void> delete(@PathVariable long id) {
         userService.deleteUser(id);
         SecurityContextHolder.clearContext();
         return ResponseEntity.noContent().build();

@@ -9,7 +9,8 @@
 package com.mudda.backend.auth;
 
 import com.mudda.backend.account.AccountService;
-import com.mudda.backend.user.CreateUserRequest;
+import com.mudda.backend.auth.dto.*;
+import com.mudda.backend.user.dto.CreateUserRequest;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
 import jakarta.validation.Valid;

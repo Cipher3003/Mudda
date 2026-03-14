@@ -1,0 +1,60 @@
+/**
+ * ---------------------------------------------------------------
+ * Project : Mudda
+ * File    : SecurityEndpoints
+ * Author  : Vikas Kumar
+ * Created : 14-01-2026
+ * ---------------------------------------------------------------
+ */
+package com.mudda.backend.security;
+
+public final class SecurityUrlPatterns {
+
+    private SecurityUrlPatterns() {
+    }
+
+    public static final String[] SEED = {
+            "/api/v1/seed/**"
+    };
+
+    public static final String[] SWAGGER = {
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/v3/api-docs"
+    };
+
+    public static final String[] PUBLIC_PAGES = {
+            "/",
+            "/index.html",
+            "/home.html",
+            "/issue.html",
+            "/seed.html",
+            "/media_url.html",
+            "/login.html",
+            "/register.html",
+            "/favicon.ico",
+            "/placeholder.png"
+    };
+
+    public static final String[] AUTH_PUBLIC = {
+            "/auth/register",
+            "/auth/verify-email/resend",
+            "/auth/verify-email/confirm",
+            "/auth/forgot-password",
+            "/auth/reset-password",
+            "/auth/login",
+            "/auth/refresh",
+            "/auth/logout"
+    };
+
+    public static final String[] PUBLIC_READONLY_API = {
+            "/api/v1/amazon/images/**",
+            "/api/v1/issues/categories/**",
+            "/api/v1/comments/**",
+            "/api/v1/issues/**",
+            "/api/v1/votes/**",
+            "/api/v1/locations/**",
+            "/api/v1/users/**"
+    };
+}

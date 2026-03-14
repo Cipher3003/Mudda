@@ -1,5 +1,9 @@
 package com.mudda.backend.user;
 
+import com.mudda.backend.user.dto.CreateUserRequest;
+import com.mudda.backend.user.dto.UserDetailResponse;
+import com.mudda.backend.user.dto.UserSummaryResponse;
+
 public class UserMapper {
 
     public static MuddaUser toUser(CreateUserRequest userRequest) {

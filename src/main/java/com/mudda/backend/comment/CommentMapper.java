@@ -1,5 +1,10 @@
 package com.mudda.backend.comment;
 
+import com.mudda.backend.comment.dto.CommentDetailResponse;
+import com.mudda.backend.comment.dto.CommentResponse;
+import com.mudda.backend.comment.dto.CreateCommentRequest;
+import com.mudda.backend.comment.dto.ReplyResponse;
+
 public class CommentMapper {
 
     public static CommentResponse toCommentResponse(Comment comment) {
@@ -16,10 +21,10 @@ public class CommentMapper {
             Comment comment,
             long likeCount,
             long replyCount,
-            boolean hasUserLiked,
-            boolean canUserLike,
-            boolean canUserUpdate,
-            boolean canUserDelete
+            boolean hasLiked,
+            boolean canLike,
+            boolean canUpdate,
+            boolean canDelete
     ) {
         return new CommentDetailResponse(
                 comment.getCommentId(),
@@ -29,20 +34,20 @@ public class CommentMapper {
                 likeCount,
                 replyCount,
                 comment.getCreatedAt(),
-                hasUserLiked,
-                canUserLike,
-                canUserUpdate,
-                canUserDelete
+                hasLiked,
+                canLike,
+                canUpdate,
+                canDelete
         );
     }
 
     public static ReplyResponse toReplyResponse(
             Comment comment,
             long likeCount,
-            boolean hasUserLiked,
-            boolean canUserLike,
-            boolean canUserUpdate,
-            boolean canUserDelete
+            boolean hasLiked,
+            boolean canLike,
+            boolean canUpdate,
+            boolean canDelete
     ) {
         return new ReplyResponse(
                 comment.getCommentId(),
@@ -51,10 +56,10 @@ public class CommentMapper {
                 comment.getParentId(),
                 likeCount,
                 comment.getCreatedAt(),
-                hasUserLiked,
-                canUserLike,
-                canUserUpdate,
-                canUserDelete
+                hasLiked,
+                canLike,
+                canUpdate,
+                canDelete
         );
     }
 

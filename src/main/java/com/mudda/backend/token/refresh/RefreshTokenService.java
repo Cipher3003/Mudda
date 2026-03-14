@@ -9,12 +9,15 @@
 package com.mudda.backend.token.refresh;
 
 import com.mudda.backend.exceptions.InvalidRefreshTokenException;
-import com.mudda.backend.token.TokenHasUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.HexFormat;
 import java.util.List;
 
 @Slf4j
@@ -22,12 +25,9 @@ import java.util.List;
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final TokenHasUtil tokenHasUtil;
 
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
-                               TokenHasUtil tokenHasUtil) {
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
         this.refreshTokenRepository = refreshTokenRepository;
-        this.tokenHasUtil = tokenHasUtil;
     }
 
     // region Commands (Write Operations)
@@ -44,7 +44,7 @@ public class RefreshTokenService {
 
     @Transactional
     public RefreshToken rotate(String rawRefreshToken) {
-        String hashedToken = tokenHasUtil.hashToken(rawRefreshToken);
+        String hashedToken = hashToken(rawRefreshToken);
 
         RefreshToken refreshToken = refreshTokenRepository.
                 findByTokenAndRevokedFalse(hashedToken)
@@ -59,7 +59,7 @@ public class RefreshTokenService {
 
     @Transactional
     public void revoke(String rawRefreshToken) {
-        String hashedToken = tokenHasUtil.hashToken(rawRefreshToken);
+        String hashedToken = hashToken(rawRefreshToken);
 
         log.debug("Revoking refresh token");
         refreshTokenRepository.findByTokenAndRevokedFalse(hashedToken)
@@ -73,11 +73,25 @@ public class RefreshTokenService {
     public void create(Long userId, String refreshToken, Instant expiresAt) {
         RefreshToken hashedRefreshToken = new RefreshToken(
                 userId,
-                tokenHasUtil.hashToken(refreshToken),
+                hashToken(refreshToken),
                 expiresAt);
 
         refreshTokenRepository.save(hashedRefreshToken);
         log.debug("Created refresh token for user {} valid till {}", userId, expiresAt);
+    }
+
+    // endregion
+
+    // region Helper
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not found", e);
+        }
     }
 
     // endregion

@@ -1,20 +1,67 @@
 package com.mudda.backend.comment;
 
+import com.mudda.backend.comment.dto.CommentLikeResponse;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
-public interface CommentLikeService {
+@Service
+public class CommentLikeService {
 
-    CommentLikeResponse userLikesOnComment(long commentId, long userId);
+    private final CommentLikeRepository likeRepository;
 
-    CommentLikeResponse userRemovesLikeFromComment(long commentId, long userId);
+    public CommentLikeService(CommentLikeRepository likeRepository) {
+        this.likeRepository = likeRepository;
+    }
 
-    long countByCommentId(long commentId);
+    // #region Queries (Read Operations)
 
-    void saveCommentLikes(List<CommentLike> commentLikes);
+    public long countByCommentId(long commentId) {
+        return likeRepository.countByCommentId(commentId);
+    }
 
-    void deleteAllByCommentId(List<Long> replyIds);
+    // #endregion
 
-    void deleteByCommentId(long commentId);
+    // #region Commands (Write Operations)
 
-    void deleteAllByUserId(long userId);
+    @Transactional
+    public CommentLikeResponse userLikesOnComment(long commentId, long userId) {
+        CommentLike commentLike = new CommentLike(commentId, userId);
+        likeRepository.save(commentLike);
+
+        long likesCount = likeRepository.countByCommentId(commentId);
+
+        return new CommentLikeResponse(true, likesCount);
+    }
+
+    public void saveCommentLikes(List<CommentLike> commentLikes) {
+        likeRepository.saveAll(commentLikes);
+    }
+
+    @Transactional
+    public CommentLikeResponse userRemovesLikeFromComment(long commentId, long userId) {
+        likeRepository.deleteByCommentIdAndUserId(commentId, userId);
+
+        long likesCount = likeRepository.countByCommentId(commentId);
+
+        return new CommentLikeResponse(false, likesCount);
+    }
+
+    @Transactional
+    public void deleteAllByCommentId(List<Long> commentIds) {
+        likeRepository.deleteAllByCommentIdIn(commentIds);
+    }
+
+    @Transactional
+    public void deleteByCommentId(long commentId) {
+        likeRepository.deleteByCommentId(commentId);
+    }
+
+    @Transactional
+    public void deleteAllByUserId(long userId) {
+        likeRepository.deleteByUserId(userId);
+    }
+
+    // #endregion
 }

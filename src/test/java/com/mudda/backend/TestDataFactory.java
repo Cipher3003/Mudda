@@ -1,6 +1,6 @@
 package com.mudda.backend;
 
-import com.mudda.backend.user.CreateUserRequest;
+import com.mudda.backend.user.dto.CreateUserRequest;
 import com.mudda.backend.user.MuddaUserRole;
 
 import java.time.LocalDate;

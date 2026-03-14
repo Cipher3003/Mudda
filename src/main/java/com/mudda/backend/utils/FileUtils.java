@@ -7,6 +7,7 @@ import java.util.Objects;
 
 public class FileUtils {
 
+//    TODO: inline this function and remove class
     public static String generateFileName(MultipartFile file) {
         return new Date().getTime() + "-"
                 + Objects.requireNonNull(file.getOriginalFilename())

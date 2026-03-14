@@ -28,7 +28,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 import java.util.Map;
 
-import static com.mudda.backend.security.SecurityEndpoints.*;
+import static com.mudda.backend.security.SecurityUrlPatterns.*;
 
 @Configuration
 @EnableWebSecurity
@@ -102,11 +102,11 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(auth -> auth
 
                 // ===== PUBLIC ENDPOINTS =====
-                .requestMatchers(SEED_ENDPOINTS).permitAll()
-                .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
-                .requestMatchers(PUBLIC_STATIC_PAGES).permitAll()
-                .requestMatchers(AUTH_PUBLIC_ENDPOINTS).permitAll()
-                .requestMatchers(HttpMethod.GET, PUBLIC_READONLY_ENDPOINTS).permitAll()
+                .requestMatchers(SEED).permitAll()
+                .requestMatchers(SWAGGER).permitAll()
+                .requestMatchers(PUBLIC_PAGES).permitAll()
+                .requestMatchers(AUTH_PUBLIC).permitAll()
+                .requestMatchers(HttpMethod.GET, PUBLIC_READONLY_API).permitAll()
 
                 // ===== PROTECTED ENDPOINTS =====
                 .anyRequest().authenticated());

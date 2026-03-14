@@ -83,7 +83,7 @@ public class SmtpEmailService implements EmailService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(
                     mimeMessage, true, StandardCharsets.UTF_8.name());
-            
+
             helper.setFrom("no-reply@mudda.dev");
             helper.setTo(email);
             helper.setSubject(subject);
@@ -103,6 +103,7 @@ public class SmtpEmailService implements EmailService {
         log.error("Failed to send email to {} with subject '{}' after retries", email, subject, e);
     }
 
+    // TODO: read mail template from file instead of string in code
     private String buildVerifyEmailHtml(String link) {
         return """
                 <!DOCTYPE html>

@@ -8,6 +8,10 @@
  */
 package com.mudda.backend.location;
 
+import com.mudda.backend.location.dto.CoordinateDTO;
+import com.mudda.backend.location.dto.CreateLocationRequest;
+import com.mudda.backend.location.dto.LocationDTO;
+import com.mudda.backend.location.dto.LocationResponse;
 import org.locationtech.jts.geom.Coordinate;
 
 public class LocationMapper {
@@ -27,12 +31,15 @@ public class LocationMapper {
                 location.getState(),
                 location.getCreatedAt(),
                 CoordinateDTO.from(location.getCoordinate())
-            );
+        );
     }
 
     public static Location toLocation(CreateLocationRequest locationRequest) {
-        Coordinate coordinate = new Coordinate(locationRequest.coordinate().x(),
-                locationRequest.coordinate().y());
+        Coordinate coordinate = new Coordinate(
+                locationRequest.coordinate().x(),
+                locationRequest.coordinate().y()
+        );
+
         return new Location(locationRequest.addressLine(),
                 locationRequest.pinCode(),
                 locationRequest.city(),

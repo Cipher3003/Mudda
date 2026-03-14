@@ -1,5 +1,6 @@
 package com.mudda.backend.issue;
 
+import com.mudda.backend.issue.dto.IssueClusterQueryResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

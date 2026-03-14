@@ -5,17 +5,20 @@ import com.mudda.backend.category.CategorySeed;
 import com.mudda.backend.category.CategoryService;
 import com.mudda.backend.category.CreateCategoryRequest;
 import com.mudda.backend.comment.*;
-import com.mudda.backend.issue.CreateIssueRequest;
-import com.mudda.backend.issue.IssueSeed;
+import com.mudda.backend.comment.dto.CommentLikeSeed;
+import com.mudda.backend.comment.dto.CommentSeed;
+import com.mudda.backend.comment.dto.CreateCommentRequest;
 import com.mudda.backend.issue.IssueService;
-import com.mudda.backend.location.CoordinateDTO;
-import com.mudda.backend.location.CreateLocationRequest;
-import com.mudda.backend.location.LocationSeed;
+import com.mudda.backend.issue.dto.CreateIssueRequest;
+import com.mudda.backend.issue.dto.IssueSeed;
 import com.mudda.backend.location.LocationService;
-import com.mudda.backend.user.CreateUserRequest;
-import com.mudda.backend.user.MuddaUserRole;
-import com.mudda.backend.user.UserSeed;
+import com.mudda.backend.location.dto.CoordinateDTO;
+import com.mudda.backend.location.dto.CreateLocationRequest;
+import com.mudda.backend.location.dto.LocationSeed;
 import com.mudda.backend.user.UserService;
+import com.mudda.backend.user.dto.CreateUserRequest;
+import com.mudda.backend.user.MuddaUserRole;
+import com.mudda.backend.user.dto.UserSeed;
 import com.mudda.backend.vote.Vote;
 import com.mudda.backend.vote.VoteSeed;
 import com.mudda.backend.vote.VoteService;
@@ -59,12 +62,12 @@ public class SeedService {
     private final CommentLikeService commentLikeService;
 
     public SeedService(CategoryService categoryService,
-            LocationService locationService,
-            UserService userService,
-            VoteService voteService,
-            IssueService issueService,
-            CommentService commentService,
-            CommentLikeService commentLikeService) {
+                       LocationService locationService,
+                       UserService userService,
+                       VoteService voteService,
+                       IssueService issueService,
+                       CommentService commentService,
+                       CommentLikeService commentLikeService) {
         this.categoryService = categoryService;
         this.locationService = locationService;
         this.userService = userService;

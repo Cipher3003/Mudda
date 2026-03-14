@@ -1,5 +1,6 @@
 package com.mudda.backend.issue;
 
+import com.mudda.backend.issue.dto.*;
 import com.mudda.backend.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,8 +41,8 @@ public class IssueController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sortBy", defaultValue = "CREATED_AT") IssueSortBy sort,
-            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction) {
-
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction
+    ) {
         Pageable pageable = PageRequest.of(
                 page, size,
                 direction.equalsIgnoreCase("desc")
@@ -55,7 +56,7 @@ public class IssueController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IssueResponse> getIssueById(@PathVariable(name = "id") long id) {
+    public ResponseEntity<IssueResponse> getIssueById(@PathVariable long id) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
         return issueService
@@ -66,8 +67,8 @@ public class IssueController {
 
     @GetMapping("/clusters")
     public ResponseEntity<IssueClusterResponse> getIssueClusters(
-            @Valid @ModelAttribute IssueClusterRequest clusterRequest) {
-
+            @Valid @ModelAttribute IssueClusterRequest clusterRequest
+    ) {
         log.debug("Finding clusters: {}", clusterRequest);
         return ResponseEntity.ok(issueService.findAllIssueClusters(clusterRequest));
     }
@@ -75,8 +76,8 @@ public class IssueController {
     @GetMapping("/dashboard")
     public ResponseEntity<Page<IssueDashboardResponse>> getIssueForDashboard(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size) {
-
+            @RequestParam(name = "size", defaultValue = "20") int size
+    ) {
         Pageable pageable = PageRequest.of(page, size);
 
         return ResponseEntity.ok(issueService.findAllIssuesDashboard(pageable));
@@ -97,8 +98,9 @@ public class IssueController {
 
     @PutMapping("/{id}")
     public ResponseEntity<IssueUpdateResponse> updateIssue(
-            @PathVariable(name = "id") long id,
-            @Valid @RequestBody UpdateIssueRequest issueRequest) {
+            @PathVariable long id,
+            @Valid @RequestBody UpdateIssueRequest issueRequest
+    ) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
         log.info("Updating issue with id {} by user with id {}", id, userId);
@@ -106,7 +108,7 @@ public class IssueController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIssue(@PathVariable(name = "id") long id) {
+    public ResponseEntity<Void> deleteIssue(@PathVariable long id) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
         log.info("Deleting issue with id {} by user with id {}", id, userId);

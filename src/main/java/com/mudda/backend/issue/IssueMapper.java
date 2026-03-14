@@ -1,7 +1,8 @@
 package com.mudda.backend.issue;
 
-import com.mudda.backend.location.LocationDTO;
-import com.mudda.backend.location.LocationResponse;
+import com.mudda.backend.issue.dto.*;
+import com.mudda.backend.location.dto.LocationDTO;
+import com.mudda.backend.location.dto.LocationResponse;
 import com.mudda.backend.user.MuddaUser;
 
 public class IssueMapper {
@@ -16,10 +17,12 @@ public class IssueMapper {
                 issueRequest.mediaUrls());
     }
 
-    public static IssueResponse toResponse(Issue issue, MuddaUser muddaUser, LocationDTO locationSummary,
-            String category, long voteCount, boolean hasUserLiked,
-            boolean canUserVote, boolean canUserComment,
-            boolean canUserEdit, boolean canUserDelete) {
+    public static IssueResponse toResponse(
+            Issue issue, MuddaUser muddaUser, LocationDTO locationSummary,
+            String category, long voteCount, boolean hasLiked,
+            boolean canVote, boolean canComment,
+            boolean canEdit, boolean canDelete
+    ) {
         return new IssueResponse(
                 // Issue details
                 issue.getId(),
@@ -38,11 +41,12 @@ public class IssueMapper {
                 muddaUser.getUsername(),
                 muddaUser.getProfileImageUrl(),
                 // Flags
-                hasUserLiked,
-                canUserVote,
-                canUserComment,
-                canUserEdit,
-                canUserDelete);
+                hasLiked,
+                canVote,
+                canComment,
+                canEdit,
+                canDelete
+        );
     }
 
     public static IssueUpdateResponse toResponse(Issue issue) {
@@ -53,8 +57,10 @@ public class IssueMapper {
                 issue.getStatus());
     }
 
-    public static IssueSummaryResponse toSummary(Issue issue, MuddaUser muddaUser, long voteCount,
-            boolean hasUserVoted, boolean canUserVote) {
+    public static IssueSummaryResponse toSummary(
+            Issue issue, MuddaUser muddaUser, long voteCount,
+            boolean hasVoted, boolean canVote
+    ) {
         return new IssueSummaryResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -67,15 +73,20 @@ public class IssueMapper {
                 muddaUser.getUsername(),
                 muddaUser.getProfileImageUrl(),
                 // Flags
-                hasUserVoted,
-                canUserVote);
+                hasVoted,
+                canVote
+        );
     }
 
-    public static IssueDashboardResponse forDashboard(Issue issue, MuddaUser muddaUser, long voteCount,
-            LocationResponse locationResponse, String category) {
-        return new IssueDashboardResponse(issue.getId(), issue.getTitle(), issue.getDescription(), issue.getStatus(),
+    public static IssueDashboardResponse forDashboard(
+            Issue issue, MuddaUser muddaUser, long voteCount,
+            LocationResponse locationResponse, String category
+    ) {
+        return new IssueDashboardResponse(
+                issue.getId(), issue.getTitle(), issue.getDescription(), issue.getStatus(),
                 locationResponse, category, voteCount, issue.getMediaUrls(), issue.getSeverityScore(),
                 issue.getCreatedAt(), issue.getUpdatedAt(), muddaUser.getUserId(), muddaUser.getUsername(),
-                muddaUser.getProfileImageUrl());
+                muddaUser.getProfileImageUrl()
+        );
     }
 }

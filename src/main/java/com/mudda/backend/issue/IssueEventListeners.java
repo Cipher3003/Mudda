@@ -8,7 +8,8 @@
  */
 package com.mudda.backend.issue;
 
-import com.mudda.backend.notification.NotificationService;
+import com.mudda.backend.issue.dto.IssueFlagResponse;
+import com.mudda.backend.notification.PushNotificationService;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -23,16 +24,16 @@ public class IssueEventListeners {
 
     private final IssueRepository issueRepository;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
+    private final PushNotificationService pushNotificationService;
 
     private final String RESPONSE_QUEUE_NAME = "mudda-hate-speech-response-queue";
 
     public IssueEventListeners(IssueRepository issueRepository,
                                UserRepository userRepository,
-                               NotificationService notificationService) {
+                               PushNotificationService pushNotificationService) {
         this.issueRepository = issueRepository;
         this.userRepository = userRepository;
-        this.notificationService = notificationService;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @SqsListener(value = RESPONSE_QUEUE_NAME, pollTimeoutSeconds = "20")
@@ -46,7 +47,7 @@ public class IssueEventListeners {
                 Optional<String> token = userRepository.findById(response.userId())
                         .map(MuddaUser::getFcmToken);
 
-                token.ifPresent(s -> notificationService.sendNotification(
+                token.ifPresent(s -> pushNotificationService.sendNotification(
                         s, Long.toString(response.id()), "Issue removed",
                         "Your issue has been removed for foul language."
                 ));
@@ -59,7 +60,7 @@ public class IssueEventListeners {
                 Optional<String> token = userRepository.findById(response.userId())
                         .map(MuddaUser::getFcmToken);
 
-                token.ifPresent(s -> notificationService.sendNotification(
+                token.ifPresent(s -> pushNotificationService.sendNotification(
                         s, Long.toString(response.id()), "Issue removed again",
                         "Your issue has been removed again for foul language."
                 ));

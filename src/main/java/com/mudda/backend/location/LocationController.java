@@ -1,5 +1,8 @@
 package com.mudda.backend.location;
 
+import com.mudda.backend.location.dto.CreateLocationRequest;
+import com.mudda.backend.location.dto.LocationResponse;
+import com.mudda.backend.location.dto.UpdateLocationRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +36,7 @@ public class LocationController {
     }
 
     @GetMapping("/{locationId}")
-    public ResponseEntity<LocationResponse> getById(@PathVariable(name = "locationId") long locationId) {
+    public ResponseEntity<LocationResponse> getById(@PathVariable long locationId) {
         return locationService.findById(locationId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -53,7 +56,7 @@ public class LocationController {
 
     @Transactional
     @PutMapping("/{locationId}")
-    public ResponseEntity<LocationResponse> update(@PathVariable(name = "locationId") long locationId,
+    public ResponseEntity<LocationResponse> update(@PathVariable long locationId,
                                                    @RequestBody UpdateLocationRequest locationRequest) {
         return ResponseEntity.ok(locationService.updateLocation(locationId, locationRequest));
     }
@@ -61,7 +64,7 @@ public class LocationController {
     //    NOTE: for developer use only
     @Transactional
     @DeleteMapping("/{locationId}")
-    public ResponseEntity<Void> delete(@PathVariable(name = "locationId") long locationId) {
+    public ResponseEntity<Void> delete(@PathVariable long locationId) {
         locationService.deleteLocation(locationId);
         return ResponseEntity.noContent().build();
     }

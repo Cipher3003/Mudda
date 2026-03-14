@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "app")
+// TODO: segregate different type config to their files and rename to match usage
 public class AppProperties {
 
     private String frontendBaseUrl;

@@ -8,6 +8,10 @@
  */
 package com.mudda.backend.auth;
 
+import com.mudda.backend.auth.dto.AuthResponse;
+import com.mudda.backend.auth.dto.AuthResult;
+import com.mudda.backend.auth.dto.AuthenticatedUserResponse;
+
 public class AuthMapper {
 
     public static AuthResponse toAuthResponse(AuthResult authResult) {

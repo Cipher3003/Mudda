@@ -784,20 +784,20 @@
     {
       "title": "Massive Potholes on Main Street",
       "description": "The entire stretch of Main Street is riddled with deep potholes, causing severe traffic jams and damage to vehicles. Urgent repair needed.",
-      "location_id": 1,
-      "category_id": 1,
-      "user_id": 3,
-      "media_urls": [
+      "locationId": 1,
+      "categoryId": 1,
+      "userId": 3,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Garbage Dump near Residential Area",
       "description": "An unauthorized garbage dump has appeared near the Sector 15 housing complex, leading to foul smells and health hazards.",
-      "location_id": 1,
-      "category_id": 2,
-      "user_id": 4,
-      "media_urls": [
+      "locationId": 1,
+      "categoryId": 2,
+      "userId": 4,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1631174721289-6656e7f3353c?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         "https://images.unsplash.com/photo-1495556650867-99590cea3657?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
@@ -805,40 +805,40 @@
     {
       "title": "Street Lights Not Working for a Week",
       "description": "The streetlights on Park Avenue, Block C, have been non-functional for the past seven days, increasing security risks at night.",
-      "location_id": 2,
-      "category_id": 3,
-      "user_id": 5,
-      "media_urls": [
+      "locationId": 2,
+      "categoryId": 3,
+      "userId": 5,
+      "mediaUrls": [
         "https://plus.unsplash.com/premium_photo-1663036928694-d218b69cc123?q=80&w=892&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Illegal Tree Cutting in Aarey Colony",
       "description": "Witnessed illegal felling of several trees near Versova Beach Road. Please investigate and take action.",
-      "location_id": 12,
-      "category_id": 4,
-      "user_id": 6,
-      "media_urls": [
+      "locationId": 12,
+      "categoryId": 4,
+      "userId": 6,
+      "mediaUrls": [
         "https://plus.unsplash.com/premium_photo-1661963600977-5fc312f6a60e?q=80&w=1300&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Blocked Storm Drains causing Waterlogging",
       "description": "Heavy rains last night caused severe waterlogging due to blocked storm drains near the station entrance.",
-      "location_id": 3,
-      "category_id": 5,
-      "user_id": 7,
-      "media_urls": [
+      "locationId": 3,
+      "categoryId": 5,
+      "userId": 7,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1600336153113-d66c79de3e91?q=80&w=435&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Broken Footpath on Sarjapur Road",
       "description": "The footpath outside the tech park is completely broken, forcing pedestrians to walk on the main road.",
-      "location_id": 13,
-      "category_id": 1,
-      "user_id": 8,
-      "media_urls": [
+      "locationId": 13,
+      "categoryId": 1,
+      "userId": 8,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1601026909629-bad5e1122bc6?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1. 0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         "https://images.unsplash.com/photo-1587763483696-6d41d2de6084?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
@@ -847,262 +847,262 @@
     {
       "title": "Irregular Waste Collection in Tollygunge",
       "description": "Waste collection hasn't happened in three days, and bins are overflowing onto the street.",
-      "location_id": 14,
-      "category_id": 2,
-      "user_id": 9,
-      "media_urls": []
+      "locationId": 14,
+      "categoryId": 2,
+      "userId": 9,
+      "mediaUrls": []
     },
     {
       "title": "Vandalism and Graffiti at Local Park",
       "description": "The children's play area in the local park has been heavily vandalized with graffiti.",
-      "location_id": 22,
-      "category_id": 3,
-      "user_id": 10,
-      "media_urls": [
+      "locationId": 22,
+      "categoryId": 3,
+      "userId": 10,
+      "mediaUrls": [
         "https://plus.unsplash.com/premium_photo-1693000474956-1a5d8a85befc?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Air Pollution from Construction Site",
       "description": "A nearby construction site is operating without proper dust control measures, causing high air pollution.",
-      "location_id": 7,
-      "category_id": 4,
-      "user_id": 11,
-      "media_urls": [
+      "locationId": 7,
+      "categoryId": 4,
+      "userId": 11,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1607432750402-48f85c94f63a?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Low Water Pressure in Gachibowli",
       "description": "Water pressure has been consistently low in the mornings and evenings for the past month.",
-      "location_id": 8,
-      "category_id": 5,
-      "user_id": 12,
-      "media_urls": []
+      "locationId": 8,
+      "categoryId": 5,
+      "userId": 12,
+      "mediaUrls": []
     },
     {
       "title": "Damaged Road near Mylapore Temple",
       "description": "A large section of the road near the temple is severely damaged and needs immediate resurfacing.",
-      "location_id": 9,
-      "category_id": 1,
-      "user_id": 13,
-      "media_urls": [
+      "locationId": 9,
+      "categoryId": 1,
+      "userId": 13,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Uncollected Commercial Waste in Magarpatta",
       "description": "Commercial waste is piling up on the roadside near the main gate of Magarpatta City.",
-      "location_id": 10,
-      "category_id": 2,
-      "user_id": 14,
-      "media_urls": []
+      "locationId": 10,
+      "categoryId": 2,
+      "userId": 14,
+      "mediaUrls": []
     },
     {
       "title": "Missing Manhole Cover near Lutyens' Delhi",
       "description": "A manhole cover is missing, creating a major hazard for pedestrians and vehicles.",
-      "location_id": 11,
-      "category_id": 3,
-      "user_id": 15,
-      "media_urls": [
+      "locationId": 11,
+      "categoryId": 3,
+      "userId": 15,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1624662153875-0f303ddd5456?q=80&w=1258&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Dry Lake Bed in Greater Noida West",
       "description": "The local lake has completely dried up, severely impacting the ecosystem.",
-      "location_id": 15,
-      "category_id": 4,
-      "user_id": 16,
-      "media_urls": [
+      "locationId": 15,
+      "categoryId": 4,
+      "userId": 16,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1693563920446-3e77e164827c?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Sewage Overflow on Banjara Hills Road",
       "description": "Sewage water is overflowing onto the street from a damaged pipeline.",
-      "location_id": 16,
-      "category_id": 5,
-      "user_id": 17,
-      "media_urls": [
+      "locationId": 16,
+      "categoryId": 5,
+      "userId": 17,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1534862262637-373c120dcbcc?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Poor Quality Repair Work on Anna Nagar Road",
       "description": "The recently repaired patch of road is already cracking and eroding.",
-      "location_id": 17,
-      "category_id": 1,
-      "user_id": 18,
-      "media_urls": [
+      "locationId": 17,
+      "categoryId": 1,
+      "userId": 18,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Open Defecation near Viman Nagar Slums",
       "description": "Open defecation is still happening in the open area near the slums, posing a serious health threat.",
-      "location_id": 18,
-      "category_id": 2,
-      "user_id": 19,
-      "media_urls": []
+      "locationId": 18,
+      "categoryId": 2,
+      "userId": 19,
+      "mediaUrls": []
     },
     {
       "title": "Excessive Noise Pollution at DLF Phase 3",
       "description": "Construction work is happening late at night, causing excessive noise pollution and disturbing residents.",
-      "location_id": 19,
-      "category_id": 3,
-      "user_id": 20,
-      "media_urls": [
+      "locationId": 19,
+      "categoryId": 3,
+      "userId": 20,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1624662153875-0f303ddd5456?q=80&w=1258&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Lack of Green Cover in Hauz Khas Village",
       "description": "Many planted saplings have died due to lack of maintenance and watering.",
-      "location_id": 20,
-      "category_id": 4,
-      "user_id": 3,
-      "media_urls": []
+      "locationId": 20,
+      "categoryId": 4,
+      "userId": 3,
+      "mediaUrls": []
     },
     {
       "title": "Leaking Water Main at BKC Intersection",
       "description": "A major water main has been leaking heavily for over 48 hours, wasting a lot of water.",
-      "location_id": 21,
-      "category_id": 5,
-      "user_id": 4,
-      "media_urls": [
+      "locationId": 21,
+      "categoryId": 5,
+      "userId": 4,
+      "mediaUrls": [
         "https://plus.unsplash.com/premium_photo-1698183571181-6c351868f447?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Road Crumbling near Koramangala Park",
       "description": "A significant portion of the road near the park is collapsing, making it dangerous for heavy vehicles.",
-      "location_id": 22,
-      "category_id": 1,
-      "user_id": 5,
-      "media_urls": [
+      "locationId": 22,
+      "categoryId": 1,
+      "userId": 5,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Market Waste Dumping in Gariahat Road",
       "description": "Vendors are routinely dumping vegetable and fruit waste directly onto the street after market hours.",
-      "location_id": 23,
-      "category_id": 2,
-      "user_id": 6,
-      "media_urls": [
+      "locationId": 23,
+      "categoryId": 2,
+      "userId": 6,
+      "mediaUrls": [
         "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Chain Snatching Incident Reported in Sector 18",
       "description": "Reported a rise in chain snatching incidents near the crowded Atta Market area.",
-      "location_id": 24,
-      "category_id": 3,
-      "user_id": 7,
-      "media_urls": []
+      "locationId": 24,
+      "categoryId": 3,
+      "userId": 7,
+      "mediaUrls": []
     },
     {
       "title": "Smog and Air Quality Deterioration in Jubilee Hills",
       "description": "Air quality has visibly deteriorated, with thick smog covering the area every morning.",
-      "location_id": 25,
-      "category_id": 4,
-      "user_id": 8,
-      "media_urls": [
+      "locationId": 25,
+      "categoryId": 4,
+      "userId": 8,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1747224317423-c4d8bd95b04e?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Dirty Drinking Water Supply in T Nagar",
       "description": "The tap water has been cloudy and often contains sediment. Afraid to drink or cook with it.",
-      "location_id": 26,
-      "category_id": 5,
-      "user_id": 9,
-      "media_urls": [
+      "locationId": 26,
+      "categoryId": 5,
+      "userId": 9,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1703221924332-209896a38be1?q=80&w=435&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Damaged Flyover Expansion Joint in Kothrud",
       "description": "A large gap has appeared in a flyover expansion joint, posing a structural and safety risk.",
-      "location_id": 27,
-      "category_id": 1,
-      "user_id": 10,
-      "media_urls": [
+      "locationId": 27,
+      "categoryId": 1,
+      "userId": 10,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Industrial Effluent Dumping near Sohna Road",
       "description": "An illegal pipeline is dumping chemical-smelling industrial effluent into a nearby drain.",
-      "location_id": 28,
-      "category_id": 2,
-      "user_id": 11,
-      "media_urls": [
+      "locationId": 28,
+      "categoryId": 2,
+      "userId": 11,
+      "mediaUrls": [
         "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Unruly Auto-rickshaw Drivers in Lajpat Nagar",
       "description": "Auto drivers are consistently overcharging and refusing short-distance fares.",
-      "location_id": 29,
-      "category_id": 3,
-      "user_id": 12,
-      "media_urls": []
+      "locationId": 29,
+      "categoryId": 3,
+      "userId": 12,
+      "mediaUrls": []
     },
     {
       "title": "Park Trees Dying from Pest Infestation",
       "description": "Several mature trees in the local park are visibly infected with a pest and are rapidly dying.",
-      "location_id": 30,
-      "category_id": 4,
-      "user_id": 13,
-      "media_urls": [
+      "locationId": 30,
+      "categoryId": 4,
+      "userId": 13,
+      "mediaUrls": [
         "https://plus.unsplash.com/premium_photo-1764166601214-ec907468697a?q=80&w=404&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Broken Water Pipe Flooding Juhu Road",
       "description": "A major water pipe burst and is now flooding the entire road, making it impassable.",
-      "location_id": 30,
-      "category_id": 5,
-      "user_id": 14,
-      "media_urls": [
+      "locationId": 30,
+      "categoryId": 5,
+      "userId": 14,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1637433926928-de69093ea8e0?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Missing Guardrail on Elevated Road",
       "description": "A section of the guardrail on the elevated road in Electronic City is missing after an accident.",
-      "location_id": 31,
-      "category_id": 1,
-      "user_id": 15,
-      "media_urls": []
+      "locationId": 31,
+      "categoryId": 1,
+      "userId": 15,
+      "mediaUrls": []
     },
     {
       "title": "Medical Waste Found near Salt Lake Sector V",
       "description": "Used syringes and medical waste were found illegally dumped in a public area.",
-      "location_id": 32,
-      "category_id": 2,
-      "user_id": 16,
-      "media_urls": [
+      "locationId": 32,
+      "categoryId": 2,
+      "userId": 16,
+      "mediaUrls": [
         "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Lack of Police Patrols in Knowledge Park",
       "description": "The area feels unsafe after dark due to a visible lack of police patrolling.",
-      "location_id": 33,
-      "category_id": 3,
-      "user_id": 17,
-      "media_urls": []
+      "locationId": 33,
+      "categoryId": 3,
+      "userId": 17,
+      "mediaUrls": []
     },
     {
       "title": "Pollution of Musi River Tributary",
       "description": "The tributary passing through Himayat Nagar is heavily polluted with trash and chemical runoff.",
-      "location_id": 34,
-      "category_id": 4,
-      "user_id": 18,
-      "media_urls": [
+      "locationId": 34,
+      "categoryId": 4,
+      "userId": 18,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1623271531577-645d595d8459?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         "https://images.unsplash.com/photo-1612510158990-a675aa31b009?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
@@ -1110,36 +1110,36 @@
     {
       "title": "Inconsistent Water Supply in Nungambakkam",
       "description": "Water supply is erratic, often cutting off without warning for several hours a day.",
-      "location_id": 35,
-      "category_id": 5,
-      "user_id": 19,
-      "media_urls": []
+      "locationId": 35,
+      "categoryId": 5,
+      "userId": 19,
+      "mediaUrls": []
     },
     {
       "title": "Cracked Bridge Surface on Rahatani Road",
       "description": "The surface of the small bridge on Rahatani Road has large cracks that are widening.",
-      "location_id": 36,
-      "category_id": 1,
-      "user_id": 20,
-      "media_urls": [
+      "locationId": 36,
+      "categoryId": 1,
+      "userId": 20,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Stray Dog Menace in Udyog Vihar",
       "description": "A large pack of stray dogs is harassing people and posing a risk to children and two-wheelers.",
-      "location_id": 37,
-      "category_id": 3,
-      "user_id": 3,
-      "media_urls": []
+      "locationId": 37,
+      "categoryId": 3,
+      "userId": 3,
+      "mediaUrls": []
     },
     {
       "title": "Historic Building Facade Crumbling in Chandni Chowk",
       "description": "The facade of a very old, historic building is visibly crumbling and pieces are falling onto the street.",
-      "location_id": 38,
-      "category_id": 1,
-      "user_id": 4,
-      "media_urls": [
+      "locationId": 38,
+      "categoryId": 1,
+      "userId": 4,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1601026909629-bad5e1122bc6?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1. 0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         "https://images.unsplash.com/photo-1587763483696-6d41d2de6084?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
@@ -1147,214 +1147,214 @@
     {
       "title": "Water Taps Left Running at Public Standpost",
       "description": "The public water standpost has damaged taps that constantly run, wasting water.",
-      "location_id": 39,
-      "category_id": 5,
-      "user_id": 5,
-      "media_urls": [
+      "locationId": 39,
+      "categoryId": 5,
+      "userId": 5,
+      "mediaUrls": [
         "https://plus.unsplash.com/premium_photo-1676231363860-b6ad0de309af?q=80&w=435&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Overgrown Weeds and Shrubs in Jayanagar Park",
       "description": "The local park is severely overgrown, making paths unusable and becoming a snake habitat.",
-      "location_id": 40,
-      "category_id": 4,
-      "user_id": 6,
-      "media_urls": []
+      "locationId": 40,
+      "categoryId": 4,
+      "userId": 6,
+      "mediaUrls": []
     },
     {
       "title": "Broken Street Sign near Howrah Bridge",
       "description": "A major street sign has been knocked over and is lying in the middle of the pavement.",
-      "location_id": 41,
-      "category_id": 1,
-      "user_id": 7,
-      "media_urls": [
+      "locationId": 41,
+      "categoryId": 1,
+      "userId": 7,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782205-4dd83ceb0270?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Unsafe Electricity Box near Pari Chowk",
       "description": "An open and sparking electricity distribution box is located at a busy public crossing.",
-      "location_id": 42,
-      "category_id": 3,
-      "user_id": 8,
-      "media_urls": [
+      "locationId": 42,
+      "categoryId": 3,
+      "userId": 8,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1603164814730-9c966910e83a?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Plastic Waste Clogging Kukatpally Canals",
       "description": "The water canals in the area are completely clogged with plastic bottles and bags.",
-      "location_id": 43,
-      "category_id": 2,
-      "user_id": 9,
-      "media_urls": []
+      "locationId": 43,
+      "categoryId": 2,
+      "userId": 9,
+      "mediaUrls": []
     },
     {
       "title": "Bumpy and Uneven Road Surface in Adyar",
       "description": "The road surface is extremely bumpy and uneven, causing discomfort and slow movement.",
-      "location_id": 44,
-      "category_id": 1,
-      "user_id": 10,
-      "media_urls": []
+      "locationId": 44,
+      "categoryId": 1,
+      "userId": 10,
+      "mediaUrls": []
     },
     {
       "title": "Severe Water Scarcity in Hinjewadi Phase 3",
       "description": "The area is experiencing a severe water shortage with supply only for 2 hours every other day.",
-      "location_id": 45,
-      "category_id": 5,
-      "user_id": 11,
-      "media_urls": []
+      "locationId": 45,
+      "categoryId": 5,
+      "userId": 11,
+      "mediaUrls": []
     },
     {
       "title": "Abandoned Vehicles on Sector 56 Streets",
       "description": "Multiple old, abandoned cars are left on the streets, taking up valuable parking space and becoming junk.",
-      "location_id": 46,
-      "category_id": 3,
-      "user_id": 12,
-      "media_urls": [
+      "locationId": 46,
+      "categoryId": 3,
+      "userId": 12,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1702603135052-1f7c6ff866ec?q=80&w=1033&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Damaged Road Median near Dwarka Ramphal Chowk",
       "description": "A large portion of the road median is broken, allowing dangerous U-turns and causing accidents.",
-      "location_id": 47,
-      "category_id": 1,
-      "user_id": 13,
-      "media_urls": [
+      "locationId": 47,
+      "categoryId": 1,
+      "userId": 13,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Potholes and Muddy Roads in Andheri East",
       "description": "The roads in the MIDC area are full of deep potholes and become a muddy mess during rains.",
-      "location_id": 48,
-      "category_id": 1,
-      "user_id": 14,
-      "media_urls": [
+      "locationId": 48,
+      "categoryId": 1,
+      "userId": 14,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Illegal Dumping of Construction Debris in Yelahanka",
       "description": "Construction companies are illegally dumping debris in the outskirts of Yelahanka New Town.",
-      "location_id": 49,
-      "category_id": 2,
-      "user_id": 15,
-      "media_urls": [
+      "locationId": 49,
+      "categoryId": 2,
+      "userId": 15,
+      "mediaUrls": [
         "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Pollution of Tolly Nullah (Canal) near New Alipore",
       "description": "The canal running through the area is visibly black and smells strongly of sewage and chemicals.",
-      "location_id": 50,
-      "category_id": 4,
-      "user_id": 16,
-      "media_urls": [
+      "locationId": 50,
+      "categoryId": 4,
+      "userId": 16,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1605027538720-37afa8b9fc39?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Unlit Sections of Yamuna Expressway",
       "description": "Several long stretches of the Yamuna Expressway lack working streetlights, making night driving very hazardous.",
-      "location_id": 51,
-      "category_id": 3,
-      "user_id": 17,
-      "media_urls": []
+      "locationId": 51,
+      "categoryId": 3,
+      "userId": 17,
+      "mediaUrls": []
     },
     {
       "title": "Overflowing Public Bins in HITEC City",
       "description": "The public garbage bins near the office buildings are constantly overflowing, attracting pests.",
-      "location_id": 52,
-      "category_id": 2,
-      "user_id": 18,
-      "media_urls": [
+      "locationId": 52,
+      "categoryId": 2,
+      "userId": 18,
+      "mediaUrls": [
         "https://images.unsplash.com/flagged/photo-1572213426852-0e4ed8f41ff6?q=80&w=874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Leaking Public Water Tank in Velachery",
       "description": "The overhead water storage tank near the main road has a major leak, wasting water and damaging the street below.",
-      "location_id": 53,
-      "category_id": 5,
-      "user_id": 19,
-      "media_urls": [
+      "locationId": 53,
+      "categoryId": 5,
+      "userId": 19,
+      "mediaUrls": [
         "https://plus.unsplash.com/premium_photo-1676231363860-b6ad0de309af?q=80&w=435&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Encroachment of Footpaths by Vendors in Baner",
       "description": "Footpaths are completely taken over by street vendors, forcing pedestrians onto the main road.",
-      "location_id": 54,
-      "category_id": 3,
-      "user_id": 20,
-      "media_urls": [
+      "locationId": 54,
+      "categoryId": 3,
+      "userId": 20,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1611854064186-d8dccbccb031?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Unmaintained Green Median on Golf Course Road",
       "description": "The green median strip is full of dry weeds and construction debris, not maintained as a green space.",
-      "location_id": 55,
-      "category_id": 4,
-      "user_id": 3,
-      "media_urls": []
+      "locationId": 55,
+      "categoryId": 4,
+      "userId": 3,
+      "mediaUrls": []
     },
     {
       "title": "Badly Designed Speed Breakers in Connaught Place",
       "description": "The speed breakers on Radial Road 6 are too sharp and unmarked, causing vehicle damage and accidents.",
-      "location_id": 56,
-      "category_id": 1,
-      "user_id": 4,
-      "media_urls": [
+      "locationId": 56,
+      "categoryId": 1,
+      "userId": 4,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Sewage Backup in Gurugram Sector 15",
       "description": "The main sewer line has backed up, causing sewage to flow into basements and onto the street.",
-      "location_id": 1,
-      "category_id": 5,
-      "user_id": 5,
-      "media_urls": []
+      "locationId": 1,
+      "categoryId": 5,
+      "userId": 5,
+      "mediaUrls": []
     },
     {
       "title": "Broken Sidewalk and Tripping Hazard",
       "description": "A large section of the sidewalk near the City Mall is uneven and cracked, posing a tripping hazard.",
-      "location_id": 3,
-      "category_id": 1,
-      "user_id": 6,
-      "media_urls": [
+      "locationId": 3,
+      "categoryId": 1,
+      "userId": 6,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Frequent Power Outages in Kaggadasapura",
       "description": "The locality is experiencing 4-5 power outages daily, disrupting work and daily life.",
-      "location_id": 4,
-      "category_id": 3,
-      "user_id": 7,
-      "media_urls": []
+      "locationId": 4,
+      "categoryId": 3,
+      "userId": 7,
+      "mediaUrls": []
     },
     {
       "title": "Potholes and Flooding on Indira Nagar Bypass",
       "description": "The bypass road is heavily damaged and floods severely even during light rain.",
-      "location_id": 5,
-      "category_id": 1,
-      "user_id": 8,
-      "media_urls": [
+      "locationId": 5,
+      "categoryId": 1,
+      "userId": 8,
+      "mediaUrls": [
         "https://images.unsplash.com/photo-1560782202-154b39d57ef2?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       ]
     },
     {
       "title": "Stray Cattle Nuisance in Lal Bazaar Street",
       "description": "Stray cattle roam freely, causing traffic disruption and leaving dung on the road.",
-      "location_id": 6,
-      "category_id": 3,
-      "user_id": 9,
-      "media_urls": []
+      "locationId": 6,
+      "categoryId": 3,
+      "userId": 9,
+      "mediaUrls": []
     }
   ],
   "comments": [

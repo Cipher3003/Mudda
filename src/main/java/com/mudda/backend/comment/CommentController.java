@@ -1,5 +1,6 @@
 package com.mudda.backend.comment;
 
+import com.mudda.backend.comment.dto.*;
 import com.mudda.backend.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -30,8 +31,8 @@ public class CommentController {
     public ResponseEntity<Page<CommentDetailResponse>> getCommentsByIssue(
             @PathVariable long issueId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
+            @RequestParam(defaultValue = "20") int size
+    ) {
         Pageable pageable = PageRequest.of(page, size);
         Long userId = SecurityUtil.getUserIdOrNull();
 
@@ -55,8 +56,8 @@ public class CommentController {
     public ResponseEntity<Page<ReplyResponse>> getAllRepliesByComment(
             @PathVariable long commentId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
+            @RequestParam(defaultValue = "20") int size
+    ) {
         Pageable pageable = PageRequest.of(page, size);
         Long userId = SecurityUtil.getUserIdOrNull();
 
@@ -72,8 +73,10 @@ public class CommentController {
 
     @Operation(description = "Creates comments under an issue")
     @PostMapping("/issues/{issueId}/comments")
-    public ResponseEntity<CommentResponse> createComment(@PathVariable long issueId,
-                                                         @Valid @RequestBody CreateCommentRequest request) {
+    public ResponseEntity<CommentResponse> createComment(
+            @PathVariable long issueId,
+            @Valid @RequestBody CreateCommentRequest request
+    ) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
         log.debug("Creating comment for issue with id {} and request {}", issueId, request);
@@ -83,8 +86,10 @@ public class CommentController {
 
     @Operation(description = "Creates replies under a comment")
     @PostMapping("/comments/{commentId}/replies")
-    public ResponseEntity<CommentResponse> createReply(@PathVariable long commentId,
-                                                       @Valid @RequestBody CreateCommentRequest request) {
+    public ResponseEntity<CommentResponse> createReply(
+            @PathVariable long commentId,
+            @Valid @RequestBody CreateCommentRequest request
+    ) {
         Long userId = SecurityUtil.getUserIdOrNull();
 
         log.debug("Creating reply for comment with id {} and request {}", commentId, request);
@@ -92,10 +97,12 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createReply(commentId, userId, request));
     }
 
-    @Operation(description = "Updates both comments and replies by their commentId")
+    @Operation(description = "Updates both comments and replies by their id")
     @PutMapping("/comments/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(@PathVariable long commentId,
-                                                         @Valid @NotBlank @RequestBody String text) {
+    public ResponseEntity<CommentResponse> updateComment(
+            @PathVariable long commentId,
+            @Valid @NotBlank @RequestBody String text
+    ) {
         log.debug("Updating comment with id {} and text {}", commentId, text);
         return ResponseEntity.ok(commentService.updateComment(commentId, text));
     }
@@ -109,7 +116,7 @@ public class CommentController {
         return ResponseEntity.ok(commentService.likeComment(commentId, userId));
     }
 
-    @Operation(description = "Deletes both comments and replies by their commentId")
+    @Operation(description = "Deletes both comments and replies by their id")
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> delete(@PathVariable long commentId) {
         log.debug("Deleting comment with id {}", commentId);

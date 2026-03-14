@@ -8,6 +8,8 @@
  */
 package com.mudda.backend.auth;
 
+import com.mudda.backend.auth.dto.AuthRequest;
+import com.mudda.backend.auth.dto.AuthResult;
 import com.mudda.backend.exceptions.InvalidRefreshTokenException;
 import com.mudda.backend.jwt.JwtService;
 import com.mudda.backend.token.refresh.RefreshToken;

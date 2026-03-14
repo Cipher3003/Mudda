@@ -10,7 +10,7 @@ package com.mudda.backend.account;
 
 import com.mudda.backend.issue.IssueService;
 import com.mudda.backend.issue.IssueSortBy;
-import com.mudda.backend.issue.IssueSummaryResponse;
+import com.mudda.backend.issue.dto.IssueSummaryResponse;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserService;
 import lombok.extern.slf4j.Slf4j;

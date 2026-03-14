@@ -11,6 +11,7 @@ package com.mudda.backend.exceptions;
 import lombok.Getter;
 
 @Getter
+//TODO: rename to ApiException and add HttpStatus
 public abstract class LocalizedException extends RuntimeException {
 
     private final String errorMessageCode;
