@@ -35,6 +35,7 @@ public class FastSeedService {
     }
 
     @Transactional
+    // TODO: generate users in batch with consecutive IDs, currently it skips 50 for batching
     public List<String[]> seedUsers(int count) {
         String query = """
                  INSERT INTO users (

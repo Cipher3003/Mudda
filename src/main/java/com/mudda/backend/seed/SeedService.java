@@ -156,7 +156,7 @@ public class SeedService {
         log.info("Seeding database with request");
         // --- Data stores to simulate database primary keys for relationships ---
         List<String> feedback = new ArrayList<>();
-        List<Long> userIds = LongStream.rangeClosed(0, 10_000).boxed().toList();
+        List<Long> userIds = new ArrayList<>();
         List<Long> locationIds = new ArrayList<>();
         List<Long> categoryIds = new ArrayList<>();
         List<Long> issueIds = new ArrayList<>();
@@ -172,6 +172,8 @@ public class SeedService {
         // TODO: better seeding for relationship
         // if (generationMap.containsKey(Entity.User))
         // generateUsers(generationMap.get(Entity.User), userIds, feedback);
+        if (generationMap.containsKey(Entity.User))
+            userIds.addAll(LongStream.rangeClosed(0, generationMap.get(Entity.User)).boxed().toList());
 
         if (generationMap.containsKey(Entity.Location))
             generateLocations(generationMap.get(Entity.Location), locationIds, feedback);
@@ -344,7 +346,7 @@ public class SeedService {
     }
 
     private void generateIssues(int count, List<Long> issueIds, List<Long> userIds,
-            List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
+                                List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
         if (userIds.isEmpty() || locationIds.isEmpty() || categoryIds.isEmpty()) {
             feedback.add("Cannot generate issues: Missing Users, Locations, or Categories. " +
                     "Add users, locations, categories in request.");
@@ -378,7 +380,7 @@ public class SeedService {
     }
 
     private void generateComments(int count, List<Long> parentCommentIds, List<Long> issueIds,
-            List<Long> userIds, List<String> feedback) {
+                                  List<Long> userIds, List<String> feedback) {
         if (issueIds.isEmpty() || userIds.isEmpty()) {
             feedback.add("Cannot generate comments: Missing Issues or Users. Add issues, users in request");
             return;
@@ -401,7 +403,7 @@ public class SeedService {
     }
 
     private void generateReplies(int count, List<Long> parentCommentIds, List<Long> issueIds,
-            List<Long> userIds, List<String> feedback) {
+                                 List<Long> userIds, List<String> feedback) {
         if (parentCommentIds.isEmpty() || userIds.isEmpty() || issueIds.isEmpty()) {
             feedback.add("Cannot generate replies: Missing parent Comments, Users, or Issues. " +
                     "Add comments, users, issues in request");
