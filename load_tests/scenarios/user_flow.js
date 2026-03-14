@@ -40,9 +40,9 @@ export default function () {
     const issuePayload = JSON.stringify({
         title: `Vulnerability Report ${Date.now()}_${__VU}`,
         description: 'Detailed description for load testing purpose.',
-        location_id: 1, // Fallback ID, should ideally be dynamic
-        category_id: 1,
-        media_urls: [],
+        locationId: 1, // Fallback ID, should ideally be dynamic
+        categoryId: 1,
+        mediaUrls: [],
     });
 
     const createIssueRes = http.post(`${BASE_URL}/api/v1/issues`, issuePayload, headers);
@@ -65,7 +65,7 @@ export default function () {
         });
 
         if (commentRes.status === 201) {
-            const commentId = commentRes.json().comment_id;
+            const commentId = commentRes.json().id;
 
             // 5. Comment: Like the comment
             const likeRes = http.post(`${BASE_URL}/api/v1/comments/${commentId}/like`, null, headers);
