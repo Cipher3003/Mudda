@@ -21,11 +21,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/account")
+@RequestMapping("/api/v1/account/me")
 public class AccountController {
 
     private final AccountService accountService;
@@ -41,41 +42,35 @@ public class AccountController {
     // ----------- PUBLIC READ -----------------
     // region Queries (Read Operations)
 
-    @GetMapping("/me")
-    public ResponseEntity<AccountInfo> getCurrentUser(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated())
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-        MuddaUser currentUser = (MuddaUser) authentication.getPrincipal();
+    @GetMapping
+    public ResponseEntity<AccountInfo> getCurrentUser(@AuthenticationPrincipal MuddaUser principal) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         return ResponseEntity.ok(new AccountInfo(
-                currentUser.getUserId(), currentUser.getUsername(), currentUser.getName(),
-                currentUser.getEmail(), currentUser.getPhoneNumber(), currentUser.getProfileImageUrl(),
-                currentUser.getRole(), currentUser.getCreatedAt()
+                principal.getUserId(), principal.getUsername(), principal.getName(),
+                principal.getEmail(), principal.getPhoneNumber(), principal.getProfileImageUrl(),
+                principal.getRole(), principal.getCreatedAt()
         ));
 //        TODO: modify it store user quick info in authentication maybe to avoid database usage in JWT
 //        TODO: sync logged in user info with DB changes in session
 
     }
 
-    @GetMapping("/me/issues")
+    @GetMapping("/issues")
     public ResponseEntity<Page<IssueSummaryResponse>> getUserIssues(
-            Authentication authentication,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sortBy", defaultValue = "CREATED_AT") IssueSortBy sort,
-            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction,
+            @AuthenticationPrincipal MuddaUser principal
     ) {
-        if (authentication == null || !authentication.isAuthenticated())
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        MuddaUser currentUser = (MuddaUser) authentication.getPrincipal();
-
-        Pageable pageable = PageRequest.of(page, size, direction.equalsIgnoreCase("desc")
+        Pageable pageable = PageRequest.of(page, size, "desc".equalsIgnoreCase(direction)
                 ? Sort.by(sort.getFieldName()).descending()
                 : Sort.by(sort.getFieldName()).ascending());
 
-        return ResponseEntity.ok(issueService.findAllIssuesByAuthor(pageable, currentUser.getUserId()));
+        return ResponseEntity.ok(issueService.findAllIssuesByAuthor(pageable, principal.getUserId()));
     }
 
     // endregion
@@ -83,16 +78,14 @@ public class AccountController {
     // ----------- AUTH COMMANDS -----------------
     // region Commands (Write Operations)
 
-    @PatchMapping("/me/profileImage")
-//    TODO: use @AuthenticationPrincipl instead of Authentication to get user directly
-    public ResponseEntity<Void> updateProfileImage(Authentication authentication,
-                                                   @RequestBody UpdateAccountRequest updateRequest) {
-        if (authentication == null || !authentication.isAuthenticated())
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    @PatchMapping("/profileImage")
+    public ResponseEntity<Void> updateProfileImage(
+            @RequestBody UpdateAccountRequest updateRequest,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        MuddaUser currentUser = (MuddaUser) authentication.getPrincipal();
-
-        userService.updateProfileImage(currentUser.getUserId(), updateRequest.imageKey());
+        userService.updateProfileImage(principal.getUserId(), updateRequest.imageKey());
 
         return ResponseEntity.noContent().build();
     }
@@ -100,11 +93,12 @@ public class AccountController {
     //    TODO: add update password endpoint
 
     @DeleteMapping
-    public ResponseEntity<Void> deleteAccount(Authentication authentication) {
-        log.trace("Received request to delete account {}", authentication.getName());
-        Long userId = ((MuddaUser) authentication.getPrincipal()).getUserId();
+    public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal MuddaUser principal) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        accountService.deleteAccount(userId);
+        log.trace("Received request to delete account {}", principal.getName());
+
+        accountService.deleteAccount(principal.getUserId());
 
         return ResponseEntity.noContent().build();
     }

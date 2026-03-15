@@ -1,7 +1,7 @@
 package com.mudda.backend.issue.dto;
 
+import com.mudda.backend.issue.IssueCategory;
 import com.mudda.backend.issue.IssueStatus;
-import com.mudda.backend.location.dto.LocationResponse;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,8 +11,7 @@ public record IssueDashboardResponse(
         String title,
         String description,
         IssueStatus status,
-        LocationResponse location,
-        String category,
+        IssueCategory category,
         Long voteCount,
         List<String> mediaUrls,
         double severityScore,
@@ -21,6 +20,11 @@ public record IssueDashboardResponse(
         // Author
         Long userId,
         String userName,
-        String profileImageUrl) {
-
+        String profileImageUrl,
+        // location
+        String pinCode,
+        String city,
+        String state,
+        CoordinateDTO coordinate
+) {
 }

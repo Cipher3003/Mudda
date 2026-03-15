@@ -1,25 +1,31 @@
 package com.mudda.backend.issue;
 
 import com.mudda.backend.issue.dto.*;
-import com.mudda.backend.location.dto.LocationDTO;
-import com.mudda.backend.location.dto.LocationResponse;
+import com.mudda.backend.issue.dto.CoordinateDTO;
 import com.mudda.backend.user.MuddaUser;
+import org.locationtech.jts.geom.Coordinate;
 
 public class IssueMapper {
 
     public static Issue toIssue(long userId, CreateIssueRequest issueRequest) {
+        Coordinate coordinate = new Coordinate(issueRequest.coordinate().x(), issueRequest.coordinate().y());
+
         return new Issue(
                 issueRequest.title(),
                 issueRequest.description(),
                 userId,
-                issueRequest.locationId(),
-                issueRequest.categoryId(),
-                issueRequest.mediaUrls());
+                IssueCategory.valueOf(issueRequest.category()),
+                issueRequest.mediaUrls(),
+                issueRequest.pinCode(),
+                issueRequest.city(),
+                issueRequest.state(),
+                PointFactory.createPoint(coordinate)
+        );
     }
 
     public static IssueResponse toResponse(
-            Issue issue, MuddaUser muddaUser, LocationDTO locationSummary,
-            String category, long voteCount, boolean hasLiked,
+            Issue issue, MuddaUser muddaUser,
+            boolean hasLiked,
             boolean canVote, boolean canComment,
             boolean canEdit, boolean canDelete
     ) {
@@ -29,9 +35,8 @@ public class IssueMapper {
                 issue.getTitle(),
                 issue.getDescription(),
                 issue.getStatus(),
-                locationSummary,
-                category,
-                voteCount,
+                issue.getCategory(),
+                issue.getVoteCount(),
                 issue.getMediaUrls(),
                 issue.getSeverityScore(),
                 issue.getCreatedAt(),
@@ -40,6 +45,9 @@ public class IssueMapper {
                 muddaUser.getUserId(),
                 muddaUser.getUsername(),
                 muddaUser.getProfileImageUrl(),
+                issue.getCity(),
+                issue.getState(),
+                CoordinateDTO.from(issue.getCoordinate()),
                 // Flags
                 hasLiked,
                 canVote,
@@ -49,7 +57,7 @@ public class IssueMapper {
         );
     }
 
-    public static IssueUpdateResponse toResponse(Issue issue) {
+    public static IssueUpdateResponse toUpdateResponse(Issue issue) {
         return new IssueUpdateResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -58,14 +66,14 @@ public class IssueMapper {
     }
 
     public static IssueSummaryResponse toSummary(
-            Issue issue, MuddaUser muddaUser, long voteCount,
+            Issue issue, MuddaUser muddaUser,
             boolean hasVoted, boolean canVote
     ) {
         return new IssueSummaryResponse(
                 issue.getId(),
                 issue.getTitle(),
                 issue.getStatus(),
-                voteCount,
+                issue.getVoteCount(),
                 issue.getMediaUrls(),
                 issue.getCreatedAt(),
                 // Author details
@@ -78,15 +86,25 @@ public class IssueMapper {
         );
     }
 
-    public static IssueDashboardResponse forDashboard(
-            Issue issue, MuddaUser muddaUser, long voteCount,
-            LocationResponse locationResponse, String category
-    ) {
+    public static IssueDashboardResponse forDashboard(Issue issue, MuddaUser muddaUser, long voteCount) {
         return new IssueDashboardResponse(
-                issue.getId(), issue.getTitle(), issue.getDescription(), issue.getStatus(),
-                locationResponse, category, voteCount, issue.getMediaUrls(), issue.getSeverityScore(),
-                issue.getCreatedAt(), issue.getUpdatedAt(), muddaUser.getUserId(), muddaUser.getUsername(),
-                muddaUser.getProfileImageUrl()
+                issue.getId(),
+                issue.getTitle(),
+                issue.getDescription(),
+                issue.getStatus(),
+                issue.getCategory(),
+                voteCount,
+                issue.getMediaUrls(),
+                issue.getSeverityScore(),
+                issue.getCreatedAt(),
+                issue.getUpdatedAt(),
+                muddaUser.getUserId(),
+                muddaUser.getUsername(),
+                muddaUser.getProfileImageUrl(),
+                issue.getPinCode(),
+                issue.getCity(),
+                issue.getState(),
+                CoordinateDTO.from(issue.getCoordinate())
         );
     }
 }

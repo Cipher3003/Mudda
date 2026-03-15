@@ -2,22 +2,18 @@ package com.mudda.backend.issue;
 
 import com.mudda.backend.AbstractIntegrationTest;
 import com.mudda.backend.TestDataFactory;
-import com.mudda.backend.category.Category;
-import com.mudda.backend.category.CategoryRepository;
-import com.mudda.backend.location.Location;
-import com.mudda.backend.location.LocationRepository;
-import com.mudda.backend.location.PointFactory;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserMapper;
 import com.mudda.backend.user.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.geom.Coordinate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,12 +37,6 @@ class IssueControllerTest extends AbstractIntegrationTest {
     @Autowired
     private IssueRepository issueRepository;
 
-    @Autowired
-    private LocationRepository locationRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private static final String USERNAME = "issue_test_user";
@@ -55,21 +45,14 @@ class IssueControllerTest extends AbstractIntegrationTest {
 
     private MuddaUser seedUser() {
         MuddaUser user = UserMapper.toUser(
-                TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD)));
+                TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD))
+        );
         user.setEnabled(true);
         return userRepository.save(user);
     }
 
     private Issue seedIssue(long userId) {
-        Location location = locationRepository.save(
-                new Location("Address", "122333", "City", "State",
-                        PointFactory.createPoint(new Coordinate(90.0, 90.0)))
-        );
-
-        Category category = categoryRepository.save(new Category("Category"));
-
-        return issueRepository.save(new Issue("Title", "Description", userId,
-                location.getLocationId(), category.getId(), null));
+        return issueRepository.save(IssueMapper.toIssue(userId, TestDataFactory.validIssueRequest()));
     }
 
     // region GET
@@ -158,18 +141,14 @@ class IssueControllerTest extends AbstractIntegrationTest {
     void create_authenticated_shouldReturn201WithIssueBody() throws Exception {
         seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
-        Long locationId = locationRepository.save(
-                new Location("Address", "122333", "City", "State",
-                        PointFactory.createPoint(new Coordinate(90.0, 90.0)))
-        ).getLocationId();
 
-        Long categoryId = categoryRepository.save(new Category("Category")).getId();
+        String payload = TestDataFactory.validIssueJson();
 
         mockMvc.perform(post("/api/v1/issues")
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestDataFactory.validIssueJson(locationId, categoryId)))
+                        .content(payload))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.title").value("Broken streetlight on main road"))
@@ -180,17 +159,13 @@ class IssueControllerTest extends AbstractIntegrationTest {
     @DisplayName("POST /api/v1/issues → 401 Unauthorized when no token provided")
     void create_unauthenticated_shouldReturn401() throws Exception {
         seedUser();
-        Long locationId = locationRepository.save(
-                new Location("Address", "122333", "City", "State",
-                        PointFactory.createPoint(new Coordinate(90.0, 90.0)))
-        ).getLocationId();
 
-        Long categoryId = categoryRepository.save(new Category("Category")).getId();
+        String payload = TestDataFactory.validIssueJson();
 
         mockMvc.perform(post("/api/v1/issues")
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestDataFactory.validIssueJson(locationId, categoryId)))
+                        .content(payload))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -199,22 +174,8 @@ class IssueControllerTest extends AbstractIntegrationTest {
     void create_withBlankTitle_shouldReturn400WithErrors() throws Exception {
         seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
-        Long locationId = locationRepository.save(
-                new Location("Address", "122333", "City", "State",
-                        PointFactory.createPoint(new Coordinate(90.0, 90.0)))
-        ).getLocationId();
 
-        Long categoryId = categoryRepository.save(new Category("Category")).getId();
-
-        String invalidPayload = String.format("""
-                {
-                  "title": "",
-                  "description": "Some description",
-                  "location_id": %d,
-                  "category_id": %d,
-                  "media_urls": []
-                }
-                """, locationId, categoryId);
+        String invalidPayload = TestDataFactory.issueRequestJson("", null);
 
         mockMvc.perform(post("/api/v1/issues")
                         .header("X-Client-Type", "mobile")
@@ -230,16 +191,8 @@ class IssueControllerTest extends AbstractIntegrationTest {
     void create_withMissingLocationId_shouldReturn400WithErrors() throws Exception {
         seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
-        Long categoryId = categoryRepository.save(new Category("Category")).getId();
 
-        String invalidPayload = String.format("""
-                {
-                  "title": "Valid Title",
-                  "description": "Valid description",
-                  "category_id": %d,
-                  "media_urls": []
-                }
-                """, categoryId);
+        String invalidPayload = TestDataFactory.issueRequestJson("", null);
 
         mockMvc.perform(post("/api/v1/issues")
                         .header("X-Client-Type", "mobile")
@@ -255,22 +208,10 @@ class IssueControllerTest extends AbstractIntegrationTest {
     void create_withTooManyMediaUrls_shouldReturn400() throws Exception {
         seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
-        Long locationId = locationRepository.save(
-                new Location("Address", "122333", "City", "State",
-                        PointFactory.createPoint(new Coordinate(90.0, 90.0)))
-        ).getLocationId();
 
-        Long categoryId = categoryRepository.save(new Category("Category")).getId();
-
-        String invalidPayload = String.format("""
-                {
-                  "title": "Valid Title",
-                  "description": "Valid description",
-                  "location_id": %d,
-                  "category_id": %d,
-                  "media_urls": ["u1","u2","u3","u4","u5","u6"]
-                }
-                """, locationId, categoryId);
+        String invalidPayload = TestDataFactory.issueRequestJson(
+                "Title", List.of("u1", "u2", "u3", "u4", "u5", "u6")
+        );
 
         mockMvc.perform(post("/api/v1/issues")
                         .header("X-Client-Type", "mobile")
@@ -291,21 +232,15 @@ class IssueControllerTest extends AbstractIntegrationTest {
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
 
-        String updateBody = """
-                {
-                  "title": "Updated Title",
-                  "description": "Updated description",
-                  "status": "PENDING"
-                }
-                """;
+        String payload = TestDataFactory.validIssueUpdateRequestJson();
 
         mockMvc.perform(put("/api/v1/issues/%d".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateBody))
+                        .content(payload))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Updated Title"));
+                .andExpect(jsonPath("$.title").value("New Title"));
     }
 
     @Test
@@ -315,7 +250,7 @@ class IssueControllerTest extends AbstractIntegrationTest {
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
 
-        String updateBody = """
+        String invalidPayload = """
                 {
                   "title": "Updated Title",
                   "description": "Updated description",
@@ -327,7 +262,7 @@ class IssueControllerTest extends AbstractIntegrationTest {
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateBody))
+                        .content(invalidPayload))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
     }
@@ -338,14 +273,12 @@ class IssueControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
 
-        String updateBody = """
-                { "title": "Unauthorized Update" }
-                """;
+        String payload = TestDataFactory.validIssueUpdateRequestJson();
 
         mockMvc.perform(put("/api/v1/issues/%d".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateBody))
+                        .content(payload))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -355,15 +288,13 @@ class IssueControllerTest extends AbstractIntegrationTest {
         seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
 
-        String updateBody = """
-                { "title": "Ghost Update" }
-                """;
+        String payload = TestDataFactory.validIssueUpdateRequestJson();
 
         mockMvc.perform(put("/api/v1/issues/999999")
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateBody))
+                        .content(payload))
                 .andExpect(status().isNotFound());
     }
 
@@ -423,4 +354,7 @@ class IssueControllerTest extends AbstractIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
     }
+
+    // endregion
+
 }

@@ -1,7 +1,7 @@
 package com.mudda.backend.issue;
 
 import com.mudda.backend.issue.dto.*;
-import com.mudda.backend.security.SecurityUtil;
+import com.mudda.backend.user.MuddaUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -13,7 +13,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -36,28 +40,32 @@ public class IssueController {
             @ApiResponse(responseCode = "400", description = "Invalid Input")
     })
     @GetMapping
-    public ResponseEntity<Page<IssueSummaryResponse>> getAllIssues(
+    public ResponseEntity<Page<IssueResponse>> getAllIssues(
             @ModelAttribute(name = "filters") IssueFilterRequest filterRequest,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sortBy", defaultValue = "CREATED_AT") IssueSortBy sort,
-            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String direction,
+            @AuthenticationPrincipal MuddaUser principal
     ) {
         Pageable pageable = PageRequest.of(
                 page, size,
-                direction.equalsIgnoreCase("desc")
+                "desc".equalsIgnoreCase(direction)
                         ? Sort.by(sort.getFieldName()).descending()
                         : Sort.by(sort.getFieldName()).ascending());
 
-        Long userId = SecurityUtil.getUserIdOrNull();
+        Long userId = principal != null ? principal.getUserId() : null;
         log.debug("Finding issues with filters: {}", filterRequest);
 
         return ResponseEntity.ok(issueService.findAllIssues(filterRequest, pageable, userId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IssueResponse> getIssueById(@PathVariable long id) {
-        Long userId = SecurityUtil.getUserIdOrNull();
+    public ResponseEntity<IssueResponse> getIssueById(
+            @PathVariable long id,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        Long userId = principal != null ? principal.getUserId() : null;
 
         return issueService
                 .findById(id, userId)
@@ -83,36 +91,40 @@ public class IssueController {
         return ResponseEntity.ok(issueService.findAllIssuesDashboard(pageable));
     }
 
+    @GetMapping("/categories")
+    public ResponseEntity<List<IssueCategory>> getIssueCategories() {
+        return ResponseEntity.ok().body(Arrays.stream(IssueCategory.values()).toList());
+    }
+
     // endregion
 
     // ----------- AUTH COMMANDS -----------------
     // region Commands (Write Operations)
 
     @PostMapping
-    public ResponseEntity<IssueResponse> createIssue(@Valid @RequestBody CreateIssueRequest issueRequest) {
-        Long userId = SecurityUtil.getUserIdOrNull();
-
-        log.info("Creating new issue by user with id {}", userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(issueService.createIssue(userId, issueRequest));
+    public ResponseEntity<IssueResponse> createIssue(
+            @Valid @RequestBody CreateIssueRequest issueRequest,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        log.info("Creating new issue by user with id {}", principal.getUserId());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(issueService.createIssue(principal.getUserId(), issueRequest));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<IssueUpdateResponse> updateIssue(
             @PathVariable long id,
-            @Valid @RequestBody UpdateIssueRequest issueRequest
+            @Valid @RequestBody UpdateIssueRequest issueRequest,
+            @AuthenticationPrincipal MuddaUser principal
     ) {
-        Long userId = SecurityUtil.getUserIdOrNull();
-
-        log.info("Updating issue with id {} by user with id {}", id, userId);
-        return ResponseEntity.ok(issueService.updateIssue(id, userId, issueRequest));
+        log.info("Updating issue with id {} by user with id {}", id, principal.getUserId());
+        return ResponseEntity.ok(issueService.updateIssue(id, principal.getUserId(), issueRequest));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIssue(@PathVariable long id) {
-        Long userId = SecurityUtil.getUserIdOrNull();
-
-        log.info("Deleting issue with id {} by user with id {}", id, userId);
-        issueService.deleteIssue(id, userId);
+    public ResponseEntity<Void> deleteIssue(@PathVariable long id, @AuthenticationPrincipal MuddaUser principal) {
+        log.info("Deleting issue with id {} by user with id {}", id, principal.getUserId());
+        issueService.deleteIssue(id, principal.getUserId());
         return ResponseEntity.noContent().build();
     }
 

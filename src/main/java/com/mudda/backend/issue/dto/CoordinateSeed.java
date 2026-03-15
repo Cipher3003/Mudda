@@ -6,9 +6,9 @@
  * Created : 28-11-2025
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.location.dto;
+package com.mudda.backend.issue.dto;
 
-import com.mudda.backend.location.PointFactory;
+import com.mudda.backend.issue.PointFactory;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
 

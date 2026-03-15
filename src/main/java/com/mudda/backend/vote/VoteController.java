@@ -1,10 +1,11 @@
 package com.mudda.backend.vote;
 
-import com.mudda.backend.security.SecurityUtil;
+import com.mudda.backend.user.MuddaUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -42,10 +43,11 @@ public class VoteController {
     // region Commands (Write Operations)
 
     @PostMapping("/issues/{issueId}/votes")
-    public ResponseEntity<VoteResponse> create(@PathVariable long issueId) {
-        Long userId = SecurityUtil.getUserIdOrNull();
-
-        return ResponseEntity.ok(voteService.create(issueId, userId));
+    public ResponseEntity<VoteResponse> create(
+            @PathVariable long issueId,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        return ResponseEntity.ok(voteService.create(issueId, principal.getUserId()));
     }
 
     //    NOTE: DEVELOPER ONLY
@@ -56,10 +58,11 @@ public class VoteController {
     }
 
     @DeleteMapping("/issues/{issueId}/votes")
-    public ResponseEntity<VoteResponse> deleteVoteOnIssueIdByUserId(@PathVariable long issueId) {
-        Long userId = SecurityUtil.getUserIdOrNull();
-
-        return ResponseEntity.ok(voteService.deleteVoteByIssueIdAndUserId(issueId, userId));
+    public ResponseEntity<VoteResponse> deleteVoteOnIssueIdByUserId(
+            @PathVariable long issueId,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        return ResponseEntity.ok(voteService.deleteVoteByIssueIdAndUserId(issueId, principal.getUserId()));
     }
 
     // endregion

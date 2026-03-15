@@ -1,7 +1,7 @@
 package com.mudda.backend.comment;
 
 import com.mudda.backend.comment.dto.*;
-import com.mudda.backend.security.SecurityUtil;
+import com.mudda.backend.user.MuddaUser;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -31,10 +32,11 @@ public class CommentController {
     public ResponseEntity<Page<CommentDetailResponse>> getCommentsByIssue(
             @PathVariable long issueId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal MuddaUser principal
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Long userId = SecurityUtil.getUserIdOrNull();
+        Long userId = principal != null ? principal.getUserId() : null;
 
         log.debug("Getting comments by issue id {}", issueId);
 
@@ -42,8 +44,11 @@ public class CommentController {
     }
 
     @GetMapping("/comments/{commentId}")
-    public ResponseEntity<CommentDetailResponse> getCommentsById(@PathVariable long commentId) {
-        Long userId = SecurityUtil.getUserIdOrNull();
+    public ResponseEntity<CommentDetailResponse> getCommentsById(
+            @PathVariable long commentId,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        Long userId = principal != null ? principal.getUserId() : null;
 
         log.debug("Getting comments by id {}", commentId);
 
@@ -56,10 +61,11 @@ public class CommentController {
     public ResponseEntity<Page<ReplyResponse>> getAllRepliesByComment(
             @PathVariable long commentId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal MuddaUser principal
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Long userId = SecurityUtil.getUserIdOrNull();
+        Long userId = principal != null ? principal.getUserId() : null;
 
         log.debug("Getting replies by comment id {}", commentId);
 
@@ -75,9 +81,10 @@ public class CommentController {
     @PostMapping("/issues/{issueId}/comments")
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable long issueId,
-            @Valid @RequestBody CreateCommentRequest request
+            @Valid @RequestBody CreateCommentRequest request,
+            @AuthenticationPrincipal MuddaUser principal
     ) {
-        Long userId = SecurityUtil.getUserIdOrNull();
+        Long userId = principal != null ? principal.getUserId() : null;
 
         log.debug("Creating comment for issue with id {} and request {}", issueId, request);
 
@@ -88,9 +95,10 @@ public class CommentController {
     @PostMapping("/comments/{commentId}/replies")
     public ResponseEntity<CommentResponse> createReply(
             @PathVariable long commentId,
-            @Valid @RequestBody CreateCommentRequest request
+            @Valid @RequestBody CreateCommentRequest request,
+            @AuthenticationPrincipal MuddaUser principal
     ) {
-        Long userId = SecurityUtil.getUserIdOrNull();
+        Long userId = principal != null ? principal.getUserId() : null;
 
         log.debug("Creating reply for comment with id {} and request {}", commentId, request);
 
@@ -108,8 +116,11 @@ public class CommentController {
     }
 
     @PostMapping("/comments/{commentId}/like")
-    public ResponseEntity<CommentLikeResponse> likeComment(@PathVariable long commentId) {
-        Long userId = SecurityUtil.getUserIdOrNull();
+    public ResponseEntity<CommentLikeResponse> likeComment(
+            @PathVariable long commentId,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        Long userId = principal != null ? principal.getUserId() : null;
 
         log.debug("Liking comment with id {} by user {}", commentId, userId);
 
@@ -125,8 +136,11 @@ public class CommentController {
     }
 
     @DeleteMapping("/comments/{commentId}/like")
-    public ResponseEntity<CommentLikeResponse> removeLikeFromComment(@PathVariable long commentId) {
-        Long userId = SecurityUtil.getUserIdOrNull();
+    public ResponseEntity<CommentLikeResponse> removeLikeFromComment(
+            @PathVariable long commentId,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        Long userId = principal != null ? principal.getUserId() : null;
 
         log.debug("Removing like on comment with id {} by user {}", commentId, userId);
 

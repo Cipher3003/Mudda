@@ -1,10 +1,13 @@
 package com.mudda.backend.comment;
 
 import com.mudda.backend.comment.dto.*;
+import com.mudda.backend.comment.event.CommentCreatedEvent;
+import com.mudda.backend.comment.event.CommentRemovedEvent;
 import com.mudda.backend.issue.IssueRepository;
 import com.mudda.backend.utils.EntityValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,16 +25,18 @@ public class CommentService {
     private final CommentLikeService commentLikeService;
     private final CommentLikeRepository commentLikeRepository;
     private final IssueRepository issueRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public CommentService(CommentRepository commentRepository,
                           CommentLikeService commentLikeService,
                           CommentLikeRepository commentLikeRepository,
-                          IssueRepository issueRepository
-    ) {
+                          IssueRepository issueRepository,
+                          ApplicationEventPublisher applicationEventPublisher) {
         this.commentRepository = commentRepository;
         this.commentLikeService = commentLikeService;
         this.commentLikeRepository = commentLikeRepository;
         this.issueRepository = issueRepository;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     // region Queries (Read Operations)
@@ -144,6 +149,10 @@ public class CommentService {
         Comment comment = CommentMapper.toComment(createCommentRequest, issueId, userId);
         Comment saved = commentRepository.save(comment);
         log.info("Created comment with id {} by user {} on issue {}", saved.getCommentId(), userId, issueId);
+
+        applicationEventPublisher.publishEvent(new CommentCreatedEvent(issueId, saved.getCommentId()));
+        log.debug("Published CommentCreatedEvent for issue: {} and comment: {}", issueId, saved.getCommentId());
+
         return CommentMapper.toCommentResponse(saved);
     }
 
@@ -245,6 +254,9 @@ public class CommentService {
         commentLikeService.deleteByCommentId(comment.getCommentId());
         commentRepository.deleteById(id);
         log.info("Deleted comment with id {}", id);
+
+        applicationEventPublisher.publishEvent(new CommentRemovedEvent(comment.getIssueId(), id));
+        log.debug("Published CommentRemovedEvent for issue: {} and comment: {}", comment.getIssueId(), id);
     }
 
     @Transactional

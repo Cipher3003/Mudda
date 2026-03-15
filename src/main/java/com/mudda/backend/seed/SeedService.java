@@ -1,23 +1,20 @@
 package com.mudda.backend.seed;
 
 import com.google.gson.Gson;
-import com.mudda.backend.category.CategorySeed;
-import com.mudda.backend.category.CategoryService;
-import com.mudda.backend.category.CreateCategoryRequest;
-import com.mudda.backend.comment.*;
+import com.mudda.backend.comment.CommentLike;
+import com.mudda.backend.comment.CommentLikeService;
+import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.comment.dto.CommentLikeSeed;
 import com.mudda.backend.comment.dto.CommentSeed;
 import com.mudda.backend.comment.dto.CreateCommentRequest;
+import com.mudda.backend.issue.IssueCategory;
 import com.mudda.backend.issue.IssueService;
 import com.mudda.backend.issue.dto.CreateIssueRequest;
 import com.mudda.backend.issue.dto.IssueSeed;
-import com.mudda.backend.location.LocationService;
-import com.mudda.backend.location.dto.CoordinateDTO;
-import com.mudda.backend.location.dto.CreateLocationRequest;
-import com.mudda.backend.location.dto.LocationSeed;
+import com.mudda.backend.issue.dto.CoordinateDTO;
+import com.mudda.backend.user.MuddaUserRole;
 import com.mudda.backend.user.UserService;
 import com.mudda.backend.user.dto.CreateUserRequest;
-import com.mudda.backend.user.MuddaUserRole;
 import com.mudda.backend.user.dto.UserSeed;
 import com.mudda.backend.vote.Vote;
 import com.mudda.backend.vote.VoteSeed;
@@ -26,6 +23,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
+import net.datafaker.providers.base.Address;
 import net.datafaker.providers.base.Text;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,23 +51,19 @@ public class SeedService {
     private final Random random = new Random();
     private final Faker faker = new Faker(random);
 
-    private final CategoryService categoryService;
-    private final LocationService locationService;
     private final UserService userService;
     private final IssueService issueService;
     private final VoteService voteService;
     private final CommentService commentService;
     private final CommentLikeService commentLikeService;
 
-    public SeedService(CategoryService categoryService,
-                       LocationService locationService,
-                       UserService userService,
-                       VoteService voteService,
-                       IssueService issueService,
-                       CommentService commentService,
-                       CommentLikeService commentLikeService) {
-        this.categoryService = categoryService;
-        this.locationService = locationService;
+    public SeedService(
+            UserService userService,
+            VoteService voteService,
+            IssueService issueService,
+            CommentService commentService,
+            CommentLikeService commentLikeService
+    ) {
         this.userService = userService;
         this.voteService = voteService;
         this.issueService = issueService;
@@ -99,8 +93,6 @@ public class SeedService {
                 "Comment",
                 "Vote",
                 "Issue",
-                "Location",
-                "Category",
                 "VerificationToken",
                 "RefreshToken",
                 "MuddaUser");
@@ -122,8 +114,6 @@ public class SeedService {
                     "comments_id_seq",
                     "votes_id_seq",
                     "issues_id_seq",
-                    "locations_id_seq",
-                    "categories_id_seq",
                     "action_tokens_id_seq",
                     "refresh_token_id_seq",
                     "users_id_seq");
@@ -157,8 +147,6 @@ public class SeedService {
         // --- Data stores to simulate database primary keys for relationships ---
         List<String> feedback = new ArrayList<>();
         List<Long> userIds = new ArrayList<>();
-        List<Long> locationIds = new ArrayList<>();
-        List<Long> categoryIds = new ArrayList<>();
         List<Long> issueIds = new ArrayList<>();
         List<Long> topLevelCommentIds = new ArrayList<>(); // For flat (YouTube-style) replies
 
@@ -175,14 +163,8 @@ public class SeedService {
         if (generationMap.containsKey(Entity.User))
             userIds.addAll(LongStream.rangeClosed(0, generationMap.get(Entity.User)).boxed().toList());
 
-        if (generationMap.containsKey(Entity.Location))
-            generateLocations(generationMap.get(Entity.Location), locationIds, feedback);
-
-        if (generationMap.containsKey(Entity.Category))
-            generateCategories(generationMap.get(Entity.Category), categoryIds, feedback);
-
         if (generationMap.containsKey(Entity.Issue))
-            generateIssues(generationMap.get(Entity.Issue), issueIds, userIds, locationIds, categoryIds, feedback);
+            generateIssues(generationMap.get(Entity.Issue), issueIds, userIds, feedback);
 
         if (generationMap.containsKey(Entity.Comment))
             generateComments(generationMap.get(Entity.Comment), topLevelCommentIds, issueIds, userIds, feedback);
@@ -218,12 +200,6 @@ public class SeedService {
 
                 userService.saveUsers(seedData.users().stream().map(UserSeed::toUser).toList());
                 feedback.add("Users seeded: " + seedData.users().size());
-
-                locationService.saveLocations(seedData.locations().stream().map(LocationSeed::toLocation).toList());
-                feedback.add("Locations seeded: " + seedData.locations().size());
-
-                categoryService.saveCategories(seedData.categories().stream().map(CategorySeed::toCategory).toList());
-                feedback.add("Categories seeded: " + seedData.categories().size());
 
                 issueService.saveIssues(seedData.issues().stream().map(IssueSeed::toIssue).toList());
                 feedback.add("Issues seeded: " + seedData.issues().size());
@@ -311,44 +287,9 @@ public class SeedService {
         userIds.addAll(userService.createUsers(userRequests));
     }
 
-    private void generateLocations(int count, List<Long> locationIds, List<String> feedback) {
-        feedback.add("Generating " + count + " locations...");
-        List<CreateLocationRequest> locationRequests = new ArrayList<>();
-
-        for (int i = 0; i < count; i++) {
-            CoordinateDTO coordinate = new CoordinateDTO(
-                    Double.parseDouble(faker.address().latitude().replace(',', '.')),
-                    Double.parseDouble(faker.address().longitude().replace(',', '.')));
-
-            CreateLocationRequest request = new CreateLocationRequest(
-                    faker.address().streetAddress(),
-                    faker.address().zipCode(),
-                    faker.address().city(),
-                    faker.address().state(),
-                    coordinate);
-
-            locationRequests.add(request);
-        }
-        locationIds.addAll(locationService.createLocations(locationRequests));
-    }
-
-    private void generateCategories(int count, List<Long> categoryIds, List<String> feedback) {
-        feedback.add("Generating " + count + " categories...");
-        List<CreateCategoryRequest> categoryRequests = new ArrayList<>();
-
-        for (int i = 0; i < count; i++) {
-            // Appending a random number to ensure the category name is unique
-            String uniqueCategoryName = faker.commerce().department() + " " + random.nextInt(100000);
-            categoryRequests.add(new CreateCategoryRequest(uniqueCategoryName));
-        }
-
-        categoryIds.addAll(categoryService.createCategories(categoryRequests));
-    }
-
-    private void generateIssues(int count, List<Long> issueIds, List<Long> userIds,
-                                List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
-        if (userIds.isEmpty() || locationIds.isEmpty() || categoryIds.isEmpty()) {
-            feedback.add("Cannot generate issues: Missing Users, Locations, or Categories. " +
+    private void generateIssues(int count, List<Long> issueIds, List<Long> userIds, List<String> feedback) {
+        if (userIds.isEmpty()) {
+            feedback.add("Cannot generate issues: Missing Users, Locations. " +
                     "Add users, locations, categories in request.");
             return;
         }
@@ -363,16 +304,21 @@ public class SeedService {
                     .mapToObj(n -> faker.internet().url())
                     .toList();
 
-            String title = faker.lorem().sentence(random.nextInt(5, 20)).trim();
-            if (title.length() > 150)
-                title = title.substring(0, 140);
+            String title = faker.lorem().fixedString(random.nextInt(50, 140)).trim();
+            Address address = faker.address();
+            Double x = Double.parseDouble(faker.address().latitude().replace(',', '.'));
+            Double y = Double.parseDouble(faker.address().longitude().replace(',', '.'));
 
             issueRequests.add(new CreateIssueRequest(
                     title,
                     faker.lorem().paragraph(random.nextInt(5, 15)),
-                    getRandomId(locationIds),
-                    getRandomId(categoryIds),
-                    media));
+                    getRandomIssueCategory().getCode(),
+                    media,
+                    address.zipCode(),
+                    address.city(),
+                    address.state(),
+                    new CoordinateDTO(x, y)
+            ));
 
             users.add(getRandomId(userIds));
         }
@@ -471,5 +417,10 @@ public class SeedService {
     private MuddaUserRole getRandomMuddaUserRole() {
         MuddaUserRole[] muddaUserRoles = MuddaUserRole.values();
         return muddaUserRoles[random.nextInt(muddaUserRoles.length)];
+    }
+
+    private IssueCategory getRandomIssueCategory() {
+        IssueCategory[] issueCategories = IssueCategory.values();
+        return issueCategories[random.nextInt(issueCategories.length)];
     }
 }

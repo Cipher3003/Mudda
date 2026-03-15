@@ -8,18 +8,14 @@
  */
 package com.mudda.backend.seed;
 
-import com.mudda.backend.category.CategorySeed;
 import com.mudda.backend.comment.dto.CommentSeed;
 import com.mudda.backend.issue.dto.IssueSeed;
-import com.mudda.backend.location.dto.LocationSeed;
 import com.mudda.backend.user.dto.UserSeed;
 
 import java.util.List;
 
 public record SeedData(
         List<UserSeed> users,
-        List<LocationSeed> locations,
-        List<CategorySeed> categories,
         List<IssueSeed> issues,
         List<CommentSeed> comments
 ) {

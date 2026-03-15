@@ -1,4 +1,4 @@
-package com.mudda.backend.location;
+package com.mudda.backend.issue;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;

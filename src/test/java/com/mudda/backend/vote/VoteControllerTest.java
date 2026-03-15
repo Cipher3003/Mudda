@@ -2,21 +2,15 @@ package com.mudda.backend.vote;
 
 import com.mudda.backend.AbstractIntegrationTest;
 import com.mudda.backend.TestDataFactory;
-import com.mudda.backend.category.Category;
-import com.mudda.backend.category.CategoryRepository;
 import com.mudda.backend.issue.Issue;
+import com.mudda.backend.issue.IssueMapper;
 import com.mudda.backend.issue.IssueRepository;
-import com.mudda.backend.location.Location;
-import com.mudda.backend.location.LocationRepository;
-import com.mudda.backend.location.PointFactory;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserMapper;
 import com.mudda.backend.user.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.geom.Coordinate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
@@ -25,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Integration tests for {@link VoteController}.
@@ -51,12 +46,6 @@ class VoteControllerTest extends AbstractIntegrationTest {
     @Autowired
     private IssueRepository issueRepository;
 
-    @Autowired
-    private LocationRepository locationRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private static final String USERNAME = "vote_test_user";
@@ -65,21 +54,14 @@ class VoteControllerTest extends AbstractIntegrationTest {
 
     private MuddaUser seedUser() {
         MuddaUser user = UserMapper.toUser(
-                TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD)));
+                TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD))
+        );
         user.setEnabled(true);
         return userRepository.save(user);
     }
 
     private Issue seedIssue(long userId) {
-        Location location = locationRepository.save(
-                new Location("Address", "122333", "City", "State",
-                        PointFactory.createPoint(new Coordinate(90.0, 90.0)))
-        );
-
-        Category category = categoryRepository.save(new Category("Category"));
-
-        return issueRepository.save(new Issue("Title", "Description", userId,
-                location.getLocationId(), category.getId(), null));
+        return issueRepository.save(IssueMapper.toIssue(userId, TestDataFactory.validIssueRequest()));
     }
 
     // region POST

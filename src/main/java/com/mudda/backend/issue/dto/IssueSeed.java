@@ -9,16 +9,20 @@
 package com.mudda.backend.issue.dto;
 
 import com.mudda.backend.issue.Issue;
+import com.mudda.backend.issue.IssueCategory;
 
 import java.util.List;
 
 public record IssueSeed(
         String title,
         String description,
-        int locationId,
-        int categoryId,
+        String category,
         int userId,
-        List<String> mediaUrls
+        List<String> mediaUrls,
+        String pinCode,
+        String city,
+        String state,
+        CoordinateSeed coordinate
 ) {
 
     public static Issue toIssue(IssueSeed seed) {
@@ -26,9 +30,12 @@ public record IssueSeed(
                 seed.title(),
                 seed.description(),
                 (long) seed.userId(),
-                (long) seed.locationId(),
-                (long) seed.categoryId(),
-                seed.mediaUrls()
+                IssueCategory.valueOf(seed.category()),
+                seed.mediaUrls(),
+                seed.pinCode(),
+                seed.city(),
+                seed.state(),
+                CoordinateSeed.toPoint(seed.coordinate())
         );
     }
 }

@@ -43,8 +43,7 @@ public class SeedController {
     }
 
     @PostMapping
-    public ResponseEntity<List<String>> generateTestData(
-            @RequestBody @Valid CreateSeedRequest seedRequest) {
+    public ResponseEntity<List<String>> generateTestData(@RequestBody @Valid CreateSeedRequest seedRequest) {
         log.debug("Received request for seed {}", seedRequest);
         return ResponseEntity.ok(seedService.seedDatabase(seedRequest));
     }

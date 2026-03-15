@@ -1,15 +1,14 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : LocationResponse
+ * File    : IssueCreatedEvent
  * Author  : Vikas Kumar
- * Created : 12-11-2025
+ * Created : 15-03-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.location.dto;
+package com.mudda.backend.vote;
 
-public record LocationDTO(
-        String city,
-        String state
+public record VoteCratedEvent(
+        Long issueId
 ) {
 }

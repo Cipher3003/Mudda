@@ -28,9 +28,19 @@ public class IssueSpecifications {
                 userId == null ? null : criteriaBuilder.equal(root.get("userId"), userId);
     }
 
-    public static Specification<Issue> hasCategoryId(Long categoryId) {
+    public static Specification<Issue> hasCategory(IssueCategory category) {
         return (root, query, criteriaBuilder) ->
-                categoryId == null ? null : criteriaBuilder.equal(root.get("categoryId"), categoryId);
+                category == null ? null : criteriaBuilder.equal(root.get("category"), category);
+    }
+
+    public static Specification<Issue> hasCity(String city) {
+        return (root, query, criteriaBuilder) ->
+                city == null ? null : criteriaBuilder.equal(root.get("city"), city);
+    }
+
+    public static Specification<Issue> hasState(String state) {
+        return (root, query, criteriaBuilder) ->
+                state == null ? null : criteriaBuilder.equal(root.get("state"), state);
     }
 
     public static Specification<Issue> hasLocationIds(List<Long> locationIds) {

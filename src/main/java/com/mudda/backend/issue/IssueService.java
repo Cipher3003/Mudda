@@ -1,23 +1,17 @@
 package com.mudda.backend.issue;
 
-import com.mudda.backend.category.Category;
-import com.mudda.backend.category.CategoryRepository;
 import com.mudda.backend.comment.CommentService;
+import com.mudda.backend.comment.event.CommentCreatedEvent;
+import com.mudda.backend.comment.event.CommentRemovedEvent;
 import com.mudda.backend.issue.dto.*;
-import com.mudda.backend.location.Location;
-import com.mudda.backend.location.LocationMapper;
-import com.mudda.backend.location.LocationRepository;
-import com.mudda.backend.location.dto.LocationDTO;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
-import com.mudda.backend.utils.EntityValidator;
-import com.mudda.backend.vote.Vote;
-import com.mudda.backend.vote.VoteRepository;
-import com.mudda.backend.vote.VoteService;
+import com.mudda.backend.vote.*;
 import io.awspring.cloud.sqs.operations.SendResult;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,44 +30,39 @@ public class IssueService {
     private final CommentService commentService;
     private final VoteRepository voteRepository;
     private final VoteService voteService;
-    private final LocationRepository locationRepository;
-    private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final SqsTemplate sqsTemplate;
 
     private static final String QUEUE_NAME = "mudda-hate-speech-queue";
 
     public IssueService(
-            IssueRepository issueRepository, CommentService commentService, VoteRepository voteRepository,
-            VoteService voteService, LocationRepository locationRepository, CategoryRepository categoryRepository,
-            UserRepository userRepository, SqsTemplate sqsTemplate) {
+            IssueRepository issueRepository, CommentService commentService,
+            VoteRepository voteRepository, VoteService voteService,
+            UserRepository userRepository, SqsTemplate sqsTemplate
+    ) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteRepository = voteRepository;
         this.voteService = voteService;
-        this.locationRepository = locationRepository;
-        this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.sqsTemplate = sqsTemplate;
     }
 
     // region Queries (Read Operations)
 
-    public Page<IssueSummaryResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, Long userId) {
+    public Page<IssueResponse> findAllIssues(IssueFilterRequest filterRequest, Pageable pageable, Long userId) {
         log.debug("Finding all issues by filter request {}", filterRequest);
 
-        List<Long> locationIds = locationRepository
-                .findByCityAndState(filterRequest.city(), filterRequest.state())
-                .stream()
-                .map(Location::getLocationId)
-                .toList();
+        IssueCategory category = IssueCategory.fromCode(filterRequest.category());
+        IssueStatus status = IssueStatus.fromCode(filterRequest.status());
 
         Specification<Issue> specification = IssueSpecifications
                 .containsText(filterRequest.search())
-                .and(IssueSpecifications.hasStatus(filterRequest.status()))
+                .and(IssueSpecifications.hasStatus(status))
                 .and(IssueSpecifications.hasUserId(filterRequest.userId()))
-                .and(IssueSpecifications.hasCategoryId(filterRequest.categoryId()))
-                .and(IssueSpecifications.hasLocationIds(locationIds))
+                .and(IssueSpecifications.hasCategory(category))
+                .and(IssueSpecifications.hasCity(filterRequest.city()))
+                .and(IssueSpecifications.hasState(filterRequest.state()))
                 .and(IssueSpecifications.isUrgent(filterRequest.urgency()))
                 .and(IssueSpecifications.isDeleted(false))
                 .and(IssueSpecifications.severityBetween(filterRequest.minSeverity(), filterRequest.maxSeverity()))
@@ -82,26 +71,17 @@ public class IssueService {
 
         Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
 
-        List<Long> issueIds = issuePage.getContent()
-                .stream()
+        List<Long> issueIds = issuePage.getContent().stream()
                 .map(Issue::getId)
                 .toList();
 
-        Set<Long> authorIds = issuePage.getContent()
-                .stream()
+        Set<Long> authorIds = issuePage.getContent().stream()
                 .map(Issue::getUserId)
                 .collect(Collectors.toSet());
 
         Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
                 .stream()
                 .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
-
-        Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0], // issueId
-                        row -> (Long) row[1] // count
-                ));
 
         boolean isAuthenticated = userId != null;
 
@@ -119,15 +99,15 @@ public class IssueService {
             MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
             if (muddaUser == null)
                 throw new IllegalStateException("User not found for issue: " + issue.getId());
-            // TODO: maybe continue and ignore bad data and cleanup later
 
-            long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
+            // TODO: maybe continue and ignore bad data and cleanup later
 
             boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
 
             // TODO: maybe prevent self voting
-            return IssueMapper.toSummary(
-                    issue, muddaUser, voteCount, hasUserVoted, isAuthenticated // canVote
+            return IssueMapper.toResponse(
+                    issue, muddaUser, hasUserVoted,
+                    isAuthenticated, isAuthenticated, isAuthenticated, isAuthenticated
             );
         });
     }
@@ -150,13 +130,6 @@ public class IssueService {
                 .stream()
                 .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
 
-        Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0], // issueId
-                        row -> (Long) row[1] // count
-                ));
-
         // TODO: maybe use Vote entity's own check vote casted by user to filter this
         // set even more
         Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds)
@@ -171,12 +144,10 @@ public class IssueService {
                 throw new IllegalStateException("User not found for issue: " + issue.getId());
             // TODO: maybe continue and ignore bad data and cleanup later
 
-            long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
-
             boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
 
             // TODO: maybe prevent self voting
-            return IssueMapper.toSummary(issue, muddaUser, voteCount, hasUserVoted, true);
+            return IssueMapper.toSummary(issue, muddaUser, hasUserVoted, true);
             // canVote true since this method is called by protected endpoint
         });
     }
@@ -191,36 +162,25 @@ public class IssueService {
         if (author == null)
             return Optional.empty();
 
-        Location location = locationRepository.findById(issue.getLocationId()).orElse(null);
-        if (location == null)
-            return Optional.empty();
+        boolean isAuthenticated = userId != null;
+        boolean isOwner = isAuthenticated && issue.getUserId().equals(userId);
 
-        LocationDTO locationSummary = LocationMapper.toSummary(location);
+        boolean hasUserVoted = isAuthenticated
+                && voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
 
-        return categoryRepository.findById(issue.getCategoryId())
-                .map(category -> {
-
-                    boolean isAuthenticated = userId != null;
-                    boolean isOwner = isAuthenticated && issue.getUserId().equals(userId);
-
-                    boolean hasUserVoted = isAuthenticated
-                            && voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
-
-                    long voteCount = voteRepository.countByIssueId(issue.getId());
-
-                    return IssueMapper.toResponse(
-                            issue, author, locationSummary, category.getName(), voteCount, hasUserVoted,
-                            isAuthenticated, // canVote
-                            isAuthenticated, // canComment
-                            isOwner, // canEdit
-                            isOwner // canDelete
-                    );
-                });
+        return Optional.of(IssueMapper.toResponse(
+                issue, author, hasUserVoted,
+                isAuthenticated, // canVote
+                isAuthenticated, // canComment
+                isOwner, // canEdit
+                isOwner // canDelete
+        ));
     }
 
     // Reference:
     // https://sud-gajula.medium.com/handling-geo-spatial-data-in-postgres-with-h3-05838fb77fd8
     public IssueClusterResponse findAllIssueClusters(IssueClusterRequest clusterRequest) {
+        // TODO: move to db
         log.debug("Finding all issue clusters by request {}", clusterRequest);
 
         double centerLat = (clusterRequest.minLatitude() + clusterRequest.maxLatitude()) / 2;
@@ -246,10 +206,10 @@ public class IssueService {
                     .map(Map.Entry::getKey).orElse("unknown");
 
             IssueClusterQueryResult firstCluster = group.get(0);
-            clusters.add(
-                    new IssueClusterDTO(
-                            firstCluster.centerLatitude(), firstCluster.centerLongitude(), topCategory,
-                            categoryCounts));
+            clusters.add(new IssueClusterDTO(
+                    firstCluster.centerLatitude(), firstCluster.centerLongitude(), topCategory,
+                    categoryCounts
+            ));
         }
 
         return new IssueClusterResponse(clusters);
@@ -265,9 +225,6 @@ public class IssueService {
                 .stream()
                 .map(Issue::getId)
                 .toList();
-
-        List<Long> locationIds = issuePage.getContent().stream().map(Issue::getLocationId).toList();
-        List<Long> categoryIds = issuePage.getContent().stream().map(Issue::getCategoryId).toList();
 
         Set<Long> authorIds = issuePage.getContent()
                 .stream()
@@ -285,11 +242,6 @@ public class IssueService {
                         row -> (Long) row[1] // count
                 ));
 
-        Map<Long, Location> locationMap = locationRepository.findAllById(locationIds).stream()
-                .collect(Collectors.toMap(Location::getLocationId, location -> location));
-        Map<Long, String> categoryMap = categoryRepository.findAllById(categoryIds).stream()
-                .collect(Collectors.toMap(Category::getId, Category::getName));
-
         return issuePage.map(issue -> {
 
             MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
@@ -298,9 +250,7 @@ public class IssueService {
 
             long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
 
-            return IssueMapper.forDashboard(
-                    issue, muddaUser, voteCount, LocationMapper.toResponse(locationMap.get(issue.getLocationId())),
-                    categoryMap.get(issue.getCategoryId()));
+            return IssueMapper.forDashboard(issue, muddaUser, voteCount);
         });
     }
 
@@ -310,44 +260,29 @@ public class IssueService {
 
     @Transactional
     public IssueResponse createIssue(Long userId, CreateIssueRequest issueRequest) {
-
-        // TODO: change the exception to custom ?
-        if (userId == null)
-            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
-
-        // TODO: maybe remove unnecessary validation since fetching entities validates
-        // it
-        validateReferences(issueRequest.locationId(), issueRequest.categoryId());
-        log.trace("Validated issue references");
-
         MuddaUser muddaUser = userRepository.findById(userId).orElse(null);
-        if (muddaUser == null)
-            throw new IllegalArgumentException("User not found for creating Issue");
+        if (muddaUser == null) throw new IllegalArgumentException("User not found for creating Issue");
 
         Issue issue = IssueMapper.toIssue(userId, issueRequest);
-
-        Optional<Location> location = locationRepository.findById(issue.getLocationId());
-        if (location.isEmpty())
-            throw new IllegalArgumentException("Location ID for creating Issue not valid");
-
-        Optional<Category> category = categoryRepository.findById(issueRequest.categoryId());
-        if (category.isEmpty())
-            throw new IllegalArgumentException("Category ID for creating Issue not valid");
 
         Issue saved = issueRepository.save(issue);
         log.info("Created Issue with id {} by user with id {}", saved.getId(), userId);
 
 
         IssueCreatedEvent issueCreatedEvent = new IssueCreatedEvent(
-                saved.getId(), userId, false, saved.getTitle() + saved.getDescription());
+                saved.getId(), userId, false, saved.getTitle() + saved.getDescription()
+        );
+
         SendResult<IssueCreatedEvent> result = sqsTemplate.send(QUEUE_NAME, issueCreatedEvent);
         log.trace("Event: {} result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
+
         log.info("Sent event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
 
         return IssueMapper.toResponse(
-                saved, muddaUser, LocationMapper.toSummary(location.get()), category.get().getName(),
-                0, false, true, true,
-                true, true);
+                saved, muddaUser,
+                false, true, true,
+                true, true
+        );
     }
 
     @Transactional
@@ -381,7 +316,8 @@ public class IssueService {
         if (!isOwner)
             throw new IllegalStateException("Only author can update their posted issue");
 
-        existing.updateDetails(issueRequest.title(), issueRequest.description(), issueRequest.status());
+        IssueStatus status = IssueStatus.fromCode(issueRequest.status());
+        existing.updateDetails(issueRequest.title(), issueRequest.description(), status);
         Issue updated = issueRepository.save(existing);
         log.info("Updated Issue with id {} by user with id {}", updated.getId(), userId);
 
@@ -391,7 +327,7 @@ public class IssueService {
         log.trace("Update Event: {} result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
         log.info("Sent update event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
 
-        return IssueMapper.toResponse(updated);
+        return IssueMapper.toUpdateResponse(updated);
     }
 
     // TODO: use delete flag to soft delete ?
@@ -438,13 +374,32 @@ public class IssueService {
 
     // endregion
 
-    // region Helpers
+    // region Listeners
 
-    private void validateReferences(long locationId, long categoryId) {
-
-        EntityValidator.validateExists(locationRepository, locationId, "Location");
-        EntityValidator.validateExists(categoryRepository, categoryId, "Category");
+    @EventListener(VoteCratedEvent.class)
+    // Should work in sync and same transaction as caller as claimed by internet
+    public void incrementVote(long issueId) {
+        issueRepository.incrementVoteCount(issueId);
     }
+
+    @EventListener(VoteRemovedEvent.class)
+    public void decrementVote(long issueId) {
+        issueRepository.decrementVoteCount(issueId);
+    }
+
+    @EventListener(CommentCreatedEvent.class)
+    public void incrementCommentCount(long issueId) {
+        issueRepository.incrementCommentCount(issueId);
+    }
+
+    @EventListener(CommentRemovedEvent.class)
+    public void decrementCommentCount(long issueId) {
+        issueRepository.decrementCommentCount(issueId);
+    }
+
+    // endregion
+
+    // region Helpers
 
     private EntityNotFoundException notFound(long id) {
         return new EntityNotFoundException("Issue not found with id: %d".formatted(id));

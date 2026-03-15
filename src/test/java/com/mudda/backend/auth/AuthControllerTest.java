@@ -7,8 +7,6 @@ import com.mudda.backend.auth.dto.ForgotPasswordRequest;
 import com.mudda.backend.auth.dto.RefreshRequest;
 import com.mudda.backend.auth.dto.ResetPasswordRequest;
 import com.mudda.backend.auth.dto.VerifyRequest;
-import com.mudda.backend.location.dto.CoordinateDTO;
-import com.mudda.backend.location.dto.CreateLocationRequest;
 import com.mudda.backend.token.TokenType;
 import com.mudda.backend.token.refresh.RefreshToken;
 import com.mudda.backend.token.refresh.RefreshTokenRepository;
@@ -1034,12 +1032,9 @@ class AuthControllerTest extends AbstractIntegrationTest {
     void stateChangingRequest_shouldAllow_whenValidJwtAndNoCsrf() throws Exception {
         seedUserAndEnableUser();
         String accessToken = loginAndGetToken(USERNAME, PASSWORD);
-        String payload = objectMapper.writeValueAsString(
-                new CreateLocationRequest("Test address", "122333", "City", "State",
-                        new CoordinateDTO(90.0, 90.0))
-        );
+        String payload = TestDataFactory.validIssueJson();
 
-        mockMvc.perform(post("/api/v1/locations")
+        mockMvc.perform(post("/api/v1/issues")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
@@ -1052,12 +1047,9 @@ class AuthControllerTest extends AbstractIntegrationTest {
         seedUserAndEnableUser();
         MockHttpSession session = loginAndGetSession();
 
-        String payload = objectMapper.writeValueAsString(
-                new CreateLocationRequest("Test address", "122333", "City", "State",
-                        new CoordinateDTO(90.0, 90.0))
-        );
+        String payload = TestDataFactory.validIssueJson();
 
-        mockMvc.perform(post("/api/v1/locations")
+        mockMvc.perform(post("/api/v1/issues")
                         .session(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))

@@ -33,11 +33,9 @@ public class UserController {
             @RequestParam(name = "sortBy", defaultValue = "CREATED_AT") UserSortBy sort,
             @RequestParam(name = "sortOrder", defaultValue = "desc") String direction
     ) {
-        Pageable pageable = PageRequest.of(
-                page, size,
-                direction.equalsIgnoreCase("desc")
-                        ? Sort.by(sort.getFieldName()).descending()
-                        : Sort.by(sort.getFieldName()).ascending());
+        Pageable pageable = PageRequest.of(page, size, "desc".equalsIgnoreCase(direction)
+                ? Sort.by(sort.getFieldName()).descending()
+                : Sort.by(sort.getFieldName()).ascending());
 
         log.debug("Get all user with filter {}, page {}, size {}, sort {}, direction {}",
                 filterRequest, page, size, sort, direction);
@@ -63,8 +61,10 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserSummaryResponse> updateUser(@PathVariable long id,
-                                                          @RequestBody UpdateUserRequest userRequest) {
+    public ResponseEntity<UserSummaryResponse> updateUser(
+            @PathVariable long id,
+            @RequestBody UpdateUserRequest userRequest
+    ) {
         log.debug("Updating user with request {}", userRequest);
         return ResponseEntity.ok(userService.updateUser(id, userRequest));
     }

@@ -2,19 +2,14 @@ package com.mudda.backend.comment;
 
 import com.mudda.backend.AbstractIntegrationTest;
 import com.mudda.backend.TestDataFactory;
-import com.mudda.backend.category.Category;
-import com.mudda.backend.category.CategoryRepository;
 import com.mudda.backend.issue.Issue;
+import com.mudda.backend.issue.IssueMapper;
 import com.mudda.backend.issue.IssueRepository;
-import com.mudda.backend.location.Location;
-import com.mudda.backend.location.LocationRepository;
-import com.mudda.backend.location.PointFactory;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserMapper;
 import com.mudda.backend.user.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.geom.Coordinate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,7 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Integration tests for {@link CommentController}.
@@ -48,12 +44,6 @@ class CommentControllerTest extends AbstractIntegrationTest {
     private IssueRepository issueRepository;
 
     @Autowired
-    private LocationRepository locationRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
     private CommentRepository commentRepository;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -64,21 +54,18 @@ class CommentControllerTest extends AbstractIntegrationTest {
 
     private MuddaUser seedUser() {
         MuddaUser user = UserMapper.toUser(
-                TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD)));
+                TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD))
+        );
         user.setEnabled(true);
         return userRepository.save(user);
     }
 
     private Issue seedIssue(long userId) {
-        Location location = locationRepository.save(
-                new Location("Address", "122333", "City", "State",
-                        PointFactory.createPoint(new Coordinate(90.0, 90.0)))
-        );
+        return issueRepository.save(IssueMapper.toIssue(userId, TestDataFactory.validIssueRequest()));
+    }
 
-        Category category = categoryRepository.save(new Category("Category"));
-
-        return issueRepository.save(new Issue("Title", "Description", userId,
-                location.getLocationId(), category.getId(), null));
+    private Comment seedComment(long userId, long issueId) {
+        return commentRepository.save(new Comment("Comment", issueId, userId));
     }
 
     // region GET
@@ -108,12 +95,12 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void getCommentById_existing_shouldReturn200WithCommentData() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(get("/api/v1/comments/" + id)
                         .header("X-Client-Type", "mobile"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.comment_id").value(id))
+                .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.text").value("Comment"));
     }
 
@@ -130,7 +117,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void getRepliesByComment_public_shouldReturn200WithPaginatedContent() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(get("/api/v1/comments/%d/replies".formatted(id))
                         .header("X-Client-Type", "mobile"))
@@ -155,7 +142,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TestDataFactory.validCommentJson()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.comment_id").exists())
+                .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.text").value("This is a test comment."));
     }
 
@@ -179,7 +166,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
 
-        String invalidPayload = "{\"text\":\"\"}";
+        String invalidPayload = TestDataFactory.commentJson(null);
 
         mockMvc.perform(post("/api/v1/issues/%d/comments".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
@@ -211,15 +198,17 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+
+        String payload = TestDataFactory.commentJson("This is a test reply.");
 
         mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"text\":\"This is a test reply.\"}"))
+                        .content(payload))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.comment_id").exists())
+                .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.text").value("This is a test reply."));
     }
 
@@ -228,12 +217,14 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void createReply_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+
+        String payload = TestDataFactory.validCommentJson();
 
         mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"text\":\"Unauthorized reply.\"}"))
+                        .content(payload))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -243,13 +234,15 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+
+        String invalidPayload = TestDataFactory.commentJson(null);
 
         mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"text\":\"\"}"))
+                        .content(invalidPayload))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors").isMap());
     }
@@ -260,14 +253,14 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(post("/api/v1/comments/%d/like".formatted(id))
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.liked").value(true))
-                .andExpect(jsonPath("$.like_count").isNumber());
+                .andExpect(jsonPath("$.likeCount").isNumber());
     }
 
     @Test
@@ -275,7 +268,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void likeComment_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(post("/api/v1/comments/%d/like".formatted(id))
                         .header("X-Client-Type", "mobile"))
@@ -292,7 +285,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(post("/api/v1/comments/%d/like".formatted(id))
                         .header("X-Client-Type", "mobile")
@@ -305,7 +298,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.liked").value(false))
-                .andExpect(jsonPath("$.like_count").isNumber());
+                .andExpect(jsonPath("$.likeCount").isNumber());
     }
 
     @Test
@@ -313,7 +306,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void unlikeComment_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(delete("/api/v1/comments/%d/like".formatted(id))
                         .header("X-Client-Type", "mobile"))
@@ -326,7 +319,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(delete("/api/v1/comments/%d".formatted(id))
                         .header("X-Client-Type", "mobile")
@@ -339,7 +332,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void deleteComment_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(delete("/api/v1/comments/%d".formatted(id))
                         .header("X-Client-Type", "mobile"))
@@ -352,7 +345,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = commentRepository.save(new Comment("Comment", issue.getId(), issue.getUserId())).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
 
         mockMvc.perform(delete("/api/v1/comments/%d".formatted(id))
                         .header("X-Client-Type", "mobile")
