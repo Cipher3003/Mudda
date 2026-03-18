@@ -16,8 +16,8 @@ import lombok.Setter;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comments_seq")
-    @SequenceGenerator(name = "comments_seq", sequenceName = "comments_id_seq", allocationSize = 50)
-    private Long commentId;
+    @SequenceGenerator(name = "comments_seq", sequenceName = "comments_id_seq")
+    private Long id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
@@ -26,7 +26,16 @@ public class Comment {
     private Long parentId;
 
     @Column(nullable = false)
+    private long likeCount = 0;
+
+    @Column(nullable = false)
+    private long replyCount = 0;
+
+    @Column(nullable = false)
     private Instant createdAt;
+
+    @Column
+    private Instant updatedAt;
 
     @Column(nullable = false)
     private Long issueId; // soft link to issue on which comment was made
@@ -37,6 +46,12 @@ public class Comment {
     @PrePersist
     protected void onCreated() {
         createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdated() {
+        updatedAt = Instant.now();
     }
 
     // ----- Domain Constructor -----

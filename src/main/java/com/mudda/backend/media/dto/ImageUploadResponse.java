@@ -1,4 +1,6 @@
-package com.mudda.backend.amazon;
+package com.mudda.backend.media.dto;
+
+import com.mudda.backend.media.UploadStatus;
 
 public record ImageUploadResponse(
         String originalFileName,

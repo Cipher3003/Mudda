@@ -1,7 +1,7 @@
 package com.mudda.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mudda.backend.amazon.AmazonImageService;
+import com.mudda.backend.media.MediaService;
 import com.mudda.backend.email.EmailService;
 import com.mudda.backend.notification.FirebaseConfig;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
@@ -50,7 +50,7 @@ public abstract class AbstractIntegrationTest {
      * Prevents real AWS S3 calls during tests.
      */
     @MockBean
-    protected AmazonImageService amazonImageService;
+    protected MediaService mediaService;
 
     @MockBean
     protected FirebaseConfig firebaseConfig;

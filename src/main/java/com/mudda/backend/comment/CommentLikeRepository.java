@@ -3,6 +3,8 @@ package com.mudda.backend.comment;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -23,4 +25,10 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
 
     void deleteByCommentIdAndUserId(long commentId, long userId);
 
+    @Modifying
+    @Query("""
+             DELETE FROM CommentLike WHERE commentId = :topCommentId OR commentId IN
+             (SELECT id FROM Comment WHERE parentId = :topCommentId)
+            """)
+    void deleteFromTopLevelComment(long topCommentId);
 }

@@ -14,19 +14,24 @@ public record CommentSeed(
         String text,
         int issueId,
         int userId,
-        Integer parentId) {
+        Integer parentId
+) {
 
     public static Comment toComment(CommentSeed seed) {
+
         if (seed.parentId() == null) {
             return new Comment(
                     seed.text(),
                     (long) seed.issueId(),
-                    (long) seed.userId());
+                    (long) seed.userId()
+            );
         }
+
         return new Comment(
                 seed.text(),
                 seed.parentId().longValue(),
                 (long) seed.issueId(),
-                (long) seed.userId());
+                (long) seed.userId()
+        );
     }
 }

@@ -5,12 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.Point;
 
 import java.time.Instant;
-import java.util.List;
 
 @Getter
 @Setter
@@ -42,12 +39,6 @@ public class Issue {
     // Reference to User in PostgresSQL
     @Column(name = "user_id", nullable = false)
     private Long userId;
-
-    // Media URLs stored as a Postgres text[] array
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "media_urls")
-    private List<String> mediaUrls;
-//    TODO: store image in table with metadata instead of array
 
     // Flags
     @Column(name = "delete_flag", nullable = false)
@@ -107,7 +98,6 @@ public class Issue {
             String description,
             Long userId,
             IssueCategory category,
-            List<String> mediaUrls,
             String pinCode,
             String city,
             String state,
@@ -132,10 +122,6 @@ public class Issue {
         this.description = description.trim();
         this.userId = userId;
         this.category = category;
-        if (mediaUrls == null || mediaUrls.isEmpty()) this.mediaUrls = List.of();
-        else this.mediaUrls = (mediaUrls.size() > 5)
-                ? mediaUrls.subList(0, 5).stream().toList()
-                : List.copyOf(mediaUrls);
         this.pinCode = pinCode;
         this.city = city;
         this.state = state;

@@ -1,9 +1,11 @@
 package com.mudda.backend.comment.dto;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateCommentRequest(
-        @NotNull @NotEmpty String text
+        @NotNull @NotBlank String text,
+        Long issueId,
+        Long parentId
 ) {
 }

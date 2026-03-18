@@ -4,6 +4,10 @@ import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.comment.event.CommentCreatedEvent;
 import com.mudda.backend.comment.event.CommentRemovedEvent;
 import com.mudda.backend.issue.dto.*;
+import com.mudda.backend.media.Media;
+import com.mudda.backend.media.MediaOwner;
+import com.mudda.backend.media.MediaRepository;
+import com.mudda.backend.media.MediaService;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.vote.*;
@@ -27,18 +31,22 @@ import java.util.stream.IntStream;
 public class IssueService {
 
     private final IssueRepository issueRepository;
+    private final UserRepository userRepository;
     private final CommentService commentService;
     private final VoteRepository voteRepository;
     private final VoteService voteService;
-    private final UserRepository userRepository;
+    private final MediaService mediaService;
+    private final MediaRepository mediaRepository;
     private final SqsTemplate sqsTemplate;
 
     private static final String QUEUE_NAME = "mudda-hate-speech-queue";
+    public static final String CDN_URL = "cdn";
 
     public IssueService(
             IssueRepository issueRepository, CommentService commentService,
             VoteRepository voteRepository, VoteService voteService,
-            UserRepository userRepository, SqsTemplate sqsTemplate
+            UserRepository userRepository, SqsTemplate sqsTemplate,
+            MediaService mediaService, MediaRepository mediaRepository
     ) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
@@ -46,6 +54,8 @@ public class IssueService {
         this.voteService = voteService;
         this.userRepository = userRepository;
         this.sqsTemplate = sqsTemplate;
+        this.mediaService = mediaService;
+        this.mediaRepository = mediaRepository;
     }
 
     // region Queries (Read Operations)
@@ -74,6 +84,17 @@ public class IssueService {
         List<Long> issueIds = issuePage.getContent().stream()
                 .map(Issue::getId)
                 .toList();
+
+        Map<Long, List<String>> mediaUrlMap = mediaRepository
+                .findByOwnerIdInAndOwnerType(issueIds, MediaOwner.ISSUE)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        Media::getOwnerId,
+                        Collectors.mapping(
+                                media -> CDN_URL.concat(media.getMediaKey()),
+                                Collectors.toList()
+                        )
+                ));
 
         Set<Long> authorIds = issuePage.getContent().stream()
                 .map(Issue::getUserId)
@@ -106,7 +127,7 @@ public class IssueService {
 
             // TODO: maybe prevent self voting
             return IssueMapper.toResponse(
-                    issue, muddaUser, hasUserVoted,
+                    issue, mediaUrlMap.get(issue.getId()), muddaUser, hasUserVoted,
                     isAuthenticated, isAuthenticated, isAuthenticated, isAuthenticated
             );
         });
@@ -120,6 +141,17 @@ public class IssueService {
                 .stream()
                 .map(Issue::getId)
                 .toList();
+
+        Map<Long, List<String>> mediaUrlMap = mediaRepository
+                .findByOwnerIdInAndOwnerType(issueIds, MediaOwner.ISSUE)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        Media::getOwnerId,
+                        Collectors.mapping(
+                                media -> CDN_URL.concat(media.getMediaKey()),
+                                Collectors.toList()
+                        )
+                ));
 
         Set<Long> authorIds = issuePage.getContent()
                 .stream()
@@ -147,7 +179,7 @@ public class IssueService {
             boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
 
             // TODO: maybe prevent self voting
-            return IssueMapper.toSummary(issue, muddaUser, hasUserVoted, true);
+            return IssueMapper.toSummary(issue, mediaUrlMap.get(issue.getId()), muddaUser, hasUserVoted, true);
             // canVote true since this method is called by protected endpoint
         });
     }
@@ -162,6 +194,11 @@ public class IssueService {
         if (author == null)
             return Optional.empty();
 
+        List<String> mediaUrls = mediaRepository.findByOwnerIdAndOwnerType(issue.getId(), MediaOwner.ISSUE)
+                .stream()
+                .map(media -> CDN_URL.concat(media.getMediaKey()))
+                .toList();
+
         boolean isAuthenticated = userId != null;
         boolean isOwner = isAuthenticated && issue.getUserId().equals(userId);
 
@@ -169,7 +206,7 @@ public class IssueService {
                 && voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
 
         return Optional.of(IssueMapper.toResponse(
-                issue, author, hasUserVoted,
+                issue, mediaUrls, author, hasUserVoted,
                 isAuthenticated, // canVote
                 isAuthenticated, // canComment
                 isOwner, // canEdit
@@ -226,6 +263,17 @@ public class IssueService {
                 .map(Issue::getId)
                 .toList();
 
+        Map<Long, List<String>> mediaUrlMap = mediaRepository
+                .findByOwnerIdInAndOwnerType(issueIds, MediaOwner.ISSUE)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        Media::getOwnerId,
+                        Collectors.mapping(
+                                media -> CDN_URL.concat(media.getMediaKey()),
+                                Collectors.toList()
+                        )
+                ));
+
         Set<Long> authorIds = issuePage.getContent()
                 .stream()
                 .map(Issue::getUserId)
@@ -250,7 +298,7 @@ public class IssueService {
 
             long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
 
-            return IssueMapper.forDashboard(issue, muddaUser, voteCount);
+            return IssueMapper.forDashboard(issue, mediaUrlMap.get(issue.getId()), muddaUser, voteCount);
         });
     }
 
@@ -268,6 +316,9 @@ public class IssueService {
         Issue saved = issueRepository.save(issue);
         log.info("Created Issue with id {} by user with id {}", saved.getId(), userId);
 
+        mediaService.linkToIssue(saved.getId(), issueRequest.mediaUrls());
+
+        List<String> mediaUrls = issueRequest.mediaUrls().stream().map(CDN_URL::concat).toList();
 
         IssueCreatedEvent issueCreatedEvent = new IssueCreatedEvent(
                 saved.getId(), userId, false, saved.getTitle() + saved.getDescription()
@@ -279,7 +330,7 @@ public class IssueService {
         log.info("Sent event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
 
         return IssueMapper.toResponse(
-                saved, muddaUser,
+                saved, mediaUrls, muddaUser,
                 false, true, true,
                 true, true
         );
@@ -331,6 +382,7 @@ public class IssueService {
     }
 
     // TODO: use delete flag to soft delete ?
+    // TODO: delete media rows
     @Transactional
     public void deleteIssue(long id, Long userId) {
 
@@ -378,23 +430,23 @@ public class IssueService {
 
     @EventListener(VoteCratedEvent.class)
     // Should work in sync and same transaction as caller as claimed by internet
-    public void incrementVote(long issueId) {
-        issueRepository.incrementVoteCount(issueId);
+    public void incrementVote(VoteCratedEvent event) {
+        issueRepository.incrementVoteCount(event.issueId());
     }
 
     @EventListener(VoteRemovedEvent.class)
-    public void decrementVote(long issueId) {
-        issueRepository.decrementVoteCount(issueId);
+    public void decrementVote(VoteRemovedEvent event) {
+        issueRepository.decrementVoteCount(event.issueId());
     }
 
     @EventListener(CommentCreatedEvent.class)
-    public void incrementCommentCount(long issueId) {
-        issueRepository.incrementCommentCount(issueId);
+    public void incrementCommentCount(CommentCreatedEvent event) {
+        issueRepository.incrementCommentCount(event.issueId());
     }
 
     @EventListener(CommentRemovedEvent.class)
-    public void decrementCommentCount(long issueId) {
-        issueRepository.decrementCommentCount(issueId);
+    public void decrementCommentCount(CommentRemovedEvent event) {
+        issueRepository.decrementCommentCount(event.issueId());
     }
 
     // endregion

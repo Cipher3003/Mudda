@@ -20,6 +20,7 @@ public class CommentLike {
         allocationSize = 50
     )
     private Long id;
+    // TODO: remove id and make joint primary key
 
     @Column(nullable = false)
     private Long commentId;

@@ -20,16 +20,18 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
 
     private final CommentService commentService;
+    private final CommentLikeService commentLikeService;
 
-    public CommentController(CommentService commentService) {
+    public CommentController(CommentService commentService, CommentLikeService commentLikeService) {
         this.commentService = commentService;
+        this.commentLikeService = commentLikeService;
     }
 
     // ----------- PUBLIC READ -----------------
     // region Queries (Read Operations)
 
     @GetMapping("/issues/{issueId}/comments")
-    public ResponseEntity<Page<CommentDetailResponse>> getCommentsByIssue(
+    public ResponseEntity<Page<CommentResponse>> getCommentsByIssue(
             @PathVariable long issueId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -44,7 +46,7 @@ public class CommentController {
     }
 
     @GetMapping("/comments/{commentId}")
-    public ResponseEntity<CommentDetailResponse> getCommentsById(
+    public ResponseEntity<CommentResponse> getCommentsById(
             @PathVariable long commentId,
             @AuthenticationPrincipal MuddaUser principal
     ) {
@@ -58,7 +60,7 @@ public class CommentController {
     }
 
     @GetMapping("/comments/{commentId}/replies")
-    public ResponseEntity<Page<ReplyResponse>> getAllRepliesByComment(
+    public ResponseEntity<Page<CommentResponse>> getAllRepliesByComment(
             @PathVariable long commentId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -77,37 +79,21 @@ public class CommentController {
     // ----------- AUTH COMMANDS -----------------
     // region Commands (Write Operations)
 
-    @Operation(description = "Creates comments under an issue")
-    @PostMapping("/issues/{issueId}/comments")
-    public ResponseEntity<CommentResponse> createComment(
-            @PathVariable long issueId,
+    @Operation(description = "Creates comments/replies under an issue depending on parentId")
+    @PostMapping("/comments")
+    public ResponseEntity<CommentCreatedResponse> createComment(
             @Valid @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal MuddaUser principal
     ) {
-        Long userId = principal != null ? principal.getUserId() : null;
+        log.debug("Creating comment with request {}", request);
 
-        log.debug("Creating comment for issue with id {} and request {}", issueId, request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(issueId, userId, request));
-    }
-
-    @Operation(description = "Creates replies under a comment")
-    @PostMapping("/comments/{commentId}/replies")
-    public ResponseEntity<CommentResponse> createReply(
-            @PathVariable long commentId,
-            @Valid @RequestBody CreateCommentRequest request,
-            @AuthenticationPrincipal MuddaUser principal
-    ) {
-        Long userId = principal != null ? principal.getUserId() : null;
-
-        log.debug("Creating reply for comment with id {} and request {}", commentId, request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createReply(commentId, userId, request));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(commentService.createComment(principal.getUserId(), request));
     }
 
     @Operation(description = "Updates both comments and replies by their id")
     @PutMapping("/comments/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(
+    public ResponseEntity<CommentUpdateResponse> updateComment(
             @PathVariable long commentId,
             @Valid @NotBlank @RequestBody String text
     ) {
@@ -120,11 +106,9 @@ public class CommentController {
             @PathVariable long commentId,
             @AuthenticationPrincipal MuddaUser principal
     ) {
-        Long userId = principal != null ? principal.getUserId() : null;
+        log.debug("Liking comment with id {} by user {}", commentId, principal.getUserId());
 
-        log.debug("Liking comment with id {} by user {}", commentId, userId);
-
-        return ResponseEntity.ok(commentService.likeComment(commentId, userId));
+        return ResponseEntity.ok(commentLikeService.likeOnComment(commentId, principal.getUserId()));
     }
 
     @Operation(description = "Deletes both comments and replies by their id")
@@ -140,11 +124,9 @@ public class CommentController {
             @PathVariable long commentId,
             @AuthenticationPrincipal MuddaUser principal
     ) {
-        Long userId = principal != null ? principal.getUserId() : null;
+        log.debug("Removing like on comment with id {} by user {}", commentId, principal.getUserId());
 
-        log.debug("Removing like on comment with id {} by user {}", commentId, userId);
-
-        return ResponseEntity.ok(commentService.deleteLikeComment(commentId, userId));
+        return ResponseEntity.ok(commentLikeService.deleteLikeFromComment(commentId, principal.getUserId()));
     }
 
     // endregion

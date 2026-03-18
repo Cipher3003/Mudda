@@ -9,7 +9,6 @@
 package com.mudda.backend.comment.event;
 
 public record CommentRemovedEvent(
-        Long issueId,
-        Long id
+        Long issueId
 ) {
 }

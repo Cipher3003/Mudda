@@ -1,6 +1,9 @@
-package com.mudda.backend.amazon;
+package com.mudda.backend.media;
 
-import com.mudda.backend.exceptions.*;
+import com.mudda.backend.exceptions.S3ClientException;
+import com.mudda.backend.exceptions.S3ServiceException;
+import com.mudda.backend.exceptions.UploadFailedException;
+import com.mudda.backend.media.dto.ImageUploadResponse;
 import com.mudda.backend.utils.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +14,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -27,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AmazonImageServiceImplTest {
+public class MediaServiceImplTest {
 
     @Mock
     private S3Client amazonS3;
@@ -35,7 +39,11 @@ public class AmazonImageServiceImplTest {
     @Mock
     private ImageValidator imageValidator;
 
-    private AmazonImageServiceImpl amazonImageServiceImpl;
+    private MediaRepository mediaRepository;
+
+    private AmazonMediaService amazonMediaService;
+
+    private MediaHelperService mediaHelperService;
 
     final String bucketName = "media-url-devbucket-2026";
     final String testImageName = "testImage.jpg";
@@ -47,13 +55,10 @@ public class AmazonImageServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // AmazonImageServiceImpl setup
-        amazonImageServiceImpl = new AmazonImageServiceImpl(bucketName, amazonS3, imageValidator);
-        // cdnOrigin is a @Value field (not a constructor param) so Spring never injects
-        // it
-        // in plain unit tests — set it manually via reflection.
-        org.springframework.test.util.ReflectionTestUtils.setField(
-                amazonImageServiceImpl, "cdnOrigin", "https://cdn.example.com/");
+        amazonMediaService = new AmazonMediaService(
+                bucketName, amazonS3, imageValidator, mediaRepository, mediaHelperService
+        );
+        ReflectionTestUtils.setField(amazonMediaService, "cdnOrigin", "https://cdn.example.com/");
     }
 
     // #region Success Case
@@ -65,7 +70,7 @@ public class AmazonImageServiceImplTest {
             mockedStatic.when(() -> FileUtils.generateFileName(any())).thenReturn(testImageName);
             MockMultipartFile mockMultipartFile = createMockFileFromResource();
 
-            ImageUploadResponse response = amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile);
+            ImageUploadResponse response = amazonMediaService.uploadImage(mockMultipartFile);
 
             verify(imageValidator).validateImage(mockMultipartFile);
 
@@ -86,7 +91,7 @@ public class AmazonImageServiceImplTest {
         when(multipartFile.getOriginalFilename()).thenReturn(testImageName);
         when(multipartFile.getInputStream()).thenThrow(new IOException("Disk Error"));
 
-        assertThrows(UploadFailedException.class, () -> amazonImageServiceImpl.uploadImageToAmazon(multipartFile));
+        assertThrows(UploadFailedException.class, () -> amazonMediaService.uploadImage(multipartFile));
     }
 
     // #endregion
@@ -105,7 +110,7 @@ public class AmazonImageServiceImplTest {
             MockMultipartFile mockMultipartFile = createMockFileFromResource();
 
             assertThrows(S3ServiceException.class, () ->
-                    amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
+                    amazonMediaService.uploadImage(mockMultipartFile));
         }
     }
 
@@ -124,7 +129,7 @@ public class AmazonImageServiceImplTest {
             MockMultipartFile mockMultipartFile = createMockFileFromResource();
 
             assertThrows(S3ClientException.class, () ->
-                    amazonImageServiceImpl.uploadImageToAmazon(mockMultipartFile));
+                    amazonMediaService.uploadImage(mockMultipartFile));
         }
     }
 
@@ -133,7 +138,7 @@ public class AmazonImageServiceImplTest {
 
         ArgumentCaptor<DeleteObjectRequest> captor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
 
-        amazonImageServiceImpl.removeImageFromAmazon(testImageName);
+        amazonMediaService.deleteImage(testImageName);
 
         verify(amazonS3).deleteObject(captor.capture());
 
@@ -148,7 +153,7 @@ public class AmazonImageServiceImplTest {
         doThrow(S3Exception.builder().message("Unable to connect to S3").statusCode(500).build())
                 .when(amazonS3).deleteObject(any(DeleteObjectRequest.class));
 
-        assertThrows(S3ServiceException.class, () -> amazonImageServiceImpl.removeImageFromAmazon(testImageName));
+        assertThrows(S3ServiceException.class, () -> amazonMediaService.deleteImage(testImageName));
     }
 
     @Test
@@ -157,7 +162,7 @@ public class AmazonImageServiceImplTest {
         doThrow(SdkClientException.builder().message("Bad Request").build())
                 .when(amazonS3).deleteObject(any(DeleteObjectRequest.class));
 
-        assertThrows(S3ClientException.class, () -> amazonImageServiceImpl.removeImageFromAmazon(testImageName));
+        assertThrows(S3ClientException.class, () -> amazonMediaService.deleteImage(testImageName));
     }
 
 }

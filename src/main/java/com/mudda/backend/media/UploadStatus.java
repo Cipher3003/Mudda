@@ -1,14 +1,15 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : CommentCreatedEvent
+ * File    : UploadStatus
  * Author  : Vikas Kumar
- * Created : 15-03-2026
+ * Created : 03-02-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.comment.event;
+package com.mudda.backend.media;
 
-public record CommentCreatedEvent(
-        Long issueId
-) {
+public enum UploadStatus {
+    UPLOADING,
+    SUCCESS,
+    FAILED,
 }

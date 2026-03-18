@@ -16,7 +16,7 @@ public record CreateUserRequest(
         String phoneNumber,
         @NotBlank @Size(min = 8, max = 64) String password,
         @NotNull MuddaUserRole role,
-        @Size(max = 512) String profileImageUrl,
+        @Size(max = 512) String profileImageKey,
         String fcmToken
 ) {
 }

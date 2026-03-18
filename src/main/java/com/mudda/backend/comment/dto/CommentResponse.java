@@ -7,5 +7,14 @@ public record CommentResponse(
         String text,
         Long userId,
         Long issueId,
-        Instant createdAt) {
+        Long parentId,
+        Long likeCount,
+        Long replyCount,
+        Instant createdAt,
+//        FLAGS
+        Boolean hasLiked,
+        Boolean canLike,
+        Boolean canUpdate,
+        Boolean canDelete
+) {
 }

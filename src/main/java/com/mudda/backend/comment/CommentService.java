@@ -1,20 +1,23 @@
 package com.mudda.backend.comment;
 
-import com.mudda.backend.comment.dto.*;
-import com.mudda.backend.comment.event.CommentCreatedEvent;
-import com.mudda.backend.comment.event.CommentRemovedEvent;
+import com.mudda.backend.comment.dto.CommentResponse;
+import com.mudda.backend.comment.dto.CommentCreatedResponse;
+import com.mudda.backend.comment.dto.CommentUpdateResponse;
+import com.mudda.backend.comment.dto.CreateCommentRequest;
+import com.mudda.backend.comment.event.*;
 import com.mudda.backend.issue.IssueRepository;
-import com.mudda.backend.utils.EntityValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 @Slf4j
@@ -23,115 +26,43 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final CommentLikeService commentLikeService;
-    private final CommentLikeRepository commentLikeRepository;
     private final IssueRepository issueRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public CommentService(CommentRepository commentRepository,
                           CommentLikeService commentLikeService,
-                          CommentLikeRepository commentLikeRepository,
                           IssueRepository issueRepository,
                           ApplicationEventPublisher applicationEventPublisher) {
         this.commentRepository = commentRepository;
         this.commentLikeService = commentLikeService;
-        this.commentLikeRepository = commentLikeRepository;
         this.issueRepository = issueRepository;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
     // region Queries (Read Operations)
 
-    public Page<CommentDetailResponse> findCommentsWithLikes(long issueId, Pageable pageable, Long userId) {
-        Page<Comment> commentPage = commentRepository.findByIssueIdAndParentIdIsNull(issueId, pageable);
-
-        List<Long> ids = commentPage.getContent()
-                .stream()
-                .map(Comment::getCommentId)
-                .toList();
-
+    public Page<CommentResponse> findCommentsWithLikes(long issueId, Pageable pageable, Long userId) {
         if (userId == null)
-            return commentPage.map(comment ->
-                    getCommentResponseFromComment(comment, false,
-                            false, false, false));
-
-        Set<Long> likedIds = commentLikeRepository.findByUserIdAndCommentIdIn(userId, ids)
-                .stream()
-                .map(CommentLike::getCommentId)
-                .collect(Collectors.toSet()); // Uses Set to keep lookup fast for mapping in below function
-
-        return commentPage.map(comment -> getCommentResponseFromComment(
-                comment,
-                likedIds.contains(comment.getCommentId()),
-                true,
-                comment.getUserId().equals(userId),
-                comment.getUserId().equals(userId)
-        ));
+            return commentRepository.findCommentFeed(issueId, pageable).map(CommentMapper::toCommentResponseFromProj);
+        else
+            return commentRepository.findCommentFeed(userId, issueId, pageable)
+                    .map(p -> CommentMapper.toCommentResponseFromProj(p, userId));
     }
 
-    public Optional<CommentDetailResponse> findById(long commentId, Long userId) {
-        boolean hasUserLiked = userId != null && commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
-        return commentRepository.findById(commentId)
-                .map(comment -> getCommentResponseFromComment(
-                        comment,
-                        hasUserLiked,
-                        true,
-                        Objects.equals(comment.getUserId(), userId),
-                        Objects.equals(comment.getUserId(), userId)
-                ));
-    }
-
-    public Page<ReplyResponse> findAllReplies(long parentId, Pageable pageable, Long userId) {
-        Page<Comment> replyPage = commentRepository.findByParentId(parentId, pageable);
-
-        List<Long> ids = replyPage.getContent()
-                .stream()
-                .map(Comment::getCommentId)
-                .toList();
-
+    public Optional<CommentResponse> findById(long commentId, Long userId) {
         if (userId == null)
-            return replyPage.map(comment -> getReplyResponseFromComment(
-                    comment, false, false, false, false
-            ));
-
-        Set<Long> likedIds = commentLikeRepository.findByUserIdAndCommentIdIn(userId, ids)
-                .stream()
-                .map(CommentLike::getCommentId)
-                .collect(Collectors.toSet()); // Uses Set to keep lookup fast for mapping in below function
-
-        return replyPage.map(comment -> getReplyResponseFromComment(
-                comment,
-                likedIds.contains(comment.getCommentId()),
-                true,
-                comment.getUserId().equals(userId),
-                comment.getUserId().equals(userId)
-        ));
+            return commentRepository.findById(commentId).map(CommentMapper::toCommentResponseFromComment);
+        else
+            return commentRepository.findCommentById(userId, commentId)
+                    .map(p -> CommentMapper.toCommentResponseFromProj(p, userId));
     }
 
-    private CommentDetailResponse getCommentResponseFromComment(
-            Comment comment,
-            boolean hasUserLiked,
-            boolean canUserLike,
-            boolean canUserUpdate,
-            boolean canUserDelete
-    ) {
-        long likes = commentLikeService.countByCommentId(comment.getCommentId());
-        long replies = commentRepository.countByParentId(comment.getCommentId());
-
-        return CommentMapper.toCommentResponse(comment, likes, replies, hasUserLiked,
-                canUserLike, canUserUpdate, canUserDelete);
-    }
-
-    private ReplyResponse getReplyResponseFromComment(
-            Comment comment,
-            boolean hasUserLiked,
-            boolean canUserLike,
-            boolean canUserUpdate,
-            boolean canUserDelete
-    ) {
-        long likes = commentLikeService.countByCommentId(comment.getCommentId());
-
-        return CommentMapper.toReplyResponse(comment, likes, hasUserLiked,
-                canUserLike, canUserUpdate, canUserDelete);
+    public Page<CommentResponse> findAllReplies(long parentId, Pageable pageable, Long userId) {
+        if (userId == null)
+            return commentRepository.findReplyFeed(parentId, pageable).map(CommentMapper::toCommentResponseFromProj);
+        else
+            return commentRepository.findReplyFeed(userId, parentId, pageable)
+                    .map(p -> CommentMapper.toCommentResponseFromProj(p, userId));
     }
 
     // endregion
@@ -139,21 +70,47 @@ public class CommentService {
     // region Commands (Write Operations)
 
     @Transactional
-    public CommentResponse createComment(long issueId, Long userId, CreateCommentRequest createCommentRequest) {
-        validateCommentReferences(issueId);
+    public CommentCreatedResponse createComment(Long userId, CreateCommentRequest request) {
 
-//        TODO: change the exception to custom ?
-        if (userId == null)
-            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+        Comment comment = request.parentId() == null
+                ? createTopLevelComment(userId, request)
+                : createReply(userId, request);
 
-        Comment comment = CommentMapper.toComment(createCommentRequest, issueId, userId);
+        applicationEventPublisher.publishEvent(new CommentCreatedEvent(request.issueId()));
+        log.debug("Published CommentCreatedEvent for issue: {} and comment: {}",
+                comment.getIssueId(), comment.getId());
+
+        return CommentMapper.toCommentCreated(comment);
+    }
+
+    private Comment createTopLevelComment(long userId, CreateCommentRequest request) {
+        if (!issueRepository.existsById(request.issueId()))
+            throw new EntityNotFoundException("Issue not found with id: %s".formatted(request.issueId()));
+
+        Comment comment = CommentMapper.toComment(request, userId);
         Comment saved = commentRepository.save(comment);
-        log.info("Created comment with id {} by user {} on issue {}", saved.getCommentId(), userId, issueId);
+        log.info("Created Top Level Comment with id {} by user {} on issue {}",
+                saved.getId(), userId, request.issueId());
 
-        applicationEventPublisher.publishEvent(new CommentCreatedEvent(issueId, saved.getCommentId()));
-        log.debug("Published CommentCreatedEvent for issue: {} and comment: {}", issueId, saved.getCommentId());
+        return saved;
+    }
 
-        return CommentMapper.toCommentResponse(saved);
+    public Comment createReply(long userId, CreateCommentRequest request) {
+        Comment parent = commentRepository.findById(request.parentId()).orElseThrow(
+                () -> new EntityNotFoundException("Comment with id: %d not found. Failed to create reply"
+                        .formatted(request.parentId()))
+        );
+
+        Comment comment = CommentMapper.toReply(request, parent.getIssueId(), userId, request.parentId());
+        Comment saved = commentRepository.save(comment);
+        log.info("Created Reply Comment with id {} by user {} on issue {}",
+                saved.getId(), userId, parent.getId());
+
+        commentRepository.incrementReplyCount(parent.getId());
+        log.debug("Incremented Reply Count for comment: {} with reply: {}",
+                parent.getId(), saved.getId());
+
+        return saved;
     }
 
     @Transactional
@@ -161,56 +118,34 @@ public class CommentService {
             List<Long> issueIds, List<Long> userIds,
             List<CreateCommentRequest> createCommentRequests
     ) {
-        return commentRepository
-                .saveAll(IntStream
+        return commentRepository.saveAll(IntStream
                         .range(0, issueIds.size())
-                        .mapToObj(index ->
-                                CommentMapper.toComment(
-                                        createCommentRequests.get(index),
-                                        issueIds.get(index),
-                                        userIds.get(index)
-                                ))
+                        .mapToObj(index -> CommentMapper.toComment(
+                                createCommentRequests.get(index),
+                                userIds.get(index)
+                        ))
                         .toList())
                 .stream()
-                .map(Comment::getCommentId)
+                .map(Comment::getId)
                 .toList();
-    }
-
-    @Transactional
-    public CommentResponse createReply(long parentId, Long userId, CreateCommentRequest createCommentRequest) {
-
-//        TODO: change the exception to custom ?
-        if (userId == null)
-            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
-
-        Comment parent = commentRepository.findById(parentId)
-                .orElseThrow(() -> notFound(parentId));
-
-        Comment reply = CommentMapper.toReply(createCommentRequest, parent.getIssueId(), userId, parentId);
-        Comment saved = commentRepository.save(reply);
-        log.info("Created reply with id {} under comment {} by user {}", saved.getCommentId(), parentId, userId);
-        return CommentMapper.toCommentResponse(saved);
     }
 
     //    TODO: improve the readability of create replies
     @Transactional
-    public List<Long> createReplies(
+    public void createReplies(
             List<Long> parentIds, List<Long> userIds,
             List<Long> issueIds,
             List<CreateCommentRequest> createCommentRequests
     ) {
-        return commentRepository
-                .saveAll(IntStream.range(0, parentIds.size())
-                        .mapToObj(index ->
-                                CommentMapper.toReply(
-                                        createCommentRequests.get(index),
-                                        issueIds.get(index),
-                                        userIds.get(index),
-                                        parentIds.get(index)))
-                        .toList())
-                .stream()
-                .map(Comment::getCommentId)
-                .toList();
+        commentRepository.saveAll(IntStream.
+                range(0, parentIds.size())
+                .mapToObj(index -> CommentMapper.toReply(
+                        createCommentRequests.get(index),
+                        issueIds.get(index),
+                        userIds.get(index),
+                        parentIds.get(index)
+                ))
+                .toList());
     }
 
     @Transactional
@@ -219,52 +154,60 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentResponse updateComment(long id, String text) {
+    public CommentUpdateResponse updateComment(long id, String text) {
         if (text == null || text.isBlank())
             throw new IllegalArgumentException("Comment text cannot be empty.");
 
-        Comment comment = commentRepository.findById(id)
-                .orElseThrow(() -> notFound(id));
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> notFound(id));
 
         comment.updateDetails(text);
         Comment saved = commentRepository.save(comment);
-        log.info("Updated comment with id {}", saved.getCommentId());
-        return CommentMapper.toCommentResponse(saved);
+        log.info("Updated comment with id {}", saved.getId());
+
+        return CommentMapper.toCommentUpdated(saved);
     }
 
     @Transactional
     public void deleteComment(long id) {
-        Comment comment = commentRepository.findById(id)
-                .orElseThrow(() -> notFound(id));
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> notFound(id));
 
-        if (comment.getParentId() == null) {
-            List<Long> replyIds = commentRepository.findByParentId(comment.getCommentId())
-                    .stream()
-                    .map(Comment::getCommentId)
-                    .toList();
+        if (comment.getParentId() == null) deleteTopLevelComment(comment);
+        else deleteReply(comment);
+    }
 
-            if (!replyIds.isEmpty()) {
-                log.trace("Deleting all replies and reply likes under comment {}", id);
-                commentLikeService.deleteAllByCommentId(replyIds);
-                commentRepository.deleteByParentId(comment.getCommentId());
-            }
-        }
+    private void deleteTopLevelComment(Comment comment) {
+        Long id = comment.getId();
+        commentLikeService.deleteAllFromTopLevelComment(id);
+        log.debug("Deleted All likes from Top Level Comment with id {} and nested replies", id);
 
-        log.trace("Deleting all likes on comment with id {}", id);
-        commentLikeService.deleteByCommentId(comment.getCommentId());
+        long replyCount = commentRepository.countByParentId(id);
+        commentRepository.deleteAllFromTopLevelComment(id);
+        log.info("Deleted All comments from Top Level Comment with id {} and replies count: {}", id, replyCount);
+
+        applicationEventPublisher.publishEvent(new TopLevelCommentRemovedEvent(
+                comment.getIssueId(), 1 + replyCount
+        ));
+        log.debug("Published TopLevelCommentRemovedEvent for issue: {} and comment: {}", comment.getIssueId(), id);
+    }
+
+    private void deleteReply(Comment reply) {
+        Long id = reply.getId();
+        commentLikeService.deleteByCommentId(id);
         commentRepository.deleteById(id);
-        log.info("Deleted comment with id {}", id);
 
-        applicationEventPublisher.publishEvent(new CommentRemovedEvent(comment.getIssueId(), id));
-        log.debug("Published CommentRemovedEvent for issue: {} and comment: {}", comment.getIssueId(), id);
+        commentRepository.decrementReplyCount(reply.getParentId());
+
+        applicationEventPublisher.publishEvent(new CommentRemovedEvent(reply.getIssueId()));
+        log.debug("Published CommentRemovedEvent for issue: {} and comment: {}", reply.getIssueId(), id);
     }
 
     @Transactional
     public void deleteAllCommentsByUserId(long userId) {
+
 //        Parent Comments
         List<Long> commentIds = commentRepository.findByUserId(userId)
                 .stream()
-                .map(Comment::getCommentId)
+                .map(Comment::getId)
                 .toList();
 
         if (commentIds.isEmpty()) return;
@@ -272,7 +215,7 @@ public class CommentService {
         // Fetch all replies
         List<Long> replyIds = commentRepository.findByParentIdIn(commentIds)
                 .stream()
-                .map(Comment::getCommentId)
+                .map(Comment::getId)
                 .toList();
 
         List<Long> allIds = new ArrayList<>(commentIds);
@@ -289,7 +232,7 @@ public class CommentService {
 //        Fetches all comments and their replies since comment and reply both refer to issue individually
         List<Long> commentIds = commentRepository.findByIssueId(issueId)
                 .stream()
-                .map(Comment::getCommentId)
+                .map(Comment::getId)
                 .toList();
 
         if (commentIds.isEmpty()) return;
@@ -306,7 +249,7 @@ public class CommentService {
 //        Fetches all comments and their replies since comment and reply both refer to issue individually
         List<Long> commentIds = commentRepository.findByIssueIdIn(issueIds)
                 .stream()
-                .map(Comment::getCommentId)
+                .map(Comment::getId)
                 .toList();
 
         if (commentIds.isEmpty()) return;
@@ -317,33 +260,23 @@ public class CommentService {
         log.info("Delete comments and replies under {} issues", issueIds.size());
     }
 
-    @Transactional
-    public CommentLikeResponse likeComment(long commentId, Long userId) {
+    // endregion
 
-//        TODO: change the exception to custom ?
-        if (userId == null)
-            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+    // region Listeners
 
-        return commentLikeService.userLikesOnComment(commentId, userId);
+    @EventListener(CommentLikeCreatedEvent.class)
+    public void incrementCommentLikeCount(CommentLikeCreatedEvent event) {
+        commentRepository.incrementLikeCount(event.id());
     }
 
-    @Transactional
-    public CommentLikeResponse deleteLikeComment(long commentId, Long userId) {
-
-//        TODO: change the exception to custom ?
-        if (userId == null)
-            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
-
-        return commentLikeService.userRemovesLikeFromComment(commentId, userId);
+    @EventListener(CommentLikeRemovedEvent.class)
+    public void decrementCommentLikeCount(CommentLikeRemovedEvent event) {
+        commentRepository.decrementLikeCount(event.id());
     }
 
     // endregion
 
     //region Helpers
-
-    private void validateCommentReferences(long issueId) {
-        EntityValidator.validateExists(issueRepository, issueId, "Issue");
-    }
 
     private EntityNotFoundException notFound(long id) {
         return new EntityNotFoundException("Comment not found with id: %d".formatted(id));

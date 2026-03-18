@@ -6,7 +6,7 @@
  * Created : 03-02-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.amazon;
+package com.mudda.backend.media.dto;
 
 import java.util.List;
 

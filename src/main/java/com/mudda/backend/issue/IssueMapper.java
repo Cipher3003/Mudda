@@ -5,6 +5,8 @@ import com.mudda.backend.issue.dto.CoordinateDTO;
 import com.mudda.backend.user.MuddaUser;
 import org.locationtech.jts.geom.Coordinate;
 
+import java.util.List;
+
 public class IssueMapper {
 
     public static Issue toIssue(long userId, CreateIssueRequest issueRequest) {
@@ -15,7 +17,6 @@ public class IssueMapper {
                 issueRequest.description(),
                 userId,
                 IssueCategory.valueOf(issueRequest.category()),
-                issueRequest.mediaUrls(),
                 issueRequest.pinCode(),
                 issueRequest.city(),
                 issueRequest.state(),
@@ -24,7 +25,8 @@ public class IssueMapper {
     }
 
     public static IssueResponse toResponse(
-            Issue issue, MuddaUser muddaUser,
+            Issue issue, List<String> mediaUrls,
+            MuddaUser muddaUser,
             boolean hasLiked,
             boolean canVote, boolean canComment,
             boolean canEdit, boolean canDelete
@@ -37,7 +39,7 @@ public class IssueMapper {
                 issue.getStatus(),
                 issue.getCategory(),
                 issue.getVoteCount(),
-                issue.getMediaUrls(),
+                mediaUrls,
                 issue.getSeverityScore(),
                 issue.getCreatedAt(),
                 issue.getUpdatedAt(),
@@ -66,7 +68,8 @@ public class IssueMapper {
     }
 
     public static IssueSummaryResponse toSummary(
-            Issue issue, MuddaUser muddaUser,
+            Issue issue, List<String> mediaUrls,
+            MuddaUser muddaUser,
             boolean hasVoted, boolean canVote
     ) {
         return new IssueSummaryResponse(
@@ -74,7 +77,7 @@ public class IssueMapper {
                 issue.getTitle(),
                 issue.getStatus(),
                 issue.getVoteCount(),
-                issue.getMediaUrls(),
+                mediaUrls,
                 issue.getCreatedAt(),
                 // Author details
                 muddaUser.getUserId(),
@@ -86,7 +89,11 @@ public class IssueMapper {
         );
     }
 
-    public static IssueDashboardResponse forDashboard(Issue issue, MuddaUser muddaUser, long voteCount) {
+    public static IssueDashboardResponse forDashboard(
+            Issue issue, List<String> mediaUrls,
+            MuddaUser muddaUser,
+            long voteCount
+    ) {
         return new IssueDashboardResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -94,7 +101,7 @@ public class IssueMapper {
                 issue.getStatus(),
                 issue.getCategory(),
                 voteCount,
-                issue.getMediaUrls(),
+                mediaUrls,
                 issue.getSeverityScore(),
                 issue.getCreatedAt(),
                 issue.getUpdatedAt(),

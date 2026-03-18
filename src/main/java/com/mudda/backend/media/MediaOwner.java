@@ -1,14 +1,13 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : CommentCreatedEvent
+ * File    : MediaOwner
  * Author  : Vikas Kumar
- * Created : 15-03-2026
+ * Created : 16-03-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.comment.event;
+package com.mudda.backend.media;
 
-public record CommentCreatedEvent(
-        Long issueId
-) {
+public enum MediaOwner {
+    ISSUE, USER
 }

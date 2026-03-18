@@ -95,7 +95,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void getCommentById_existing_shouldReturn200WithCommentData() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(get("/api/v1/comments/" + id)
                         .header("X-Client-Type", "mobile"))
@@ -117,7 +117,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void getRepliesByComment_public_shouldReturn200WithPaginatedContent() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(get("/api/v1/comments/%d/replies".formatted(id))
                         .header("X-Client-Type", "mobile"))
@@ -198,7 +198,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         String payload = TestDataFactory.commentJson("This is a test reply.");
 
@@ -217,7 +217,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void createReply_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         String payload = TestDataFactory.validCommentJson();
 
@@ -234,7 +234,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         String invalidPayload = TestDataFactory.commentJson(null);
 
@@ -253,7 +253,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(post("/api/v1/comments/%d/like".formatted(id))
                         .header("X-Client-Type", "mobile")
@@ -268,7 +268,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void likeComment_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(post("/api/v1/comments/%d/like".formatted(id))
                         .header("X-Client-Type", "mobile"))
@@ -285,7 +285,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(post("/api/v1/comments/%d/like".formatted(id))
                         .header("X-Client-Type", "mobile")
@@ -306,7 +306,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void unlikeComment_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(delete("/api/v1/comments/%d/like".formatted(id))
                         .header("X-Client-Type", "mobile"))
@@ -319,7 +319,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(delete("/api/v1/comments/%d".formatted(id))
                         .header("X-Client-Type", "mobile")
@@ -332,7 +332,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void deleteComment_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(delete("/api/v1/comments/%d".formatted(id))
                         .header("X-Client-Type", "mobile"))
@@ -345,7 +345,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
-        Long id = seedComment(user.getUserId(), issue.getId()).getCommentId();
+        Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
         mockMvc.perform(delete("/api/v1/comments/%d".formatted(id))
                         .header("X-Client-Type", "mobile")

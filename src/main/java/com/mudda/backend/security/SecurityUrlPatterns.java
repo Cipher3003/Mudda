@@ -49,7 +49,7 @@ public final class SecurityUrlPatterns {
     };
 
     public static final String[] PUBLIC_READONLY_API = {
-            "/api/v1/amazon/images/**",
+            "/api/v1/media/**",
             "/api/v1/issues/categories/**",
             "/api/v1/comments/**",
             "/api/v1/issues/**",

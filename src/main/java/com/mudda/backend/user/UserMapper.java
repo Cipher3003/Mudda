@@ -14,7 +14,7 @@ public class UserMapper {
                 userRequest.dateOfBirth(),
                 userRequest.email(),
                 userRequest.password(),
-                userRequest.profileImageUrl(),
+                userRequest.profileImageKey(),
                 userRequest.role()
         );
     }

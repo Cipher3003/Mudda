@@ -1,14 +1,12 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : UploadStatus
+ * File    : TopLevelCommentRemovedEvent
  * Author  : Vikas Kumar
- * Created : 03-02-2026
+ * Created : 16-03-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.amazon;
+package com.mudda.backend.comment.event;
 
-public enum UploadStatus {
-    SUCCESS,
-    FAILED,
+public record TopLevelCommentRemovedEvent(Long issueId, long size) {
 }

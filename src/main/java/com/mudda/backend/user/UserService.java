@@ -8,6 +8,7 @@ import com.mudda.backend.exceptions.PhoneNumberAlreadyExistsException;
 import com.mudda.backend.exceptions.UserAlreadyExistsException;
 import com.mudda.backend.exceptions.UsernameAlreadyExistsException;
 import com.mudda.backend.issue.IssueService;
+import com.mudda.backend.media.MediaService;
 import com.mudda.backend.user.dto.*;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,6 +40,7 @@ public class UserService implements UserDetailsService {
     private final CommentService commentService;
     private final CommentLikeService commentLikeService;
     private final VoteService voteService;
+    private final MediaService mediaService;
     private final AppProperties appProperties;
 
     public UserService(
@@ -48,13 +50,16 @@ public class UserService implements UserDetailsService {
             CommentService commentService,
             CommentLikeService commentLikeService,
             VoteService voteService,
-            AppProperties appProperties) {
+            MediaService mediaService,
+            AppProperties appProperties
+    ) {
         this.issueService = issueService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.commentService = commentService;
         this.commentLikeService = commentLikeService;
         this.voteService = voteService;
+        this.mediaService = mediaService;
         this.appProperties = appProperties;
     }
 
@@ -102,6 +107,8 @@ public class UserService implements UserDetailsService {
 
         MuddaUser saved = userRepository.save(muddaUser);
         log.info("Created user with email {}", saved.getEmail());
+
+        mediaService.linkToUser(saved.getUserId(), userRequest.profileImageKey());
 
         return UserMapper.toDetail(saved);
     }
@@ -191,6 +198,7 @@ public class UserService implements UserDetailsService {
         return UserMapper.toSummary(saved);
     }
 
+    // TODO: delete media rows
     @Transactional
     public void deleteUser(long id) {
         log.info("Deleting user with id {}", id);
