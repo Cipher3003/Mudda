@@ -46,6 +46,14 @@ public class Issue {
     @Column(name = "issue_category_id", nullable = false)
     private Long categoryId;
 
+    // Community scoping — nullable; when null the issue is global
+    @Column(name = "community_id")
+    private Long communityId;
+
+    // Official response from a Community Admin
+    @Column(name = "official_response", columnDefinition = "TEXT")
+    private String officialResponse;
+
     // Media URLs stored as a Postgres text[] array
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "media_urls")

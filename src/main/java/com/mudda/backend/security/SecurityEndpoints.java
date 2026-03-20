@@ -55,6 +55,7 @@ public final class SecurityEndpoints {
             "/api/v1/issues/**",
             "/api/v1/votes/**",
             "/api/v1/locations/**",
-            "/api/v1/users/**"
+            "/api/v1/users/**",
+            "/api/v1/communities/**"
     };
 }
