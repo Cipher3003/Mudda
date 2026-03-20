@@ -20,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,6 +52,7 @@ public class AccountController {
         ));
 //        TODO: modify it store user quick info in authentication maybe to avoid database usage in JWT
 //        TODO: sync logged in user info with DB changes in session
+//        TODO: show not found on profile page for deleted user
 
     }
 
@@ -70,7 +70,7 @@ public class AccountController {
                 ? Sort.by(sort.getFieldName()).descending()
                 : Sort.by(sort.getFieldName()).ascending());
 
-        return ResponseEntity.ok(issueService.findAllIssuesByAuthor(pageable, principal.getUserId()));
+        return ResponseEntity.ok(issueService.findAllIssuesByAuthor(pageable, principal));
     }
 
     // endregion

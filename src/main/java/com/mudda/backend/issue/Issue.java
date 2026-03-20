@@ -1,5 +1,6 @@
 package com.mudda.backend.issue;
 
+import com.mudda.backend.user.MuddaUser;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -9,11 +10,13 @@ import org.locationtech.jts.geom.Point;
 
 import java.time.Instant;
 
+// TODO: implement reporting system
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "Issue")
-@Table(name = "issues")
+@Table(name = "issues", indexes = {@Index(name = "idx_issues_deleted_at", columnList = "deleted_at")})
 public class Issue {
 
     @Id
@@ -28,40 +31,6 @@ public class Issue {
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "issue_status", nullable = false)
-    private IssueStatus status = IssueStatus.OPEN;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "issue_category", length = 4, nullable = false)
-    private IssueCategory category;
-
-    // Reference to User in PostgresSQL
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    // Flags
-    @Column(name = "delete_flag", nullable = false)
-    private boolean deleteFlag = false;
-
-    // TODO: uncomment when implement reporting
-    // @Column(nullable = false)
-    // private boolean reportFlag = false;
-
-    // TODO: remove or use
-    @Column(name = "urgency_flag", nullable = false)
-    private boolean urgencyFlag = false;
-
-    // Severity score
-    @Column(name = "severity_score", nullable = false)
-    private double severityScore = 0.0;
-
-    @Column(name = "vote_count", nullable = false)
-    private long voteCount = 0;
-
-    @Column(name = "comment_count", nullable = false)
-    private long commentCount = 0;
-
     @Column(name = "pin_code", nullable = false)
     private String pinCode;
 
@@ -74,11 +43,38 @@ public class Issue {
     @Column(name = "coordinate", columnDefinition = "geometry(Point, 4326)", nullable = false)
     private Point coordinate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "issue_status", nullable = false)
+    private IssueStatus status = IssueStatus.OPEN;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "issue_category", length = 4, nullable = false)
+    private IssueCategory category;
+
+    @Column(name = "severity_score", nullable = false)
+    private double severityScore = 0.0;
+
+    @Column(name = "vote_count", nullable = false)
+    private long voteCount = 0;
+
+    @Column(name = "comment_count", nullable = false)
+    private long commentCount = 0;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", updatable = false, insertable = false)
+    private MuddaUser author;
 
     @PrePersist
     protected void onCreate() {

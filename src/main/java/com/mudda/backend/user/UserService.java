@@ -8,6 +8,7 @@ import com.mudda.backend.exceptions.PhoneNumberAlreadyExistsException;
 import com.mudda.backend.exceptions.UserAlreadyExistsException;
 import com.mudda.backend.exceptions.UsernameAlreadyExistsException;
 import com.mudda.backend.issue.IssueService;
+import com.mudda.backend.media.MediaOwner;
 import com.mudda.backend.media.MediaService;
 import com.mudda.backend.user.dto.*;
 import com.mudda.backend.vote.VoteService;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -99,16 +101,25 @@ public class UserService implements UserDetailsService {
         if (userRepository.existsByPhoneNumber(userRequest.phoneNumber()))
             throw new PhoneNumberAlreadyExistsException();
 
-        MuddaUser muddaUser = UserMapper.toUser(userRequest);
+        MuddaUser muddaUser = UserMapper.toMuddaUser(userRequest);
         muddaUser.changePasswordHash(passwordEncoder.encode(userRequest.password()));
 
-        if (userRequest.fcmToken() != null)
-            muddaUser.changeFcmToken(userRequest.fcmToken());
+        if (userRequest.fcmToken() != null) muddaUser.changeFcmToken(userRequest.fcmToken());
+        // TODO: concat cdn origin to url
 
         MuddaUser saved = userRepository.save(muddaUser);
         log.info("Created user with email {}", saved.getEmail());
 
-        mediaService.linkToUser(saved.getUserId(), userRequest.profileImageKey());
+        if (userRequest.profileImageKey() != null) {
+            int links = mediaService.linkToUser(saved.getUserId(), userRequest.profileImageKey());
+            if (links != 1) {
+                mediaService.removeImageFromOwner(saved.getUserId(), MediaOwner.USER);
+                log.warn("Media Linkage Failed for User id:{}", saved.getUserId());
+                throw new IllegalStateException("""
+                        User with id: %d has mismatch in media links, requested media size: %d, linked media size: %d"""
+                        .formatted(saved.getUserId(), 1, links));
+            }
+        }
 
         return UserMapper.toDetail(saved);
     }
@@ -119,7 +130,8 @@ public class UserService implements UserDetailsService {
         userRepository.findByUsername(username).ifPresent(muddaUser -> {
             muddaUser.recordFailedLoginAttempt(
                     appProperties.getSecurity().getLogin().getMaxAttempts(),
-                    Duration.ofMinutes(appProperties.getSecurity().getLogin().getLockDurationMinutes()));
+                    Duration.ofMinutes(appProperties.getSecurity().getLogin().getLockDurationMinutes())
+            );
             userRepository.save(muddaUser);
         });
     }
@@ -139,7 +151,7 @@ public class UserService implements UserDetailsService {
         MuddaUser user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        // TODO: update method to use SET for JPA dirty checking and updation
+        // TODO: update method to use SET for JPA dirty checking and update
         user.changeProfileImageUrl(imageKey);
         userRepository.save(user);
         log.info("Updated profile image for user with id {}", id);
@@ -159,11 +171,12 @@ public class UserService implements UserDetailsService {
         log.info("Updated password for user with id {}", id);
     }
 
+    @Deprecated
     @Transactional
     public List<Long> createUsers(List<CreateUserRequest> userRequests) {
         List<MuddaUser> muddaUsers = userRequests.stream().map(
                         request -> {
-                            MuddaUser user = UserMapper.toUser(request);
+                            MuddaUser user = UserMapper.toMuddaUser(request);
                             user.setEnabled(true);
                             return user;
                         })
@@ -196,6 +209,13 @@ public class UserService implements UserDetailsService {
         log.trace("Updated user with id {}", id);
 
         return UserMapper.toSummary(saved);
+    }
+
+    @Transactional
+    public void softDeleteUser(long id) {
+        log.info("Deleting user with id {}", id);
+
+        userRepository.softDeleteById(id, Instant.now());
     }
 
     // TODO: delete media rows

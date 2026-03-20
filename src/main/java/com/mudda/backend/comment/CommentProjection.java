@@ -16,8 +16,6 @@ public interface CommentProjection {
 
     String getText();
 
-    Long getUserId();
-
     Long getIssueId();
 
     Long getParentId();
@@ -27,6 +25,14 @@ public interface CommentProjection {
     Long getReplyCount();
 
     Instant getCreatedAt();
+
+    Long getUserId();
+
+    String getUsername();
+
+    String getProfileImageUrl();
+
+    Instant getAuthorDeletedAt();
 
     Boolean getHasLiked();
 

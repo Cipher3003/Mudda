@@ -25,12 +25,77 @@ public class IssueMapper {
     }
 
     public static IssueResponse toResponse(
+            IssueDetailProjection projection, List<String> mediaUrls,
+            boolean canVote, boolean canComment,
+            boolean canEdit, boolean canDelete
+    ) {
+        boolean issueDeleted = projection.getIssueDeletedAt() != null;
+        boolean authorDeleted = projection.getUserDeletedAt() != null;
+
+        return issueDeleted
+                ? new IssueResponse(
+                projection.getId(),
+                projection.getTitle(),
+                null,
+                projection.getStatus(),
+                projection.getCategory(),
+                projection.getCity(),
+                projection.getState(),
+                null,
+                projection.getVoteCount(),
+                projection.getCommentCount(),
+                0,
+                null,
+                null,
+                null,
+                // Author details
+                projection.getUserId(),
+                "Deleted User",
+                null,
+                // Flags
+                projection.getHasLiked(),
+                false, // TODO: force stop interactions on comment, like, votes service
+                false,
+                canEdit,
+                false
+        )
+                : new IssueResponse(
+                // Issue details
+                projection.getId(),
+                projection.getTitle(),
+                projection.getDescription(),
+                projection.getStatus(),
+                projection.getCategory(),
+                projection.getCity(),
+                projection.getState(),
+                CoordinateDTO.from(projection.getCoordinate()),
+                projection.getVoteCount(),
+                projection.getCommentCount(),
+                projection.getSeverityScore(),
+                projection.getCreatedAt(),
+                projection.getUpdatedAt(),
+                mediaUrls,
+                // Author details
+                projection.getUserId(),
+                authorDeleted ? "Deleted User" : projection.getUsername(),
+                authorDeleted ? null : projection.getProfileImageUrl(),
+                // Flags
+                projection.getHasLiked(),
+                canVote,
+                canComment,
+                canEdit,
+                canDelete
+        );
+    }
+
+    public static IssueResponse toResponse(
             Issue issue, List<String> mediaUrls,
             MuddaUser muddaUser,
             boolean hasLiked,
             boolean canVote, boolean canComment,
             boolean canEdit, boolean canDelete
     ) {
+        boolean userDeleted = muddaUser.getDeletedAt() != null;
         return new IssueResponse(
                 // Issue details
                 issue.getId(),
@@ -38,18 +103,19 @@ public class IssueMapper {
                 issue.getDescription(),
                 issue.getStatus(),
                 issue.getCategory(),
-                issue.getVoteCount(),
-                mediaUrls,
-                issue.getSeverityScore(),
-                issue.getCreatedAt(),
-                issue.getUpdatedAt(),
-                // Author details
-                muddaUser.getUserId(),
-                muddaUser.getUsername(),
-                muddaUser.getProfileImageUrl(),
                 issue.getCity(),
                 issue.getState(),
                 CoordinateDTO.from(issue.getCoordinate()),
+                issue.getVoteCount(),
+                issue.getCommentCount(),
+                issue.getSeverityScore(),
+                issue.getCreatedAt(),
+                issue.getUpdatedAt(),
+                mediaUrls,
+                // Author details
+                muddaUser.getUserId(),  // TODO: remove delete userId
+                userDeleted ? "Deleted User" : muddaUser.getUsername(),
+                userDeleted ? null : muddaUser.getProfileImageUrl(),
                 // Flags
                 hasLiked,
                 canVote,
@@ -91,27 +157,26 @@ public class IssueMapper {
 
     public static IssueDashboardResponse forDashboard(
             Issue issue, List<String> mediaUrls,
-            MuddaUser muddaUser,
-            long voteCount
+            MuddaUser muddaUser
     ) {
         return new IssueDashboardResponse(
                 issue.getId(),
                 issue.getTitle(),
                 issue.getDescription(),
-                issue.getStatus(),
-                issue.getCategory(),
-                voteCount,
-                mediaUrls,
-                issue.getSeverityScore(),
-                issue.getCreatedAt(),
-                issue.getUpdatedAt(),
-                muddaUser.getUserId(),
-                muddaUser.getUsername(),
-                muddaUser.getProfileImageUrl(),
                 issue.getPinCode(),
                 issue.getCity(),
                 issue.getState(),
-                CoordinateDTO.from(issue.getCoordinate())
+                CoordinateDTO.from(issue.getCoordinate()),
+                issue.getStatus(),
+                issue.getCategory(),
+                issue.getVoteCount(),
+                issue.getSeverityScore(),
+                issue.getCreatedAt(),
+                issue.getUpdatedAt(),
+                mediaUrls,
+                muddaUser.getUserId(),
+                muddaUser.getUsername(),
+                muddaUser.getProfileImageUrl()
         );
     }
 }

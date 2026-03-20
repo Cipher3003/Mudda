@@ -67,16 +67,21 @@ public class MockImageServiceImpl implements MediaService {
     }
 
     @Override
-    public void linkToIssue(long issueId, List<String> mediaKeys) {
-
+    public int linkToIssue(long issueId, List<String> mediaKeys) {
+        return mediaKeys.size();
     }
 
     @Override
-    public void linkToUser(long userId, String mediaKey) {
-
+    public int linkToUser(long userId, String mediaKey) {
+        return 1;
     }
 
     @Override
     public void deleteImage(String imageFileName) {
+    }
+
+    @Override
+    public void removeImageFromOwner(Long id, MediaOwner mediaOwner) {
+
     }
 }

@@ -6,7 +6,6 @@ import lombok.Getter;
 public enum IssueSortBy {
     ID("id"),
     TITLE("title"),
-    STATUS("status"),
     SEVERITY_SCORE("severityScore"),
     CREATED_AT("createdAt"),
     UPDATED_AT("updatedAt");

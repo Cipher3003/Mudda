@@ -29,9 +29,11 @@ public class AuthController {
     private final AccountService accountService;
     private final MessageUtil messageUtil;
 
-    public AuthController(AuthService authService,
-                          AccountService accountService,
-                          MessageUtil messageUtil) {
+    public AuthController(
+            AuthService authService,
+            AccountService accountService,
+            MessageUtil messageUtil
+    ) {
         this.authService = authService;
         this.accountService = accountService;
         this.messageUtil = messageUtil;
@@ -66,8 +68,6 @@ public class AuthController {
     // endregion
 
     // region Mobile ONLY
-
-    //    TODO: add email verification endpoint with POST
 
     //    Only login when both token expires
     @PostMapping("/login")

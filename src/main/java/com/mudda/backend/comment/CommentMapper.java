@@ -8,52 +8,71 @@ import com.mudda.backend.comment.dto.CreateCommentRequest;
 public class CommentMapper {
 
     public static CommentResponse toCommentResponseFromProj(CommentProjection p) {
-        return new CommentResponse(
-                p.getId(),
-                p.getText(),
-                p.getUserId(),
-                p.getIssueId(),
-                p.getParentId(),
-                p.getLikeCount(),
-                p.getReplyCount(),
-                p.getCreatedAt(),
-                p.getHasLiked(),
-                false, false, false
-        );
+        return p.getAuthorDeletedAt() != null ?
+                new CommentResponse(
+                        p.getId(),
+                        p.getText(),
+                        p.getIssueId(),
+                        p.getParentId(),
+                        p.getLikeCount(),
+                        p.getReplyCount(),
+                        p.getCreatedAt(),
+                        p.getUserId(),
+                        "Deleted User",
+                        null,
+                        p.getHasLiked(),
+                        false, false, false
+                ) :
+                new CommentResponse(
+                        p.getId(),
+                        p.getText(),
+                        p.getIssueId(),
+                        p.getParentId(),
+                        p.getLikeCount(),
+                        p.getReplyCount(),
+                        p.getCreatedAt(),
+                        p.getUserId(),
+                        p.getUsername(),
+                        p.getProfileImageUrl(),
+                        p.getHasLiked(),
+                        false, false, false
+                );
     }
 
     public static CommentResponse toCommentResponseFromProj(CommentProjection p, long userId) {
-        return new CommentResponse(
-                p.getId(),
-                p.getText(),
-                p.getUserId(),
-                p.getIssueId(),
-                p.getParentId(),
-                p.getLikeCount(),
-                p.getReplyCount(),
-                p.getCreatedAt(),
-                p.getHasLiked(),
-                true,
-                userId == p.getUserId(),
-                userId == p.getUserId()
-        );
-    }
-
-    public static CommentResponse toCommentResponseFromComment(Comment comment) {
-        return new CommentResponse(
-                comment.getId(),
-                comment.getText(),
-                comment.getUserId(),
-                comment.getIssueId(),
-                comment.getParentId(),
-                comment.getLikeCount(),
-                comment.getReplyCount(),
-                comment.getCreatedAt(),
-                false,
-                false,
-                false,
-                false
-        );
+        return p.getAuthorDeletedAt() != null ?
+                new CommentResponse(
+                        p.getId(),
+                        p.getText(),
+                        p.getIssueId(),
+                        p.getParentId(),
+                        p.getLikeCount(),
+                        p.getReplyCount(),
+                        p.getCreatedAt(),
+                        p.getUserId(),
+                        "Deleted User",
+                        null,
+                        p.getHasLiked(),
+                        true,
+                        false,
+                        false
+                ) :
+                new CommentResponse(
+                        p.getId(),
+                        p.getText(),
+                        p.getIssueId(),
+                        p.getParentId(),
+                        p.getLikeCount(),
+                        p.getReplyCount(),
+                        p.getCreatedAt(),
+                        p.getUserId(),
+                        p.getUsername(),
+                        p.getProfileImageUrl(),
+                        p.getHasLiked(),
+                        true,
+                        userId == p.getUserId(),
+                        userId == p.getUserId()
+                );
     }
 
     public static CommentCreatedResponse toCommentCreated(Comment comment) {

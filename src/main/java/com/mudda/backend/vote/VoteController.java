@@ -30,14 +30,6 @@ public class VoteController {
         return ResponseEntity.ok(voteService.findAllVotes(pageable));
     }
 
-    //    NOTE: DEVELOPER ONLY
-    @GetMapping("/votes/{voteId}")
-    public ResponseEntity<Vote> getVotesById(@PathVariable long voteId) {
-        return voteService.findVoteById(voteId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     // endregion
 
     // region Commands (Write Operations)
@@ -48,13 +40,6 @@ public class VoteController {
             @AuthenticationPrincipal MuddaUser principal
     ) {
         return ResponseEntity.ok(voteService.create(issueId, principal.getUserId()));
-    }
-
-    //    NOTE: DEVELOPER ONLY
-    @DeleteMapping("/votes/{voteId}")
-    public ResponseEntity<Void> delete(@PathVariable long voteId) {
-        voteService.deleteVote(voteId);
-        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/issues/{issueId}/votes")

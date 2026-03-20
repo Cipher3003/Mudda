@@ -1,5 +1,7 @@
 package com.mudda.backend.vote;
 
+import com.mudda.backend.issue.Issue;
+import com.mudda.backend.user.MuddaUser;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,22 +17,19 @@ import java.time.Instant;
 @Table(name = "votes")
 public class Vote {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "votes_seq")
-    @SequenceGenerator(name = "votes_seq", sequenceName = "votes_id_seq", allocationSize = 50)
-    @Column(name = "vote_id", updatable = false, nullable = false)
-    private Long voteId;
-
-    // Reference to Issue in PostgresSQL
-    @Column(name = "issue_id", nullable = false)
-    private Long issueId;
-
-    // Reference to User in PostgresSQL
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @EmbeddedId
+    private VoteId id;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", updatable = false, insertable = false)
+    private MuddaUser user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "issue_id", updatable = false, insertable = false)
+    private Issue issue;
 
     @PrePersist
     protected void onCreate() {
@@ -40,27 +39,11 @@ public class Vote {
     // ----- Domain Constructor -----
 
     public Vote(Long issueId, Long userId) {
-        if (issueId == null)
-            throw new IllegalArgumentException("Issue Id cannot be null");
-        if (userId == null)
-            throw new IllegalArgumentException("User Id cannot be null");
-
-        this.issueId = issueId;
-        this.userId = userId;
+        this.id = new VoteId(issueId, userId);
     }
 
     // Factory method (DDD pattern)
     public static Vote castVote(Long issueId, Long userId) {
         return new Vote(issueId, userId);
-    }
-
-    // TODO: remove unused methods
-    // Domain methods for business logic
-    public boolean isVotedBy(Long userId) {
-        return this.userId.equals(userId);
-    }
-
-    public boolean isForIssue(Long issueId) {
-        return this.issueId.equals(issueId);
     }
 }

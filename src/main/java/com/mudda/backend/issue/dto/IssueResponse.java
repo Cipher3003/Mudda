@@ -12,19 +12,22 @@ public record IssueResponse(
         String description,
         IssueStatus status,
         IssueCategory category,
-        Long voteCount,
-        List<String> mediaUrls,
-        double severityScore,
-        Instant createdAt,
-        Instant updatedAt,
-        // Author
-        Long userId,
-        String userName,
-        String profileImageUrl,
         // Location
         String city,
         String state,
         CoordinateDTO coordinate,
+        Long voteCount,
+        Long commentCount,
+        double severityScore,
+        Instant createdAt,
+        Instant updatedAt,  // TOOD: remove this field useless
+        // TODO: add deletedAt
+
+        List<String> mediaUrls,
+        // Author
+        Long userId,
+        String userName,
+        String profileImageUrl,
         // FLAGS
         Boolean hasVoted,
         Boolean canVote,

@@ -19,9 +19,10 @@ import java.util.stream.Stream;
 
 public interface MediaRepository extends JpaRepository<Media, Long> {
 
-    List<Media> findByOwnerIdAndOwnerType(Long id, MediaOwner mediaOwner);
+    @Query("SELECT m.mediaKey FROM Media m WHERE m.ownerId = :ownerId AND m.ownerType = :mediaOwner")
+    List<String> findMediaKeysByOwnerIdAndOwnerType(Long ownerId, MediaOwner mediaOwner);
 
-    List<Media> findByOwnerIdInAndOwnerType(List<Long> issueIds, MediaOwner mediaOwner);
+    List<MediaProjection> findByOwnerIdInAndOwnerType(List<Long> issueIds, MediaOwner mediaOwner);
 
     Optional<Media> findByPublicId(String publicId);
 
@@ -36,4 +37,7 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
     @Query("UPDATE Media m SET m.ownerType = :mediaOwner, m.ownerId = :id WHERE m.publicId IN :mediaKeys")
     int updateOwner(MediaOwner mediaOwner, long id, List<String> mediaKeys);
 
+    @Modifying
+    @Query("UPDATE Media m SET m.status = 'FAILED' WHERE m.ownerId = :ownerId AND m.ownerType = :mediaOwner")
+    int markFailedByOwnerIdAndOwnerType(Long ownerId, MediaOwner mediaOwner);
 }

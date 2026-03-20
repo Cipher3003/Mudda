@@ -1,14 +1,16 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : IssueCreatedEvent
+ * File    : MediaProjection
  * Author  : Vikas Kumar
- * Created : 15-03-2026
+ * Created : 19-03-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.vote;
+package com.mudda.backend.media;
 
-public record VoteCratedEvent(
-        Long issueId
-) {
+public interface MediaProjection {
+
+    Long getOwnerId();
+
+    String getMediaKey();
 }

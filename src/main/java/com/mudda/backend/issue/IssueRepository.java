@@ -10,11 +10,33 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface IssueRepository extends JpaRepository<Issue, Long>, JpaSpecificationExecutor<Issue> {
+
+
+    @Query("""
+            SELECT i.id, i.title, i.description, i.status, i.category, i.city, i.state, i.coordinate, i.voteCount,
+            i.commentCount, i.severityScore, i.createdAt, i.updatedAt, i.deletedAt AS issueDeletedAt, u.userId,
+            u.username, u.profileImageUrl, u.deletedAt AS userDeletedAt,
+            FALSE AS hasLiked
+            FROM Issue i JOIN MuddaUser u ON i.userId = :currentUserId
+            WHERE i.id = :id
+            """)
+    Optional<IssueDetailProjection> findIssueDetailProjectionById(Long id);
+
+    @Query("""
+            SELECT i.id, i.title, i.description, i.status, i.category, i.city, i.state, i.coordinate, i.voteCount,
+            i.commentCount, i.severityScore, i.createdAt, i.updatedAt, i.deletedAt AS issueDeletedAt, u.userId,
+            u.username, u.profileImageUrl, u.deletedAt AS userDeletedAt,
+            EXISTS (SELECT 1 FROM Vote v WHERE v.id.issueId = i.id AND v.id.userId = u.userId) AS hasLiked
+            FROM Issue i JOIN MuddaUser u ON i.userId = :currentUserId
+            WHERE i.id = :id
+            """)
+    Optional<IssueDetailProjection> findIssueDetailProjectionById(Long id, long currentUserId);
 
     List<Issue> findByUserId(long userId);
 
@@ -41,6 +63,10 @@ public interface IssueRepository extends JpaRepository<Issue, Long>, JpaSpecific
     );
 
     @Modifying
+    @Query("UPDATE Issue i SET i.deletedAt = :now, i.status = 'DELETED' WHERE i.id = :id")
+    void softDeleteById(Long id, Instant now);
+
+    @Modifying
     @Query("UPDATE Issue i SET i.voteCount = i.voteCount + 1 WHERE i.id = :issueId")
     void incrementVoteCount(long issueId);
 
@@ -58,5 +84,9 @@ public interface IssueRepository extends JpaRepository<Issue, Long>, JpaSpecific
     @Query("UPDATE Issue i SET i.commentCount = i.commentCount - 1 WHERE i.id = :issueId")
     @Modifying
     void decrementCommentCount(long issueId);
+
+    @Query("UPDATE Issue i SET i.commentCount = i.commentCount - :size WHERE i.id = :issueId")
+    @Modifying
+    void decrementCommentCount(long issueId, long size);
 
 }

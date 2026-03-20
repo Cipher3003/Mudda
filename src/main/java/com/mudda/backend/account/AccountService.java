@@ -36,11 +36,13 @@ public class AccountService {
     private final RefreshTokenService refreshTokenService;
     private final AppProperties appProperties;
 
-    public AccountService(UserService userService,
-                          VerificationTokenService tokenService,
-                          EmailService emailService,
-                          RefreshTokenService refreshTokenService,
-                          AppProperties appProperties) {
+    public AccountService(
+            UserService userService,
+            VerificationTokenService tokenService,
+            EmailService emailService,
+            RefreshTokenService refreshTokenService,
+            AppProperties appProperties
+    ) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.emailService = emailService;
@@ -144,7 +146,7 @@ public class AccountService {
 
         tokenService.deleteAllTokensByUserId(userId);
 
-        userService.deleteUser(userId);
+        userService.softDeleteUser(userId);
         log.trace("Deleted account with id {}", userId);
     }
 

@@ -16,35 +16,50 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     Page<Comment> findByIssueIdAndParentIdIsNull(long issueId, Pageable pageable);
 
     @Query("""
-             SELECT c.id, c.text, c.userId, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt, FALSE AS hasLiked
-             FROM Comment c WHERE c.issueId = :issueId
+             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
+             c.userId ,u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
+             FALSE AS hasLiked
+             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.issueId = :issueId
             \s""")
     Page<CommentProjection> findCommentFeed(long issueId, Pageable pageable);
 
     @Query("""
-             SELECT c.id, c.text, c.userId, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-                EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.commentId = c.id AND cl.userId = :userId) AS hasLiked
-             FROM Comment c WHERE c.issueId = :issueId
+             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
+             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
+             EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
+             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId  WHERE c.issueId = :issueId
             \s""")
     Page<CommentProjection> findCommentFeed(long userId, long issueId, Pageable pageable);
 
     @Query("""
-             SELECT c.id, c.text, c.userId, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-                EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.commentId = c.id AND cl.userId = :userId) AS hasLiked
-             FROM Comment c WHERE c.id = :commentId
+             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
+             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
+             FALSE AS hasLiked
+             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.id = :commentId
+            \s""")
+    Optional<CommentProjection> findCommentById(long commentId);
+
+    @Query("""
+             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
+             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
+             EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
+             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.id = :commentId
             \s""")
     Optional<CommentProjection> findCommentById(long userId, long commentId);
 
     @Query("""
-             SELECT c.id, c.text, c.userId, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt, FALSE AS hasLiked
-             FROM Comment c WHERE c.parentId = :parentId
+             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
+             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
+             FALSE AS hasLiked
+             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.parentId = :parentId
             \s""")
     Page<CommentProjection> findReplyFeed(long parentId, Pageable pageable);
 
     @Query("""
-             SELECT c.id, c.text, c.userId, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-                EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.commentId = c.id AND cl.userId = :userId) AS hasLiked
-             FROM Comment c WHERE c.parentId = :parentId
+             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
+             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
+             EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
+             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.parentId = :parentId
             \s""")
     Page<CommentProjection> findReplyFeed(long userId, long parentId, Pageable pageable);
 

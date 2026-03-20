@@ -7,9 +7,11 @@ import com.mudda.backend.media.dto.MediaUploadRequest;
 import com.mudda.backend.media.dto.MediaUploadResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -71,7 +73,7 @@ public class AmazonMediaService implements MediaService {
 
             ListObjectsV2Response response = s3Client.listObjectsV2(request);
             response.contents().forEach(s3Object ->
-                    objectKeys.add(cdnOrigin.concat(s3Object.key()))
+                    objectKeys.add("%s/%s".formatted(cdnOrigin, s3Object.key()))
             );
 
         } catch (Exception e) {
@@ -93,7 +95,8 @@ public class AmazonMediaService implements MediaService {
         try {
             String publicId = mediaHelperService.generatePublicId();
             String filename = multipartFile.getOriginalFilename();
-            String mediaKey = mediaHelperService.getMediaKey(publicId, filename);
+            String fileExtension = FilenameUtils.getExtension(filename);
+            String mediaKey = mediaHelperService.getMediaKey(publicId, fileExtension);
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
@@ -174,7 +177,8 @@ public class AmazonMediaService implements MediaService {
         mediaHelperService.validateUploadRequest(request);
 
         String publicId = mediaHelperService.generatePublicId();
-        String mediaKey = mediaHelperService.getMediaKey(publicId, request.fileName());
+        String fileExtension = FilenameUtils.getExtension(request.fileName());
+        String mediaKey = mediaHelperService.getMediaKey(publicId, fileExtension);
 
         mediaRepository.save(new Media(
                 publicId, mediaKey, UploadStatus.UPLOADING, request.position()
@@ -197,7 +201,8 @@ public class AmazonMediaService implements MediaService {
 
         for (MediaUploadRequest request : requests) {
             String publicId = mediaHelperService.generatePublicId();
-            String mediaKey = mediaHelperService.getMediaKey(publicId, request.fileName());
+            String fileExtension = FilenameUtils.getExtension(request.fileName());
+            String mediaKey = mediaHelperService.getMediaKey(publicId, fileExtension);
             String presignedUrl = mediaHelperService.generatePresignedUrl(bucketName, mediaKey, request.contentType());
 
             mediaList.add(new Media(publicId, mediaKey, UploadStatus.UPLOADING, request.position()));
@@ -231,16 +236,18 @@ public class AmazonMediaService implements MediaService {
 
     @Override
     @Transactional
-    public void linkToIssue(long issueId, List<String> mediaKeys) {
+    public int linkToIssue(long issueId, List<String> mediaKeys) {
         int rows = mediaRepository.updateOwner(MediaOwner.ISSUE, issueId, mediaKeys);
         log.debug("Updated owner to issue id {}, rows {}", issueId, rows);
+        return rows;
     }
 
     @Override
     @Transactional
-    public void linkToUser(long userId, String mediaKey) {
+    public int linkToUser(long userId, String mediaKey) {
         int rows = mediaRepository.updateOwner(MediaOwner.USER, userId, List.of(mediaKey));
         log.debug("Updated owner to user id {}, rows {}", userId, rows);
+        return rows;
     }
 
     @Override
@@ -250,7 +257,13 @@ public class AmazonMediaService implements MediaService {
         if (rows != 1) throw new UploadFailedException();
     }
 
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void removeImageFromOwner(Long ownerId, MediaOwner mediaOwner) {
+        int rows = mediaRepository.markFailedByOwnerIdAndOwnerType(ownerId, mediaOwner);
+        log.debug("Marked {} Images from Owner: {}:{} for removal", rows, mediaOwner, ownerId);
+    }
+
     // endregion
-    //    TODO: add delete multiple images
 
 }

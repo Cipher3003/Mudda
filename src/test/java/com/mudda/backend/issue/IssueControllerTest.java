@@ -44,7 +44,7 @@ class IssueControllerTest extends AbstractIntegrationTest {
     private static final String PASSWORD = "Password123!";
 
     private MuddaUser seedUser() {
-        MuddaUser user = UserMapper.toUser(
+        MuddaUser user = UserMapper.toMuddaUser(
                 TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD))
         );
         user.setEnabled(true);

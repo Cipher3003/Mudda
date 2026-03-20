@@ -3,11 +3,9 @@ package com.mudda.backend.issue;
 import com.mudda.backend.comment.CommentService;
 import com.mudda.backend.comment.event.CommentCreatedEvent;
 import com.mudda.backend.comment.event.CommentRemovedEvent;
+import com.mudda.backend.comment.event.TopLevelCommentRemovedEvent;
 import com.mudda.backend.issue.dto.*;
-import com.mudda.backend.media.Media;
-import com.mudda.backend.media.MediaOwner;
-import com.mudda.backend.media.MediaRepository;
-import com.mudda.backend.media.MediaService;
+import com.mudda.backend.media.*;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.vote.*;
@@ -22,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -40,7 +39,7 @@ public class IssueService {
     private final SqsTemplate sqsTemplate;
 
     private static final String QUEUE_NAME = "mudda-hate-speech-queue";
-    public static final String CDN_URL = "cdn";
+    public static final String CDN_URL = "cdn"; // TODO: inject CDN url
 
     public IssueService(
             IssueRepository issueRepository, CommentService commentService,
@@ -73,11 +72,11 @@ public class IssueService {
                 .and(IssueSpecifications.hasCategory(category))
                 .and(IssueSpecifications.hasCity(filterRequest.city()))
                 .and(IssueSpecifications.hasState(filterRequest.state()))
-                .and(IssueSpecifications.isUrgent(filterRequest.urgency()))
-                .and(IssueSpecifications.isDeleted(false))
+                .and(IssueSpecifications.isNotDeleted())
                 .and(IssueSpecifications.severityBetween(filterRequest.minSeverity(), filterRequest.maxSeverity()))
                 .and(IssueSpecifications.createdAfter(filterRequest.createdAfter()))
-                .and(IssueSpecifications.createdBefore(filterRequest.createdBefore()));
+                .and(IssueSpecifications.createdBefore(filterRequest.createdBefore()))
+                .and(IssueSpecifications.fetchAuthor());
 
         Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
 
@@ -85,133 +84,70 @@ public class IssueService {
                 .map(Issue::getId)
                 .toList();
 
-        Map<Long, List<String>> mediaUrlMap = mediaRepository
-                .findByOwnerIdInAndOwnerType(issueIds, MediaOwner.ISSUE)
-                .stream()
-                .collect(Collectors.groupingBy(
-                        Media::getOwnerId,
-                        Collectors.mapping(
-                                media -> CDN_URL.concat(media.getMediaKey()),
-                                Collectors.toList()
-                        )
-                ));
-
-        Set<Long> authorIds = issuePage.getContent().stream()
-                .map(Issue::getUserId)
-                .collect(Collectors.toSet());
-
-        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
-                .stream()
-                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
+        Map<Long, List<String>> mediaUrlMap = getIssueIdsMediaUrlsMap(issueIds);
 
         boolean isAuthenticated = userId != null;
 
-        // TODO: maybe use Vote entity's own check vote casted by user to filter this
-        // set even more
         Set<Long> issuesVotedByUser = isAuthenticated
-                ? voteRepository.findByUserIdAndIssueIdIn(userId, issueIds)
-                .stream()
-                .map(Vote::getIssueId)
-                .collect(Collectors.toSet())
+                ? new HashSet<>(voteRepository.findByUserIdAndIssueIdIn(userId, issueIds))
                 : Set.of();
 
-        return issuePage.map(issue -> {
-
-            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
-            if (muddaUser == null)
-                throw new IllegalStateException("User not found for issue: " + issue.getId());
-
-            // TODO: maybe continue and ignore bad data and cleanup later
-
-            boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
-
-            // TODO: maybe prevent self voting
-            return IssueMapper.toResponse(
-                    issue, mediaUrlMap.get(issue.getId()), muddaUser, hasUserVoted,
-                    isAuthenticated, isAuthenticated, isAuthenticated, isAuthenticated
-            );
-        });
+        return issuePage.map(issue -> IssueMapper.toResponse(
+                issue,
+                mediaUrlMap.get(issue.getId()),
+                issue.getAuthor(),
+                issuesVotedByUser.contains(issue.getId()),
+                isAuthenticated, // NOTE: Allowed self voting
+                isAuthenticated, isAuthenticated, isAuthenticated
+        ));
     }
 
-    public Page<IssueSummaryResponse> findAllIssuesByAuthor(Pageable pageable, Long userId) {
+    public Page<IssueSummaryResponse> findAllIssuesByAuthor(Pageable pageable, MuddaUser user) {
 
-        Page<Issue> issuePage = issueRepository.findByUserId(userId, pageable);
+        Page<Issue> issuePage = issueRepository.findByUserId(user.getUserId(), pageable);
 
-        List<Long> issueIds = issuePage.getContent()
-                .stream()
+        List<Long> issueIds = issuePage.getContent().stream()
                 .map(Issue::getId)
                 .toList();
 
-        Map<Long, List<String>> mediaUrlMap = mediaRepository
-                .findByOwnerIdInAndOwnerType(issueIds, MediaOwner.ISSUE)
-                .stream()
-                .collect(Collectors.groupingBy(
-                        Media::getOwnerId,
-                        Collectors.mapping(
-                                media -> CDN_URL.concat(media.getMediaKey()),
-                                Collectors.toList()
-                        )
-                ));
+        Map<Long, List<String>> mediaUrlMap = getIssueIdsMediaUrlsMap(issueIds);
 
-        Set<Long> authorIds = issuePage.getContent()
-                .stream()
-                .map(Issue::getUserId)
-                .collect(Collectors.toSet());
+        // NOTE: Allowed self voting
+        Set<Long> issuesVotedByUser = new HashSet<>(
+                voteRepository.findByUserIdAndIssueIdIn(user.getUserId(), issueIds)
+        );
 
-        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
-                .stream()
-                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
-
-        // TODO: maybe use Vote entity's own check vote casted by user to filter this
-        // set even more
-        Set<Long> issuesVotedByUser = voteRepository.findByUserIdAndIssueIdIn(userId, issueIds)
-                .stream()
-                .map(Vote::getIssueId)
-                .collect(Collectors.toSet());
-
-        return issuePage.map(issue -> {
-
-            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
-            if (muddaUser == null)
-                throw new IllegalStateException("User not found for issue: " + issue.getId());
-            // TODO: maybe continue and ignore bad data and cleanup later
-
-            boolean hasUserVoted = issuesVotedByUser.contains(issue.getId());
-
-            // TODO: maybe prevent self voting
-            return IssueMapper.toSummary(issue, mediaUrlMap.get(issue.getId()), muddaUser, hasUserVoted, true);
-            // canVote true since this method is called by protected endpoint
-        });
+        return issuePage.map(issue -> IssueMapper.toSummary(
+                issue,
+                mediaUrlMap.get(issue.getId()),
+                user,
+                issuesVotedByUser.contains(issue.getId()),
+                true
+        ));
     }
 
-    public Optional<IssueResponse> findById(long id, Long userId) {
-
-        Issue issue = issueRepository.findById(id).orElse(null);
-        if (issue == null)
-            return Optional.empty();
-
-        MuddaUser author = userRepository.findById(issue.getUserId()).orElse(null);
-        if (author == null)
-            return Optional.empty();
-
-        List<String> mediaUrls = mediaRepository.findByOwnerIdAndOwnerType(issue.getId(), MediaOwner.ISSUE)
-                .stream()
-                .map(media -> CDN_URL.concat(media.getMediaKey()))
-                .toList();
+    public IssueResponse findById(long id, Long userId) {
 
         boolean isAuthenticated = userId != null;
-        boolean isOwner = isAuthenticated && issue.getUserId().equals(userId);
 
-        boolean hasUserVoted = isAuthenticated
-                && voteRepository.existsByIssueIdAndUserId(issue.getId(), userId);
+        IssueDetailProjection projection = isAuthenticated
+                ? issueRepository.findIssueDetailProjectionById(id, userId).orElseThrow(() -> notFound(id))
+                : issueRepository.findIssueDetailProjectionById(id).orElseThrow(() -> notFound(id));
 
-        return Optional.of(IssueMapper.toResponse(
-                issue, mediaUrls, author, hasUserVoted,
+        List<String> mediaUrls = mediaRepository
+                .findMediaKeysByOwnerIdAndOwnerType(projection.getId(), MediaOwner.ISSUE).stream()
+                .map(IssueService::toPublicUrl)
+                .toList();
+
+        boolean isAuthor = isAuthenticated && userId.equals(projection.getUserId());
+
+        return IssueMapper.toResponse(
+                projection, mediaUrls,
                 isAuthenticated, // canVote
                 isAuthenticated, // canComment
-                isOwner, // canEdit
-                isOwner // canDelete
-        ));
+                isAuthor, // canEdit
+                isAuthor // canDelete
+        );
     }
 
     // Reference:
@@ -231,7 +167,9 @@ public class IssueService {
             return new IssueClusterResponse(List.of());
 
         Map<String, List<IssueClusterQueryResult>> grouped = issueClusters.stream()
-                .collect(Collectors.groupingBy(cluster -> cluster.cellX() + "_" + cluster.cellY()));
+                .collect(Collectors.groupingBy(
+                        cluster -> cluster.cellX() + "_" + cluster.cellY()
+                ));
 
         List<IssueClusterDTO> clusters = new ArrayList<>(grouped.size());
 
@@ -253,53 +191,19 @@ public class IssueService {
     }
 
     public Page<IssueDashboardResponse> findAllIssuesDashboard(Pageable pageable) {
-        // TODO: refactor this method whole dashboard endpoint and service
-        Specification<Issue> specification = IssueSpecifications.isDeleted(false);
+        // TODO: refactor this whole dashboard endpoint and service
+        Specification<Issue> specification = IssueSpecifications
+                .isNotDeleted()
+                .and(IssueSpecifications.fetchAuthor());
 
         Page<Issue> issuePage = issueRepository.findAll(specification, pageable);
+        Map<Long, List<String>> mediaUrlMap = getIssueIdsMediaUrlsMap(issuePage.getContent().stream().map(Issue::getId).toList());
 
-        List<Long> issueIds = issuePage.getContent()
-                .stream()
-                .map(Issue::getId)
-                .toList();
-
-        Map<Long, List<String>> mediaUrlMap = mediaRepository
-                .findByOwnerIdInAndOwnerType(issueIds, MediaOwner.ISSUE)
-                .stream()
-                .collect(Collectors.groupingBy(
-                        Media::getOwnerId,
-                        Collectors.mapping(
-                                media -> CDN_URL.concat(media.getMediaKey()),
-                                Collectors.toList()
-                        )
-                ));
-
-        Set<Long> authorIds = issuePage.getContent()
-                .stream()
-                .map(Issue::getUserId)
-                .collect(Collectors.toSet());
-
-        Map<Long, MuddaUser> usersMap = userRepository.findAllById(authorIds)
-                .stream()
-                .collect(Collectors.toMap(MuddaUser::getUserId, user -> user));
-
-        Map<Long, Long> voteCountMap = voteRepository.countByIssueIdIn(issueIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0], // issueId
-                        row -> (Long) row[1] // count
-                ));
-
-        return issuePage.map(issue -> {
-
-            MuddaUser muddaUser = usersMap.getOrDefault(issue.getUserId(), null);
-            if (muddaUser == null)
-                throw new IllegalStateException("User not found for issue: " + issue.getId());
-
-            long voteCount = voteCountMap.getOrDefault(issue.getId(), 0L);
-
-            return IssueMapper.forDashboard(issue, mediaUrlMap.get(issue.getId()), muddaUser, voteCount);
-        });
+        return issuePage.map(issue -> IssueMapper.forDashboard(
+                issue,
+                mediaUrlMap.get(issue.getId()),
+                issue.getAuthor()
+        ));
     }
 
     // endregion
@@ -308,24 +212,34 @@ public class IssueService {
 
     @Transactional
     public IssueResponse createIssue(Long userId, CreateIssueRequest issueRequest) {
-        MuddaUser muddaUser = userRepository.findById(userId).orElse(null);
-        if (muddaUser == null) throw new IllegalArgumentException("User not found for creating Issue");
+        MuddaUser muddaUser = userRepository.findById(userId).orElseThrow(
+                () -> new IllegalArgumentException("User not found for creating Issue")
+        );  // TODO: if JWT request comes can we rely on DB foreign key to validate user
 
         Issue issue = IssueMapper.toIssue(userId, issueRequest);
 
         Issue saved = issueRepository.save(issue);
         log.info("Created Issue with id {} by user with id {}", saved.getId(), userId);
 
-        mediaService.linkToIssue(saved.getId(), issueRequest.mediaUrls());
+        int links = mediaService.linkToIssue(saved.getId(), issueRequest.mediaUrls());
+        if (links != issueRequest.mediaUrls().size()) {
+            mediaService.removeImageFromOwner(saved.getId(), MediaOwner.ISSUE);
+            log.warn("Media Linkage Failed for Issue id:{}", saved.getId());
+            throw new IllegalStateException("""
+                    Issue with id: %d has mismatch in media links, requested media size: %d, linked media size: %d"""
+                    .formatted(saved.getId(), issueRequest.mediaUrls().size(), links));
+        }
 
-        List<String> mediaUrls = issueRequest.mediaUrls().stream().map(CDN_URL::concat).toList();
+        List<String> mediaUrls = issueRequest.mediaUrls().stream()
+                .map(IssueService::toPublicUrl)
+                .toList();
 
         IssueCreatedEvent issueCreatedEvent = new IssueCreatedEvent(
                 saved.getId(), userId, false, saved.getTitle() + saved.getDescription()
         );
 
         SendResult<IssueCreatedEvent> result = sqsTemplate.send(QUEUE_NAME, issueCreatedEvent);
-        log.trace("Event: {} result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
+        log.trace("Event: {} push result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
 
         log.info("Sent event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
 
@@ -336,6 +250,7 @@ public class IssueService {
         );
     }
 
+    @Deprecated
     @Transactional
     public List<Long> createIssues(List<Long> userIds, List<CreateIssueRequest> issueRequests) {
         List<Issue> issues = issueRepository.saveAll(
@@ -356,24 +271,25 @@ public class IssueService {
 
     @Transactional
     public IssueUpdateResponse updateIssue(long id, Long userId, UpdateIssueRequest issueRequest) {
-
-        // TODO: change the exception to custom ?
-        if (userId == null)
-            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+        // TODO: if JWT request comes validate user - fetch fresh from db
+        // Maybe fetch author with issue and validate authorId, and permissions
 
         Issue existing = issueRepository.findById(id).orElseThrow(() -> notFound(id));
 
         boolean isOwner = existing.getUserId().equals(userId);
-        if (!isOwner)
-            throw new IllegalStateException("Only author can update their posted issue");
+        if (!isOwner) throw new IllegalStateException("Only author can update their posted issue");
+        // TODO: use custom exception - forbidden action
 
         IssueStatus status = IssueStatus.fromCode(issueRequest.status());
+        // TODO: block user from changing status - only govt, creator or system allowed
         existing.updateDetails(issueRequest.title(), issueRequest.description(), status);
         Issue updated = issueRepository.save(existing);
         log.info("Updated Issue with id {} by user with id {}", updated.getId(), userId);
 
+        // TODO: use updated event
         IssueCreatedEvent issueCreatedEvent = new IssueCreatedEvent(
-                updated.getId(), userId, true, updated.getTitle() + updated.getDescription());
+                updated.getId(), userId, true, updated.getTitle() + updated.getDescription()
+        );
         SendResult<IssueCreatedEvent> result = sqsTemplate.send(QUEUE_NAME, issueCreatedEvent);
         log.trace("Update Event: {} result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
         log.info("Sent update event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
@@ -381,29 +297,23 @@ public class IssueService {
         return IssueMapper.toUpdateResponse(updated);
     }
 
-    // TODO: use delete flag to soft delete ?
-    // TODO: delete media rows
+    // SOFT delete content (issue, comment), hard delete interactions (likes, votes)
+    // hide soft deleted content in feed - redact or mask deleted content
     @Transactional
     public void deleteIssue(long id, Long userId) {
-
-        // TODO: change the exception to custom ?
-        if (userId == null)
-            throw new IllegalArgumentException("UserId not correct, Login with proper credentials");
+        // TODO: if JWT request comes validate user - fetch fresh from db
+        // Maybe fetch author with issue and validate authorId, and permissions
 
         Issue issue = issueRepository.findById(id).orElseThrow(() -> notFound(id));
 
         boolean isOwner = issue.getUserId().equals(userId);
-        if (!isOwner)
-            throw new IllegalStateException("Only author can delete their posted issue");
-
-        log.trace("Deleting all comments under issue {}", issue.getId());
-        commentService.deleteAllCommentsByIssueId(issue.getId());
+        if (!isOwner) throw new IllegalStateException("Only author can delete their posted issue");
 
         log.trace("Deleting all votes under issue {}", issue.getId());
         voteService.deleteAllVotesByIssueId(issue.getId());
 
-        issueRepository.deleteById(id);
-        log.info("Deleted Issue with id {} by user with id {}", issue.getId(), userId);
+        issueRepository.softDeleteById(id, Instant.now());
+        log.info("Soft Deleted Issue with id {} by user with id {}", issue.getId(), userId);
     }
 
     // TODO: use delete flag to soft delete ?
@@ -411,8 +321,7 @@ public class IssueService {
     public void deleteAllIssuesByUser(long userId) {
         List<Long> issueIds = issueRepository.findByUserId(userId).stream().map(Issue::getId).toList();
 
-        if (issueIds.isEmpty())
-            return;
+        if (issueIds.isEmpty()) return;
 
         log.trace("Deleting all comments under multiple issues");
         commentService.deleteAllCommentsByIssueIds(issueIds);
@@ -424,13 +333,23 @@ public class IssueService {
         log.info("Deleted {} issues", issueIds.size());
     }
 
+    @Transactional
+    public void softDelete(Long id) {
+        issueRepository.softDeleteById(id, Instant.now());
+    }
+
+    @Transactional
+    public void restoreIssue(Long id) {
+        issueRepository.softDeleteById(id, null);
+    }
+
     // endregion
 
     // region Listeners
 
-    @EventListener(VoteCratedEvent.class)
+    @EventListener(VoteCreatedEvent.class)
     // Should work in sync and same transaction as caller as claimed by internet
-    public void incrementVote(VoteCratedEvent event) {
+    public void incrementVote(VoteCreatedEvent event) {
         issueRepository.incrementVoteCount(event.issueId());
     }
 
@@ -449,9 +368,29 @@ public class IssueService {
         issueRepository.decrementCommentCount(event.issueId());
     }
 
+    @EventListener(TopLevelCommentRemovedEvent.class)
+    public void decrementCommentCounts(TopLevelCommentRemovedEvent event) {
+        issueRepository.decrementCommentCount(event.issueId(), event.size());
+    }
+
     // endregion
 
     // region Helpers
+
+    private Map<Long, List<String>> getIssueIdsMediaUrlsMap(List<Long> issueIds) {
+        return mediaRepository.findByOwnerIdInAndOwnerType(issueIds, MediaOwner.ISSUE).stream()
+                .collect(Collectors.groupingBy(
+                        MediaProjection::getOwnerId,
+                        Collectors.mapping(
+                                media -> toPublicUrl(media.getMediaKey()),
+                                Collectors.toList()
+                        )
+                ));
+    }
+
+    private static String toPublicUrl(String media) {
+        return "%s/%s".formatted(CDN_URL, media);
+    }
 
     private EntityNotFoundException notFound(long id) {
         return new EntityNotFoundException("Issue not found with id: %d".formatted(id));

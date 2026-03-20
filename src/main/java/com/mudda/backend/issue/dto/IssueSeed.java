@@ -31,7 +31,6 @@ public record IssueSeed(
                 seed.description(),
                 (long) seed.userId(),
                 IssueCategory.valueOf(seed.category()),
-                seed.mediaUrls(),
                 seed.pinCode(),
                 seed.city(),
                 seed.state(),

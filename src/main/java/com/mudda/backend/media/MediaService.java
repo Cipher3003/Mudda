@@ -22,10 +22,11 @@ public interface MediaService {
 
     void completeUpload(String id);
 
-    void linkToIssue(long issueId, List<String> mediaKeys);
+    int linkToIssue(long issueId, List<String> mediaKeys);
 
-    void linkToUser(long userId, String mediaKey);
+    int linkToUser(long userId, String mediaKey);
 
     void deleteImage(String imageFileName);
 
+    void removeImageFromOwner(Long id, MediaOwner mediaOwner);
 }

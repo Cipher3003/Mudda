@@ -95,7 +95,8 @@ public class SeedService {
                 "Issue",
                 "VerificationToken",
                 "RefreshToken",
-                "MuddaUser");
+                "MuddaUser"
+        );
 
         try {
             for (String entityName : entityNamesInDeletionOrder) {
@@ -116,7 +117,8 @@ public class SeedService {
                     "issues_id_seq",
                     "action_tokens_id_seq",
                     "refresh_token_id_seq",
-                    "users_id_seq");
+                    "users_id_seq"
+            );
 
             for (String sequenceName : sequenceNames) {
                 try {
@@ -334,18 +336,19 @@ public class SeedService {
         feedback.add("Generating " + count + " top-level comments...");
 
         List<CreateCommentRequest> commentRequests = new ArrayList<>();
-        List<Long> issues = new ArrayList<>();
         List<Long> users = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
+            Long issueId = getRandomId(issueIds);
             commentRequests.add(new CreateCommentRequest(
-                    faker.lorem().paragraph(random.nextInt(5, 15))));
-
-            issues.add(getRandomId(issueIds));
+                    faker.lorem().paragraph(random.nextInt(5, 15)),
+                    issueId,
+                    null
+            ));
             users.add(getRandomId(userIds));
         }
 
-        parentCommentIds.addAll(commentService.createComments(issues, users, commentRequests));
+        parentCommentIds.addAll(commentService.createComments(users, commentRequests));
     }
 
     private void generateReplies(int count, List<Long> parentCommentIds, List<Long> issueIds,
@@ -364,7 +367,10 @@ public class SeedService {
 
         for (int i = 0; i < count; i++) {
             replyRequests.add(new CreateCommentRequest(
-                    faker.lorem().paragraph(random.nextInt(5, 15))));
+                    faker.lorem().paragraph(random.nextInt(5, 15)),
+                    null,
+                    null
+            ));
             parents.add(getRandomId(parentCommentIds));
             issues.add(getRandomId(issueIds));
             users.add(getRandomId(userIds));

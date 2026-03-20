@@ -67,10 +67,7 @@ public class IssueController {
     ) {
         Long userId = principal != null ? principal.getUserId() : null;
 
-        return issueService
-                .findById(id, userId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(issueService.findById(id, userId));
     }
 
     @GetMapping("/clusters")

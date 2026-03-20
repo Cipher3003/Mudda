@@ -12,6 +12,7 @@ public record IssueSummaryResponse(
         Long voteCount,
         List<String> mediaUrls,
         Instant createdAt,
+        // TODO: add deletedAt, updatedAt other metrics
         // Author
         Long userId,
         String userName,

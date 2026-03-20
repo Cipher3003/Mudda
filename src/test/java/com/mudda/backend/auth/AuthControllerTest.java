@@ -71,7 +71,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
      * @return {@link MuddaUser}
      */
     private MuddaUser seedUserAndEnableUser() {
-        MuddaUser user = UserMapper.toUser(TestDataFactory.
+        MuddaUser user = UserMapper.toMuddaUser(TestDataFactory.
                 validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD)));
         user.setEnabled(true);
         return userRepository.save(user);
@@ -162,7 +162,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("POST /auth/register → 409 Fails when duplicate email")
     void registerUser_shouldFail_whenEmailAlreadyExists() throws Exception {
-        userRepository.save(UserMapper.toUser(
+        userRepository.save(UserMapper.toMuddaUser(
                 TestDataFactory.validRegisterRequest("UniqueName", EMAIL, PASSWORD)));
 
         MuddaUser existing = userRepository.findByEmail(EMAIL).orElseThrow();
@@ -291,7 +291,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("GET /auth/verify-email/confirm → 410 Gone when token is expired")
     void verifyEmail_shouldReturn200_whenTokenIsExpired() throws Exception {
-        MuddaUser user = UserMapper.toUser(TestDataFactory.validRegisterRequest(USERNAME, EMAIL, PASSWORD));
+        MuddaUser user = UserMapper.toMuddaUser(TestDataFactory.validRegisterRequest(USERNAME, EMAIL, PASSWORD));
         MuddaUser saved = userRepository.save(user);
 
         String expiredTokenValue = UUID.randomUUID().toString();
@@ -393,7 +393,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("POST /auth/login → 401 Unauthorized when email is not verified (mobile, DisabledException)")
     void loginUser_mobile_shouldFail_whenEmailNotVerified() throws Exception {
-        MuddaUser user = UserMapper.toUser(TestDataFactory.validRegisterRequest(USERNAME, EMAIL, PASSWORD));
+        MuddaUser user = UserMapper.toMuddaUser(TestDataFactory.validRegisterRequest(USERNAME, EMAIL, PASSWORD));
         userRepository.save(user);
 
         String loginBody = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", USERNAME, PASSWORD);

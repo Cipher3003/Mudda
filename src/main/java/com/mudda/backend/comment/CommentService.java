@@ -29,10 +29,12 @@ public class CommentService {
     private final IssueRepository issueRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public CommentService(CommentRepository commentRepository,
-                          CommentLikeService commentLikeService,
-                          IssueRepository issueRepository,
-                          ApplicationEventPublisher applicationEventPublisher) {
+    public CommentService(
+            CommentRepository commentRepository,
+            CommentLikeService commentLikeService,
+            IssueRepository issueRepository,
+            ApplicationEventPublisher applicationEventPublisher
+    ) {
         this.commentRepository = commentRepository;
         this.commentLikeService = commentLikeService;
         this.issueRepository = issueRepository;
@@ -51,7 +53,7 @@ public class CommentService {
 
     public Optional<CommentResponse> findById(long commentId, Long userId) {
         if (userId == null)
-            return commentRepository.findById(commentId).map(CommentMapper::toCommentResponseFromComment);
+            return commentRepository.findCommentById(commentId).map(CommentMapper::toCommentResponseFromProj);
         else
             return commentRepository.findCommentById(userId, commentId)
                     .map(p -> CommentMapper.toCommentResponseFromProj(p, userId));
@@ -113,13 +115,14 @@ public class CommentService {
         return saved;
     }
 
+    @Deprecated
     @Transactional
     public List<Long> createComments(
-            List<Long> issueIds, List<Long> userIds,
+            List<Long> userIds,
             List<CreateCommentRequest> createCommentRequests
     ) {
         return commentRepository.saveAll(IntStream
-                        .range(0, issueIds.size())
+                        .range(0, userIds.size())
                         .mapToObj(index -> CommentMapper.toComment(
                                 createCommentRequests.get(index),
                                 userIds.get(index)
@@ -131,6 +134,7 @@ public class CommentService {
     }
 
     //    TODO: improve the readability of create replies
+    @Deprecated
     @Transactional
     public void createReplies(
             List<Long> parentIds, List<Long> userIds,

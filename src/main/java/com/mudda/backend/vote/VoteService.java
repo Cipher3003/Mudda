@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class VoteService {
@@ -34,10 +33,6 @@ public class VoteService {
         return voteRepository.findAll(pageable);
     }
 
-    public Optional<Vote> findVoteById(long id) {
-        return voteRepository.findById(id);
-    }
-
     // endregion
 
     // region Commands (Write Operations)
@@ -49,18 +44,13 @@ public class VoteService {
         );
 
         voteRepository.save(Vote.castVote(issueId, userId));
-        applicationEventPublisher.publishEvent(new VoteCratedEvent(issueId));
+        applicationEventPublisher.publishEvent(new VoteCreatedEvent(issueId, userId));
 
         return VoteResponse.from(voteCount + 1, true);
     }
 
     public void saveVotes(List<Vote> votes) {
         voteRepository.saveAll(votes);
-    }
-
-    @Transactional
-    public void deleteVote(long id) {
-        voteRepository.deleteById(id);
     }
 
     @Transactional
@@ -80,7 +70,7 @@ public class VoteService {
         );
 
         voteRepository.deleteByIssueIdAndUserId(issueId, userId);
-        applicationEventPublisher.publishEvent(new VoteRemovedEvent(issueId));
+        applicationEventPublisher.publishEvent(new VoteRemovedEvent(issueId, userId));
 
         return VoteResponse.from(voteCount - 1, false);
     }

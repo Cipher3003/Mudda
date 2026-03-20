@@ -10,21 +10,21 @@ public record IssueDashboardResponse(
         Long id,
         String title,
         String description,
-        IssueStatus status,
-        IssueCategory category,
-        Long voteCount,
-        List<String> mediaUrls,
-        double severityScore,
-        Instant createdAt,
-        Instant updatedAt,
-        // Author
-        Long userId,
-        String userName,
-        String profileImageUrl,
-        // location
         String pinCode,
         String city,
         String state,
-        CoordinateDTO coordinate
+        CoordinateDTO coordinate,
+        IssueStatus status,
+        IssueCategory category,
+        Long voteCount,
+        double severityScore,
+        Instant createdAt,
+        Instant updatedAt,
+
+        List<String> mediaUrls,
+        // Author
+        Long userId,
+        String userName,
+        String profileImageUrl
 ) {
 }

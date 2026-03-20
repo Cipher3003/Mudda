@@ -46,7 +46,7 @@ public class CommentController {
     }
 
     @GetMapping("/comments/{commentId}")
-    public ResponseEntity<CommentResponse> getCommentsById(
+    public ResponseEntity<CommentResponse> getCommentById(
             @PathVariable long commentId,
             @AuthenticationPrincipal MuddaUser principal
     ) {

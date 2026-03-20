@@ -23,7 +23,7 @@ import java.time.Instant;
 @Table(
         name = "media",
         indexes = {
-                @Index(name = "idx_media_ownerType_and_ownerId", columnList = "owner_type, owner_id"),
+                @Index(name = "idx_media_owner_type_and_owner_id", columnList = "owner_type, owner_id"),
                 @Index(name = "idx_media_public_id", columnList = "public_id")
         }
 )
@@ -38,7 +38,7 @@ public class Media {
     @Column(name = "public_id", nullable = false, updatable = false, unique = true, length = 36)
     private String publicId;
 
-    @Column(name = "media_key", nullable = false)
+    @Column(name = "media_key", nullable = false, length = 200)
     private String mediaKey;
 
     @Column(name = "size")
