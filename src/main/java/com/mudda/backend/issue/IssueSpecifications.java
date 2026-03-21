@@ -74,4 +74,9 @@ public class IssueSpecifications {
             return criteriaBuilder.lessThanOrEqualTo(root.get("severityScore"), max);
         };
     }
+
+    public static Specification<Issue> hasCommunityId(Long communityId) {
+        return (root, query, criteriaBuilder) ->
+                communityId == null ? null : criteriaBuilder.equal(root.get("communityId"), communityId);
+    }
 }
