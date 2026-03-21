@@ -1,7 +1,7 @@
 package com.mudda.backend.exceptions;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.mudda.backend.token.TokenType;
+import com.mudda.backend.token.verification.TokenType;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
 import jakarta.persistence.EntityNotFoundException;

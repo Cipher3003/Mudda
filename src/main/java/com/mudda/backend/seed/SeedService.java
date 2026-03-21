@@ -283,8 +283,8 @@ public class SeedService {
                     uniquePhoneNumber,
                     password,
                     getRandomMuddaUserRole(), // Get a random existing role
-                    faker.avatar().image(),
-                    null));
+                    faker.avatar().image()
+            ));
         }
         userIds.addAll(userService.createUsers(userRequests));
     }

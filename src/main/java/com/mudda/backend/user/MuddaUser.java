@@ -71,9 +71,6 @@ public class MuddaUser implements UserDetails {
     @Column
     private String profileImageUrl;
 
-    @Column(columnDefinition = "TEXT")
-    private String fcmToken;
-
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();
@@ -148,10 +145,6 @@ public class MuddaUser implements UserDetails {
 
     public void changeProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
-    }
-
-    public void changeFcmToken(String fcmToken) {
-        this.fcmToken = fcmToken;
     }
 
     public void verify() {

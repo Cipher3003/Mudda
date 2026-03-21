@@ -8,7 +8,6 @@
  */
 package com.mudda.backend.token.verification;
 
-import com.mudda.backend.token.TokenType;
 import com.mudda.backend.user.MuddaUser;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

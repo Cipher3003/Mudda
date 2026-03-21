@@ -10,6 +10,6 @@ package com.mudda.backend.notification;
 
 public interface PushNotificationService {
 
-    void sendNotification(String token, String id, String title, String body);
+    void sendNotification(Long userId, String id, String title, String body);
 
 }

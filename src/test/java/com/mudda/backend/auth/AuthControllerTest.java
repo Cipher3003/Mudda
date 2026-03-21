@@ -7,7 +7,7 @@ import com.mudda.backend.auth.dto.ForgotPasswordRequest;
 import com.mudda.backend.auth.dto.RefreshRequest;
 import com.mudda.backend.auth.dto.ResetPasswordRequest;
 import com.mudda.backend.auth.dto.VerifyRequest;
-import com.mudda.backend.token.TokenType;
+import com.mudda.backend.token.verification.TokenType;
 import com.mudda.backend.token.refresh.RefreshToken;
 import com.mudda.backend.token.refresh.RefreshTokenRepository;
 import com.mudda.backend.token.verification.VerificationToken;

@@ -21,7 +21,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class MockImageServiceImpl implements MediaService {
+public class MockMediaServiceImpl implements MediaService {
 
     @PostConstruct
     public void init() {

@@ -103,8 +103,6 @@ public class UserService implements UserDetailsService {
 
         MuddaUser muddaUser = UserMapper.toMuddaUser(userRequest);
         muddaUser.changePasswordHash(passwordEncoder.encode(userRequest.password()));
-
-        if (userRequest.fcmToken() != null) muddaUser.changeFcmToken(userRequest.fcmToken());
         // TODO: concat cdn origin to url
 
         MuddaUser saved = userRepository.save(muddaUser);

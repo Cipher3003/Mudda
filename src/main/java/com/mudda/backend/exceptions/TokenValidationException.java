@@ -8,7 +8,7 @@
  */
 package com.mudda.backend.exceptions;
 
-import com.mudda.backend.token.TokenType;
+import com.mudda.backend.token.verification.TokenType;
 import lombok.Getter;
 
 @Getter

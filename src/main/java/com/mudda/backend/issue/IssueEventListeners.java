@@ -45,9 +45,8 @@ public class IssueEventListeners {
             log.info("Sending notification for Issue: {} marked for hate", response.id());
 
             userRepository.findById(response.userId())
-                    .map(MuddaUser::getFcmToken)
-                    .ifPresent(s -> pushNotificationService.sendNotification(
-                            s, Long.toString(response.id()), "Issue removed",
+                    .ifPresent(user -> pushNotificationService.sendNotification(
+                            user.getUserId(), Long.toString(response.id()), "Issue removed",
                             "Your issue has been removed for foul language."
                     ));
         } else if (response.isOld()) {
@@ -55,9 +54,8 @@ public class IssueEventListeners {
             log.info("Sending notification for Old Issue: {} good to go", response.id());
 
             userRepository.findById(response.userId())
-                    .map(MuddaUser::getFcmToken)
-                    .ifPresent(s -> pushNotificationService.sendNotification(
-                            s, Long.toString(response.id()), "Issue removed again",
+                    .ifPresent(user -> pushNotificationService.sendNotification(
+                            user.getUserId(), Long.toString(response.id()), "Issue removed again",
                             "Your issue has been removed again for foul language."
                     ));
         }

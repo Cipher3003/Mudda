@@ -11,8 +11,10 @@ package com.mudda.backend.account;
 import com.mudda.backend.issue.IssueService;
 import com.mudda.backend.issue.IssueSortBy;
 import com.mudda.backend.issue.dto.IssueSummaryResponse;
+import com.mudda.backend.token.device.DeviceTokenService;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,11 +33,18 @@ public class AccountController {
     private final AccountService accountService;
     private final IssueService issueService;
     private final UserService userService;
+    private final DeviceTokenService deviceTokenService;
 
-    public AccountController(AccountService accountService, IssueService issueService, UserService userService) {
+    public AccountController(
+            AccountService accountService,
+            IssueService issueService,
+            UserService userService,
+            DeviceTokenService deviceTokenService
+    ) {
         this.accountService = accountService;
         this.issueService = issueService;
         this.userService = userService;
+        this.deviceTokenService = deviceTokenService;
     }
 
     // ----------- PUBLIC READ -----------------
@@ -78,6 +87,17 @@ public class AccountController {
     // ----------- AUTH COMMANDS -----------------
     // region Commands (Write Operations)
 
+    @PostMapping("/device")
+    public ResponseEntity<String> registerDevice(
+            @RequestBody @Valid CreateDeviceTokenRequest tokenRequest,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        deviceTokenService.registerToken(tokenRequest, principal.getUserId());
+        return ResponseEntity.ok("Registered");
+    }
+
     @PatchMapping("/profileImage")
     public ResponseEntity<Void> updateProfileImage(
             @RequestBody UpdateAccountRequest updateRequest,
@@ -99,6 +119,18 @@ public class AccountController {
         log.trace("Received request to delete account {}", principal.getName());
 
         accountService.deleteAccount(principal.getUserId());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/device/{deviceId}")
+    public ResponseEntity<Void> unregisterDevice(
+            @RequestParam String deviceId,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        deviceTokenService.unregisterDevice(deviceId);
 
         return ResponseEntity.noContent().build();
     }

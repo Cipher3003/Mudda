@@ -8,7 +8,6 @@
  */
 package com.mudda.backend.token.verification;
 
-import com.mudda.backend.token.TokenType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

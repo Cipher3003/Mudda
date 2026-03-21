@@ -27,8 +27,6 @@ public record CreateUserRequest(
 
         @NotBlank MuddaUserRole role,
 
-        @Size(max = 512) String profileImageKey,
-
-        String fcmToken
+        @Size(max = 512) String profileImageKey
 ) {
 }

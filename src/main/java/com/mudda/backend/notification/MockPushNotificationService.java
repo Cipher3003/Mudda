@@ -26,7 +26,7 @@ public class MockPushNotificationService implements PushNotificationService {
     }
 
     @Override
-    public void sendNotification(String token, String id, String title, String body) {
+    public void sendNotification(Long userId, String id, String title, String body) {
         long count = counter.incrementAndGet();
         log.debug("{} Notification has been pushed with details - id: {}, title: {}, body: {}", count, id, title, body);
     }

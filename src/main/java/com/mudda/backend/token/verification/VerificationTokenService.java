@@ -12,7 +12,6 @@ import com.mudda.backend.AppProperties;
 import com.mudda.backend.exceptions.InvalidVerificationTokenException;
 import com.mudda.backend.exceptions.TokenFailureReason;
 import com.mudda.backend.exceptions.TokenValidationException;
-import com.mudda.backend.token.TokenType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

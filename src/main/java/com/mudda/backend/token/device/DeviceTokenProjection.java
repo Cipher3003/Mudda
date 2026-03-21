@@ -1,14 +1,16 @@
 /**
  * ---------------------------------------------------------------
  * Project : Mudda
- * File    : TokenType
+ * File    : DeviceTokenProjection
  * Author  : Vikas Kumar
- * Created : 14-01-2026
+ * Created : 21-03-2026
  * ---------------------------------------------------------------
  */
-package com.mudda.backend.token;
+package com.mudda.backend.token.device;
 
-public enum TokenType {
-    EMAIL_VERIFY,
-    PASSWORD_RESET
+public interface DeviceTokenProjection {
+
+    Long getId();
+
+    String getFcmToken();
 }

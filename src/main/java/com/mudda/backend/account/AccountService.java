@@ -10,8 +10,9 @@ package com.mudda.backend.account;
 
 import com.mudda.backend.AppProperties;
 import com.mudda.backend.exceptions.UserAlreadyExistsException;
+import com.mudda.backend.token.device.DeviceTokenService;
 import com.mudda.backend.token.refresh.RefreshTokenService;
-import com.mudda.backend.token.TokenType;
+import com.mudda.backend.token.verification.TokenType;
 import com.mudda.backend.token.verification.VerificationToken;
 import com.mudda.backend.token.verification.VerificationTokenService;
 import com.mudda.backend.email.EmailService;
@@ -35,19 +36,21 @@ public class AccountService {
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
     private final AppProperties appProperties;
+    private final DeviceTokenService deviceTokenService;
 
     public AccountService(
             UserService userService,
             VerificationTokenService tokenService,
             EmailService emailService,
             RefreshTokenService refreshTokenService,
-            AppProperties appProperties
-    ) {
+            AppProperties appProperties,
+            DeviceTokenService deviceTokenService) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.emailService = emailService;
         this.refreshTokenService = refreshTokenService;
         this.appProperties = appProperties;
+        this.deviceTokenService = deviceTokenService;
     }
 
     //region Commands (Write Operations)
@@ -141,6 +144,8 @@ public class AccountService {
     @Transactional
     public void deleteAccount(Long userId) {
         log.info("Deleting account with id {}", userId);
+
+        deviceTokenService.deleteUserTokens(userId);
 
         refreshTokenService.revokeAllByUserId(userId);
 
