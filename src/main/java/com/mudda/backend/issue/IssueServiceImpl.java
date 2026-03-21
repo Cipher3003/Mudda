@@ -7,12 +7,14 @@ import com.mudda.backend.location.Location;
 import com.mudda.backend.location.LocationDTO;
 import com.mudda.backend.location.LocationMapper;
 import com.mudda.backend.location.LocationRepository;
+import com.mudda.backend.social.InteractionNotificationService;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.utils.EntityValidator;
 import com.mudda.backend.vote.Vote;
 import com.mudda.backend.vote.VoteRepository;
 import com.mudda.backend.vote.VoteService;
+import com.mudda.backend.community.event.IssueAutoFileEvent;
 import io.awspring.cloud.sqs.operations.SendResult;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,13 +42,16 @@ public class IssueServiceImpl implements IssueService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final SqsTemplate sqsTemplate;
+    private final ApplicationEventPublisher eventPublisher;
+    private final InteractionNotificationService interactionNotificationService;
 
     private static final String QUEUE_NAME = "mudda-hate-speech-queue";
 
     public IssueServiceImpl(
             IssueRepository issueRepository, CommentService commentService, VoteRepository voteRepository,
             VoteService voteService, LocationRepository locationRepository, CategoryRepository categoryRepository,
-            UserRepository userRepository, SqsTemplate sqsTemplate) {
+            UserRepository userRepository, SqsTemplate sqsTemplate,
+            ApplicationEventPublisher eventPublisher, InteractionNotificationService interactionNotificationService) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteRepository = voteRepository;
@@ -54,6 +60,8 @@ public class IssueServiceImpl implements IssueService {
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.sqsTemplate = sqsTemplate;
+        this.eventPublisher = eventPublisher;
+        this.interactionNotificationService = interactionNotificationService;
     }
 
     // region Queries (Read Operations)
@@ -348,6 +356,14 @@ public class IssueServiceImpl implements IssueService {
         SendResult<IssueCreatedEvent> result = sqsTemplate.send(QUEUE_NAME, issueCreatedEvent);
         log.trace("Event: {} result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
         log.info("Sent event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
+
+        // Publish Spring event for community auto-filing
+        eventPublisher.publishEvent(new IssueAutoFileEvent(saved.getId(), saved.getLocationId()));
+
+        // Check for mentions
+        interactionNotificationService.notifyMentions(
+                saved.getDescription(), muddaUser.getUsername(), saved.getId().toString(), "issue"
+        );
 
         return IssueMapper.toResponse(
                 saved, muddaUser, LocationMapper.toSummary(location.get()), category.get().getName(),

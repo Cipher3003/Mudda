@@ -1,5 +1,8 @@
 package com.mudda.backend.community;
 
+import com.mudda.backend.community.announcement.AnnouncementService;
+import com.mudda.backend.community.announcement.dto.AnnouncementResponse;
+import com.mudda.backend.community.announcement.dto.CreateAnnouncementRequest;
 import com.mudda.backend.community.dto.CommunityMemberResponse;
 import com.mudda.backend.community.dto.DashboardStatsResponse;
 import com.mudda.backend.community.dto.UpdateIssueStatusRequest;
@@ -28,11 +31,14 @@ public class AdminCommunityController {
 
     private final AdminCommunityService adminService;
     private final InitiativeService initiativeService;
+    private final AnnouncementService announcementService;
 
     public AdminCommunityController(AdminCommunityService adminService,
-                                    InitiativeService initiativeService) {
+                                    InitiativeService initiativeService,
+                                    AnnouncementService announcementService) {
         this.adminService = adminService;
         this.initiativeService = initiativeService;
+        this.announcementService = announcementService;
     }
 
     // ----------- ADMIN READ -----------------
@@ -64,6 +70,17 @@ public class AdminCommunityController {
                         : Sort.by("createdAt").ascending());
 
         return ResponseEntity.ok(adminService.getCommunityIssues(id, pageable));
+    }
+
+    @Operation(summary = "Admin — paginated announcements for this community")
+    @GetMapping("/{id}/announcements")
+    public ResponseEntity<Page<AnnouncementResponse>> getAnnouncements(
+            @PathVariable(name = "id") Long id,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(announcementService.getAnnouncements(id, pageable));
     }
 
     // endregion
@@ -102,6 +119,22 @@ public class AdminCommunityController {
                 .body(initiativeService.createInitiative(id, request));
     }
 
+    @Operation(summary = "Admin — broadcast a new announcement (triggers FCM to all verified residents)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Announcement created and broadcast"),
+            @ApiResponse(responseCode = "403", description = "Not a community admin")
+    })
+    @PostMapping("/{id}/announcements")
+    public ResponseEntity<AnnouncementResponse> createAnnouncement(
+            @PathVariable(name = "id") Long id,
+            @Valid @RequestBody CreateAnnouncementRequest request) {
+
+        Long userId = SecurityUtil.getUserIdOrNull();
+        log.info("Admin {} creating announcement '{}' in community {}", userId, request.title(), id);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(announcementService.createAnnouncement(id, userId, request));
+    }
+
     @Operation(summary = "Admin — accept or reject a pending member")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Member status updated"),
@@ -119,3 +152,4 @@ public class AdminCommunityController {
 
     // endregion
 }
+

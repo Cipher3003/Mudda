@@ -3,6 +3,7 @@ package com.mudda.backend.community;
 import com.mudda.backend.community.dto.CommunityMemberResponse;
 import com.mudda.backend.community.dto.DashboardStatsResponse;
 import com.mudda.backend.community.dto.UpdateIssueStatusRequest;
+import com.mudda.backend.community.event.CommunityNotificationService;
 import com.mudda.backend.initiative.InitiativeMapper;
 import com.mudda.backend.initiative.InitiativeParticipantRepository;
 import com.mudda.backend.initiative.InitiativeRepository;
@@ -40,6 +41,7 @@ public class AdminCommunityServiceImpl implements AdminCommunityService {
     private final VoteRepository voteRepository;
     private final InitiativeRepository initiativeRepository;
     private final InitiativeParticipantRepository participantRepository;
+    private final CommunityNotificationService communityNotificationService;
 
     public AdminCommunityServiceImpl(CommunityRepository communityRepository,
                                      CommunityMemberRepository memberRepository,
@@ -48,7 +50,8 @@ public class AdminCommunityServiceImpl implements AdminCommunityService {
                                      LocationRepository locationRepository,
                                      VoteRepository voteRepository,
                                      InitiativeRepository initiativeRepository,
-                                     InitiativeParticipantRepository participantRepository) {
+                                     InitiativeParticipantRepository participantRepository,
+                                     CommunityNotificationService communityNotificationService) {
         this.communityRepository = communityRepository;
         this.memberRepository = memberRepository;
         this.issueRepository = issueRepository;
@@ -57,6 +60,7 @@ public class AdminCommunityServiceImpl implements AdminCommunityService {
         this.voteRepository = voteRepository;
         this.initiativeRepository = initiativeRepository;
         this.participantRepository = participantRepository;
+        this.communityNotificationService = communityNotificationService;
     }
 
     // region Queries
@@ -95,8 +99,8 @@ public class AdminCommunityServiceImpl implements AdminCommunityService {
                 })
                 .toList();
 
-        log.debug("Dashboard for community {}: {} residents, {} open issues, {:.1f}% resolution",
-                communityId, verifiedCount, openCount, resolutionRate);
+        log.debug("Dashboard for community {}: {} residents, {} open issues, {}% resolution",
+                communityId, verifiedCount, openCount, String.format("%.1f", resolutionRate));
 
         return new DashboardStatsResponse(
                 communityId,
@@ -179,6 +183,12 @@ public class AdminCommunityServiceImpl implements AdminCommunityService {
         log.info("Admin {} updated issue {} status to {} with official response: {}",
                 adminUserId, issueId, request.status(),
                 request.officialResponse() != null ? "yes" : "no");
+
+        // FCM: notify reporter when their issue is resolved
+        if (request.status() == IssueStatus.RESOLVED) {
+            communityNotificationService.notifyIssueResolved(
+                    issue.getUserId(), issue.getId(), issue.getTitle());
+        }
     }
 
     @Transactional
@@ -194,12 +204,18 @@ public class AdminCommunityServiceImpl implements AdminCommunityService {
         if (member.getStatus() != MemberStatus.PENDING)
             throw new IllegalStateException("Only PENDING members can be verified or rejected");
 
+        // Fetch community name for notifications before status change
+        String communityName = communityRepository.findById(communityId)
+                .map(Community::getName).orElse("Community");
+
         if (accept) {
             member.verify();
             log.info("Admin verified member {} in community {}", memberId, communityId);
+            communityNotificationService.notifyMemberVerified(member.getUserId(), communityName);
         } else {
             member.reject();
             log.info("Admin rejected member {} in community {}", memberId, communityId);
+            communityNotificationService.notifyMemberRejected(member.getUserId(), communityName);
         }
 
         memberRepository.save(member);

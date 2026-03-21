@@ -1,6 +1,10 @@
 package com.mudda.backend.comment;
 
+import com.mudda.backend.issue.Issue;
 import com.mudda.backend.issue.IssueRepository;
+import com.mudda.backend.social.InteractionNotificationService;
+import com.mudda.backend.user.MuddaUser;
+import com.mudda.backend.user.UserRepository;
 import com.mudda.backend.utils.EntityValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,16 +28,22 @@ public class CommentServiceImpl implements CommentService {
     private final CommentLikeService commentLikeService;
     private final CommentLikeRepository commentLikeRepository;
     private final IssueRepository issueRepository;
+    private final UserRepository userRepository;
+    private final InteractionNotificationService interactionNotificationService;
 
     public CommentServiceImpl(CommentRepository commentRepository,
                               CommentLikeService commentLikeService,
                               CommentLikeRepository commentLikeRepository,
-                              IssueRepository issueRepository
+                              IssueRepository issueRepository,
+                              UserRepository userRepository,
+                              InteractionNotificationService interactionNotificationService
     ) {
         this.commentRepository = commentRepository;
         this.commentLikeService = commentLikeService;
         this.commentLikeRepository = commentLikeRepository;
         this.issueRepository = issueRepository;
+        this.userRepository = userRepository;
+        this.interactionNotificationService = interactionNotificationService;
     }
 
     // region Queries (Read Operations)
@@ -150,6 +160,22 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = CommentMapper.toComment(createCommentRequest, issueId, userId);
         Comment saved = commentRepository.save(comment);
         log.info("Created comment with id {} by user {} on issue {}", saved.getCommentId(), userId, issueId);
+
+        // Notify mentions & issue author
+        MuddaUser author = userRepository.findById(userId).orElse(null);
+        if (author != null) {
+            interactionNotificationService.notifyMentions(
+                    comment.getText(), author.getUsername(), issueId + "", "comment"
+            );
+            
+            // Notify issue creator of the new comment
+            issueRepository.findById(issueId).ifPresent(issue -> {
+                if (!issue.getUserId().equals(author.getUserId())) {
+                    interactionNotificationService.notifyReply(issue.getUserId(), author.getUsername(), issueId + "");
+                }
+            });
+        }
+
         return CommentMapper.toCommentResponse(saved);
     }
 
@@ -187,6 +213,20 @@ public class CommentServiceImpl implements CommentService {
         Comment reply = CommentMapper.toReply(createCommentRequest, parent.getIssueId(), userId, parentId);
         Comment saved = commentRepository.save(reply);
         log.info("Created reply with id {} under comment {} by user {}", saved.getCommentId(), parentId, userId);
+
+        // Notify mentions & parent comment author
+        MuddaUser replier = userRepository.findById(userId).orElse(null);
+        if (replier != null) {
+            interactionNotificationService.notifyMentions(
+                    reply.getText(), replier.getUsername(), parent.getIssueId() + "", "reply"
+            );
+            
+            // Notify parent comment creator
+            if (!parent.getUserId().equals(replier.getUserId())) {
+                interactionNotificationService.notifyReply(parent.getUserId(), replier.getUsername(), parent.getIssueId() + "");
+            }
+        }
+
         return CommentMapper.toCommentResponse(saved);
     }
 
