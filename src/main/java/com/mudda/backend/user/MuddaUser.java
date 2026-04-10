@@ -22,6 +22,7 @@ public class MuddaUser implements UserDetails {
     @Id
     @SequenceGenerator(name = "users_seq", sequenceName = "users_id_seq")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
+    @Setter
     private Long userId;
 
     @Column(nullable = false, length = 100)

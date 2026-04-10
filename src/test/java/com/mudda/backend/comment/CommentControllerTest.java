@@ -140,7 +140,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestDataFactory.validCommentJson()))
+                        .content(TestDataFactory.validCommentJson(issue.getId(), user.getUserId())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.text").value("This is a test comment."));
@@ -155,7 +155,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/v1/issues/%d/comments".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestDataFactory.validCommentJson()))
+                        .content(TestDataFactory.validCommentJson(issue.getId(), user.getUserId())))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -166,7 +166,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
 
-        String invalidPayload = TestDataFactory.commentJson(null);
+        String invalidPayload = TestDataFactory.commentJson(null, issue.getId(), user.getUserId());
 
         mockMvc.perform(post("/api/v1/issues/%d/comments".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
@@ -200,7 +200,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         Issue issue = seedIssue(user.getUserId());
         Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
-        String payload = TestDataFactory.commentJson("This is a test reply.");
+        String payload = TestDataFactory.commentJson("This is a test reply.",issue.getId(), user.getUserId());
 
         mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
                         .header("X-Client-Type", "mobile")
@@ -219,7 +219,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         Issue issue = seedIssue(user.getUserId());
         Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
-        String payload = TestDataFactory.validCommentJson();
+        String payload = TestDataFactory.validCommentJson(issue.getId(), user.getUserId());
 
         mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
                         .header("X-Client-Type", "mobile")
@@ -236,7 +236,7 @@ class CommentControllerTest extends AbstractIntegrationTest {
         Issue issue = seedIssue(user.getUserId());
         Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
-        String invalidPayload = TestDataFactory.commentJson(null);
+        String invalidPayload = TestDataFactory.commentJson(null,issue.getId(), user.getUserId());
 
         mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
                         .header("X-Client-Type", "mobile")

@@ -43,7 +43,6 @@ public final class TestDataFactory {
                 uniquePhoneNumber(),
                 password,
                 MuddaUserRole.CITIZEN,
-                null,
                 null
         );
     }
@@ -105,13 +104,13 @@ public final class TestDataFactory {
     /**
      * Returns a JSON string for a valid {@code CreateCommentRequest}.
      */
-    public static String validCommentJson() throws JsonProcessingException {
-        CreateCommentRequest request = new CreateCommentRequest("This is a test comment.");
+    public static String validCommentJson(long issueId, long userId) throws JsonProcessingException {
+        CreateCommentRequest request = new CreateCommentRequest("This is a test comment.", issueId, userId);
         return MAPPER.writeValueAsString(request);
     }
 
-    public static String commentJson(String title) throws JsonProcessingException {
-        CreateCommentRequest request = new CreateCommentRequest(title);
+    public static String commentJson(String title, long issueId, long userId) throws JsonProcessingException {
+        CreateCommentRequest request = new CreateCommentRequest(title, issueId, userId);
         return MAPPER.writeValueAsString(request);
     }
 

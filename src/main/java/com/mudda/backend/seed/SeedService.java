@@ -4,20 +4,15 @@ import com.google.gson.Gson;
 import com.mudda.backend.comment.CommentLike;
 import com.mudda.backend.comment.CommentLikeService;
 import com.mudda.backend.comment.CommentService;
-import com.mudda.backend.comment.dto.CommentLikeSeed;
-import com.mudda.backend.comment.dto.CommentSeed;
 import com.mudda.backend.comment.dto.CreateCommentRequest;
 import com.mudda.backend.issue.IssueCategory;
 import com.mudda.backend.issue.IssueService;
 import com.mudda.backend.issue.dto.CreateIssueRequest;
-import com.mudda.backend.issue.dto.IssueSeed;
 import com.mudda.backend.issue.dto.CoordinateDTO;
 import com.mudda.backend.user.MuddaUserRole;
 import com.mudda.backend.user.UserService;
 import com.mudda.backend.user.dto.CreateUserRequest;
-import com.mudda.backend.user.dto.UserSeed;
 import com.mudda.backend.vote.Vote;
-import com.mudda.backend.vote.VoteSeed;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -42,6 +37,7 @@ import static net.datafaker.providers.base.Text.EN_UPPERCASE;
 
 @Slf4j
 @Service
+@Deprecated
 public class SeedService {
 
     // In a real application, these services would be injected.
@@ -146,6 +142,7 @@ public class SeedService {
     @Transactional
     public List<String> seedDatabase(CreateSeedRequest request) {
         log.info("Seeding database with request");
+
         // --- Data stores to simulate database primary keys for relationships ---
         List<String> feedback = new ArrayList<>();
         List<Long> userIds = new ArrayList<>();
@@ -171,11 +168,11 @@ public class SeedService {
         if (generationMap.containsKey(Entity.Comment))
             generateComments(generationMap.get(Entity.Comment), topLevelCommentIds, issueIds, userIds, feedback);
 
-        if (generationMap.containsKey(Entity.Reply))
-            generateReplies(generationMap.get(Entity.Reply), topLevelCommentIds, issueIds, userIds, feedback);
-
-        if (generationMap.containsKey(Entity.Vote))
-            generateVotes(generationMap.get(Entity.Vote), issueIds, userIds, feedback);
+//        if (generationMap.containsKey(Entity.Reply))
+//            generateReplies(generationMap.get(Entity.Reply), topLevelCommentIds, issueIds, userIds, feedback);
+//
+//        if (generationMap.containsKey(Entity.Vote))
+//            generateVotes(generationMap.get(Entity.Vote), issueIds, userIds, feedback);
 
         if (feedback.isEmpty())
             feedback.add("No entities requested for generation.");

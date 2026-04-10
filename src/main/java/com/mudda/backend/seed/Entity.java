@@ -4,6 +4,5 @@ public enum Entity {
     User,
     Issue,
     Comment,
-    Reply,
-    Vote
+    Media
 }
