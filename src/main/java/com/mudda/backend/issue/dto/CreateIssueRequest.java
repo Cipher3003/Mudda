@@ -18,7 +18,7 @@ public record CreateIssueRequest(
                 message = "Invalid category value. Valid category values: [INF, SAN, ELE]"
         )
         String category,
-        @Size(max = 5) List<String> mediaUrls,
+        @NotNull @Size(max = 5) List<String> mediaUrls,
         @NotNull @NotBlank String pinCode,
         @NotNull @NotBlank String city,
         @NotNull @NotBlank String state,

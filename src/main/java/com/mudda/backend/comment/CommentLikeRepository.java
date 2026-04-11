@@ -21,7 +21,6 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     @Query("DELETE FROM CommentLike cl WHERE cl.id.userId = :userId")
     void deleteByUserId(long userId);
 
-    //    TODO: maybe use modifying query to directly delete instead of default fetch -> delete
     @Modifying
     @Query("DELETE FROM CommentLike cl WHERE cl.id.commentId IN :commentIds")
     void deleteAllByCommentIdIn(List<Long> commentIds);

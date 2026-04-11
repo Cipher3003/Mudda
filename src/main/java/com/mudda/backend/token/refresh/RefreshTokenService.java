@@ -18,7 +18,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -34,21 +33,26 @@ public class RefreshTokenService {
 
     @Transactional
     public void revokeAllByUserId(Long userId) {
-        List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUserId(userId);
-        for (RefreshToken refreshToken : refreshTokens) {
-            refreshToken.revoke();
-        }
-        refreshTokenRepository.saveAll(refreshTokens);
-        log.debug("Revoked all refresh tokens assigned to user {}", userId);
+        int count = refreshTokenRepository.revokeByUserId(userId);
+        log.debug("Revoked {} refresh tokens assigned to user {}", count, userId);
     }
 
     @Transactional
     public RefreshToken rotate(String rawRefreshToken) {
         String hashedToken = hashToken(rawRefreshToken);
+        Instant now = Instant.now();
 
         RefreshToken refreshToken = refreshTokenRepository.
-                findByTokenAndRevokedFalse(hashedToken)
+                findByToken(hashedToken)
                 .orElseThrow(InvalidRefreshTokenException::new);
+
+        if (refreshToken.isRevoked()) {
+            revokeAllByUserId(refreshToken.getUserId());
+            throw new InvalidRefreshTokenException();
+        }
+
+        if (refreshToken.getExpiresAt().isBefore(now))
+            throw new InvalidRefreshTokenException();
 
         refreshToken.revoke();
         refreshTokenRepository.save(refreshToken);
@@ -60,13 +64,8 @@ public class RefreshTokenService {
     @Transactional
     public void revoke(String rawRefreshToken) {
         String hashedToken = hashToken(rawRefreshToken);
-
-        log.debug("Revoking refresh token");
-        refreshTokenRepository.findByTokenAndRevokedFalse(hashedToken)
-                .ifPresent(refreshToken -> {
-                    refreshToken.revoke();
-                    refreshTokenRepository.save(refreshToken);
-                });
+        int count = refreshTokenRepository.revokeByToken(hashedToken);
+        log.debug("Revoked {} refresh tokens", count);
     }
 
     @Transactional
@@ -74,7 +73,8 @@ public class RefreshTokenService {
         RefreshToken hashedRefreshToken = new RefreshToken(
                 userId,
                 hashToken(refreshToken),
-                expiresAt);
+                expiresAt
+        );
 
         refreshTokenRepository.save(hashedRefreshToken);
         log.debug("Created refresh token for user {} valid till {}", userId, expiresAt);

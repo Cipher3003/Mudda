@@ -21,13 +21,6 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
 
     Optional<VerificationToken> findByToken(String token);
 
-    @Modifying(clearAutomatically = true)
-    @Query(value = """
-             DELETE from VerificationToken t
-             WHERE t.userId = :userId AND t.type = :type
-            """)
-    void deleteByUserIdAndType(long userId, TokenType type);
-
     void deleteAllByUserId(long userId);
 
     @Modifying(clearAutomatically = true)
@@ -48,4 +41,8 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
     void invalidateUnusedTokens(long userId, TokenType type);
 
     boolean existsByUserIdAndTypeAndCreatedAtAfter(long userId, TokenType tokenType, Instant minus);
+
+    @Modifying
+    @Query(value = "DELETE FROM VerificationToken v WHERE v.expiresAt < :threshold")
+    int deleteAllExpiredToken(Instant threshold);
 }

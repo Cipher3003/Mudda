@@ -79,7 +79,7 @@ public class CommentController {
     // ----------- AUTH COMMANDS -----------------
     // region Commands (Write Operations)
 
-    @Operation(description = "Creates comments/replies under an issue depending on parentId")
+    @Operation(description = "Creates comments under an issue if 'IssueId' provided else if 'ParentId' provided then create reply under comment")
     @PostMapping("/comments")
     public ResponseEntity<CommentCreatedResponse> createComment(
             @Valid @RequestBody CreateCommentRequest request,

@@ -46,7 +46,6 @@ public class VerificationTokenService {
 
     // region Commands (Write Operations)
 
-    //    TODO: should delete all consumed tokens periodically
     @Transactional
     public VerificationToken consumeToken(String verificationToken, TokenType tokenType) {
         log.debug("Consuming verification token of type {}", tokenType);

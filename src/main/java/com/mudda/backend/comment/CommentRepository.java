@@ -13,8 +13,6 @@ import java.util.Optional;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    Page<Comment> findByIssueIdAndParentIdIsNull(long issueId, Pageable pageable);
-
     @Query("""
              SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
              c.userId ,u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
@@ -70,16 +68,9 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findByIssueIdIn(List<Long> issueIds);
 
-    // Find all replies for a specific parent comment
-    List<Comment> findByParentId(long parentId);
-
     List<Comment> findByParentIdIn(List<Long> parentId);
 
-    Page<Comment> findByParentId(long parentId, Pageable pageable);
-
     long countByParentId(long parentId);
-
-    void deleteByParentId(long parentId);
 
     @Modifying
     @Query("""

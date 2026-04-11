@@ -73,7 +73,6 @@ public class AuthService {
         }
     }
 
-    //    TODO: do occasional cleanup of refresh tokens
     @Transactional
     public AuthResult refresh(String rawRefreshToken) {
         log.info("Refreshing user login");

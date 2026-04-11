@@ -125,7 +125,7 @@ public class AccountController {
 
     @DeleteMapping("/device/{deviceId}")
     public ResponseEntity<Void> unregisterDevice(
-            @RequestParam String deviceId,
+            @PathVariable String deviceId,
             @AuthenticationPrincipal MuddaUser principal
     ) {
         if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
