@@ -9,9 +9,10 @@
 package com.mudda.backend.exceptions;
 
 import com.mudda.backend.utils.MessageCodes;
+import org.springframework.http.HttpStatus;
 
-public class PhoneNumberAlreadyExistsException extends LocalizedException {
+public class PhoneNumberAlreadyExistsException extends ApiException {
     public PhoneNumberAlreadyExistsException() {
-        super(MessageCodes.PHONE_ALREADY_EXISTS);
+        super(HttpStatus.CONFLICT, MessageCodes.PHONE_ALREADY_EXISTS);
     }
 }

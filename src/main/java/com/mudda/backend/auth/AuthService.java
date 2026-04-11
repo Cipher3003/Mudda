@@ -10,7 +10,7 @@ package com.mudda.backend.auth;
 
 import com.mudda.backend.auth.dto.AuthRequest;
 import com.mudda.backend.auth.dto.AuthResult;
-import com.mudda.backend.exceptions.InvalidRefreshTokenException;
+import com.mudda.backend.exceptions.RefreshTokenInvalidException;
 import com.mudda.backend.jwt.JwtService;
 import com.mudda.backend.token.refresh.RefreshToken;
 import com.mudda.backend.token.refresh.RefreshTokenService;
@@ -77,10 +77,8 @@ public class AuthService {
     public AuthResult refresh(String rawRefreshToken) {
         log.info("Refreshing user login");
 
-        if (!jwtService.validateRefreshToken(rawRefreshToken)) {
-            log.debug("Invalid refresh token");
-            throw new InvalidRefreshTokenException();
-        }
+        if (!jwtService.validateRefreshToken(rawRefreshToken))
+            throw new RefreshTokenInvalidException();
 
         RefreshToken refreshToken = refreshTokenService.rotate(rawRefreshToken);
 

@@ -9,10 +9,11 @@
 package com.mudda.backend.exceptions;
 
 import com.mudda.backend.utils.MessageCodes;
+import org.springframework.http.HttpStatus;
 
-public class InvalidRefreshTokenException extends LocalizedException {
+public class RefreshTokenInvalidException extends ApiException {
 
-    public InvalidRefreshTokenException() {
-        super(MessageCodes.INVALID_REFRESH_TOKEN);
+    public RefreshTokenInvalidException() {
+        super(HttpStatus.UNAUTHORIZED, MessageCodes.INVALID_REFRESH_TOKEN);
     }
 }

@@ -9,9 +9,7 @@
 package com.mudda.backend.token.verification;
 
 import com.mudda.backend.AppProperties;
-import com.mudda.backend.exceptions.InvalidVerificationTokenException;
-import com.mudda.backend.exceptions.TokenFailureReason;
-import com.mudda.backend.exceptions.TokenValidationException;
+import com.mudda.backend.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,17 +48,17 @@ public class VerificationTokenService {
     public VerificationToken consumeToken(String verificationToken, TokenType tokenType) {
         log.debug("Consuming verification token of type {}", tokenType);
         VerificationToken token = tokenRepository.findByToken(verificationToken)
-                .orElseThrow(InvalidVerificationTokenException::new);
+                .orElseThrow(VerificationTokenInvalidException::new);
 
         log.trace("Validating verification token with id {}", token.getId());
         if (!token.getType().equals(tokenType))
-            throw new InvalidVerificationTokenException();
+            throw new VerificationTokenInvalidException();
 
         if (token.getUsedAt() != null)
-            throw new TokenValidationException(tokenType, TokenFailureReason.ALREADY_USED);
+            throw new VerificationTokenAlreadyUsedException();
 
         if (token.getExpiresAt().isBefore(Instant.now()))
-            throw new TokenValidationException(tokenType, TokenFailureReason.EXPIRED);
+            throw new VerificationTokenExpiredException();
 
         tokenRepository.markUsed(token.getId());
         log.trace("Used verification token with id {}", token.getId());

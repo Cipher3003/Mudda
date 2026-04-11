@@ -1,7 +1,6 @@
 package com.mudda.backend.exceptions;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.mudda.backend.token.verification.TokenType;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,14 +25,12 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-//    TODO: Wrap exceptions in base exception with already defined status and code
 
     private final MessageUtil messageUtil;
 
@@ -47,33 +44,10 @@ public class GlobalExceptionHandler {
 
     //region Specialized Handlers
 
-    @ExceptionHandler(TokenValidationException.class)
-    public ResponseEntity<ApiError> handleTokenInvalid(TokenValidationException ex) {
-        if (ex.getTokenType() == TokenType.PASSWORD_RESET)
-            return ResponseEntity.badRequest()
-                    .body(ApiError.of(
-                            HttpStatus.BAD_REQUEST,
-                            messageUtil.getMessage(MessageCodes.INVALID_VERIFICATION_TOKEN)
-                    ));
-
-        return switch (ex.getFailureReason()) {
-            case EXPIRED -> ResponseEntity.status(HttpStatus.GONE)
-                    .body(ApiError.of(
-                            HttpStatus.GONE,
-                            messageUtil.getMessage(MessageCodes.TOKEN_EXPIRED)
-                    ));
-            case ALREADY_USED -> ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(ApiError.of(
-                            HttpStatus.CONFLICT,
-                            messageUtil.getMessage(MessageCodes.TOKEN_USED)
-                    ));
-        };
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException e) {
 
-        Map<String, String> errors = new HashMap<>();
+        Map<String, String> errors = new LinkedHashMap<>();
         e.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
@@ -85,8 +59,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
         // TODO: localized message for these responses
         String message = String.format("The parameter '%s' has an invalid value: '%s'", e.getName(), e.getValue());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
+        return badRequestResponse(message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -96,73 +69,39 @@ public class GlobalExceptionHandler {
             if (ife.getTargetType().isEnum()) {
                 String message = String.format("Invalid value '%s' for type %s.",
                         ife.getValue(), ife.getTargetType().getSimpleName());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
+                return badRequestResponse(message);
             }
         }
 
         String message = "Invalid JSON format or field value.";
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
-    }
-
-    @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<ApiError> handLeInvalidToken(Exception e) {
-        String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
+        return badRequestResponse(message);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials() {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiError.of(
-                        HttpStatus.UNAUTHORIZED,
-                        messageUtil.getMessage(MessageCodes.INVALID_CREDENTIALS)
-                ));
+        return apiErrorResponse(HttpStatus.UNAUTHORIZED, MessageCodes.INVALID_CREDENTIALS);
     }
 
     @ExceptionHandler(LockedException.class)
-    public ResponseEntity<ApiError> handleAccountLocked(LockedException e) {
-        String message = resolveMessage(e, MessageCodes.ACCOUNT_LOCKED);
-        return ResponseEntity.status(HttpStatus.LOCKED)
-                .body(ApiError.of(HttpStatus.LOCKED, message));
+    public ResponseEntity<ApiError> handleAccountLocked() {
+        return apiErrorResponse(HttpStatus.LOCKED, MessageCodes.ACCOUNT_LOCKED);
     }
 
     @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ApiError> handleAccountDisabled(DisabledException e) {
+    public ResponseEntity<ApiError> handleAccountDisabled() {
 //            TODO: maybe allow user to login without verification with limited activity as guest
-        String message = resolveMessage(e, MessageCodes.ACCOUNT_NOT_VERIFIED);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
+        return apiErrorResponse(HttpStatus.UNAUTHORIZED, MessageCodes.ACCOUNT_NOT_VERIFIED);
     }
 
-    @ExceptionHandler(MultipartException.class)
-    public ResponseEntity<ApiError> handleMultipartException(MultipartException e) {
+    @ExceptionHandler(value = {
+            MissingServletRequestParameterException.class,
+            MissingServletRequestPartException.class,
+            HttpMediaTypeNotSupportedException.class,
+            MultipartException.class
+    })
+    public ResponseEntity<ApiError> handleFrameworkBadRequest(Exception e) {
 //        TODO: maybe add custom message
-        return ResponseEntity.badRequest()
-                .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
-    }
-
-    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<ApiError> handleWrongMediaType(HttpMediaTypeNotSupportedException e) {
-//        TODO: maybe add custom message
-        return ResponseEntity.badRequest()
-                .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
-    }
-
-    @ExceptionHandler(MissingServletRequestPartException.class)
-    public ResponseEntity<ApiError> handleMissingRequestPart(MissingServletRequestPartException e) {
-//        TODO: maybe add custom message
-        return ResponseEntity.badRequest()
-                .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
-    }
-
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ApiError> handleMissingRequestParameter(MissingServletRequestParameterException e) {
-//        TODO: maybe add custom message
-        return ResponseEntity.badRequest()
-                .body(ApiError.of(HttpStatus.BAD_REQUEST, e.getMessage()));
+        return badRequestResponse(e.getMessage());
     }
 
     //    TODO: handle what to do when aborted mid request
@@ -172,7 +111,12 @@ public class GlobalExceptionHandler {
             ClientAbortException.class
     })
     public void handleClientAbort(Exception e) {
-        log.warn("Client Abort Exception", e);
+        log.debug("Client aborted request: {}", e.getClass().getSimpleName());
+    }
+
+    @ExceptionHandler(value = ApiException.class)
+    public ResponseEntity<ApiError> handleApiException(ApiException e) {
+        return apiErrorResponse(e.getHttpStatus(), e.getMessageCode(), e.getArgs());
     }
 
     //endregion
@@ -180,96 +124,60 @@ public class GlobalExceptionHandler {
     //region 400 Series Handlers
 
     //    400 - validation & bad input
-    @ExceptionHandler(value = {
-            IllegalArgumentException.class,
-            InvalidImageExtensionException.class,
-            InvalidVerificationTokenException.class,
-            PasswordUnchangedException.class,
-    })
-    public ResponseEntity<ApiError> handleBadRequest(Exception e) {
-        String message = resolveMessage(e, MessageCodes.BAD_REQUEST);
-        return ResponseEntity.badRequest()
-                .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleBadRequest() {
+        return apiErrorResponse(HttpStatus.BAD_REQUEST, MessageCodes.BAD_REQUEST);
     }
 
     //    401 - unauthorized
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiError> handleAuthenticationError(AuthenticationException e) {
-        String message = resolveMessage(e, MessageCodes.AUTHENTICATION_REQUIRED);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiError.of(HttpStatus.UNAUTHORIZED, message));
+    public ResponseEntity<ApiError> handleAuthenticationError() {
+        return apiErrorResponse(HttpStatus.UNAUTHORIZED, MessageCodes.AUTHENTICATION_REQUIRED);
     }
 
     //    404 - not found
     @ExceptionHandler(EntityNotFoundException.class)
 //    TODO: add no resource found exception in this handler
-    public ResponseEntity<ApiError> handleNotFound(Exception e) {
-        String message = resolveMessage(e, MessageCodes.NOT_FOUND);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiError.of(HttpStatus.NOT_FOUND, message));
+    public ResponseEntity<ApiError> handleNotFound() {
+        return apiErrorResponse(HttpStatus.NOT_FOUND, MessageCodes.NOT_FOUND);
     }
 
     //    409 - conflicts
-    @ExceptionHandler(value = {
-            DataIntegrityViolationException.class,
-            UserAlreadyExistsException.class,
-            UsernameAlreadyExistsException.class,
-            PhoneNumberAlreadyExistsException.class
-    })
-    public ResponseEntity<ApiError> handleConflict(Exception e) {
-        String message = resolveMessage(e, MessageCodes.CONFLICT);
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(ApiError.of(HttpStatus.CONFLICT, message));
+    @ExceptionHandler(value = DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleConflict() {
+        return apiErrorResponse(HttpStatus.CONFLICT, MessageCodes.CONFLICT);
     }
 
     //    413 - payload too large
-    @ExceptionHandler(value = {
-            FileSizeLimitExceededException.class,
-            MaxUploadSizeExceededException.class,
-    })
-    public ResponseEntity<ApiError> handlePayloadTooLarge(Exception e) {
-        String message = resolveMessage(e, MessageCodes.PAYLOAD_TOO_LARGE);
-        return ResponseEntity
-                .status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(ApiError.of(HttpStatus.PAYLOAD_TOO_LARGE, message));
-    }
-
-//endregion
-
-    //region 500 Series Handlers
-
-    //    TODO: add more external services exception
-    //    503 - unavailable services
-    @ExceptionHandler(value = {
-            S3ClientException.class,
-            S3ServiceException.class
-    })
-    public ResponseEntity<ApiError> handleStorage(Exception e) {
-        String message = resolveMessage(e, MessageCodes.STORAGE_UNAVAILABLE);
-        log.error("unexpected exception caught in GlobalExceptionHandler", e);
-        return ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiError.of(HttpStatus.SERVICE_UNAVAILABLE, message));
-    }
-
-    //    500 - unexpected error
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleUnexpected(Exception e) {
-        String message = resolveMessage(e, MessageCodes.UNEXPECTED_ERROR);
-        log.error("unexpected exception caught in GlobalExceptionHandler", e);
-        return ResponseEntity
-                .internalServerError()
-                .body(ApiError.of(HttpStatus.INTERNAL_SERVER_ERROR, message));
+    @ExceptionHandler(value = MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handlePayloadTooLarge() {
+        return apiErrorResponse(HttpStatus.PAYLOAD_TOO_LARGE, MessageCodes.PAYLOAD_TOO_LARGE);
     }
 
     //endregion
 
-    private String resolveMessage(Exception e, String fallbackMessage) {
-        if (e instanceof LocalizedException le)
-            return messageUtil.getMessage(le.getErrorMessageCode(), le.getArgs());
+    //region 500 Series Handlers
 
-        return messageUtil.getMessage(fallbackMessage);
+    //    TODO: add more external services exception
+
+    //    500 - unexpected error
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleUnexpected(Exception e) {
+        log.error("unexpected exception caught in GlobalExceptionHandler", e);
+        return apiErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, MessageCodes.UNEXPECTED_ERROR);
+    }
+
+    //endregion
+
+    private ResponseEntity<ApiError> badRequestResponse(String message) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
+    }
+
+    private ResponseEntity<ApiError> apiErrorResponse(HttpStatus status, String messageCode, Object... args) {
+        String message = messageUtil.getMessage(messageCode, args);
+        return ResponseEntity.status(status)
+                .body(ApiError.of(status, message));
     }
 
 }

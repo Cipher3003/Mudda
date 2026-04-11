@@ -8,7 +8,9 @@
  */
 package com.mudda.backend.token.refresh;
 
-import com.mudda.backend.exceptions.InvalidRefreshTokenException;
+import com.mudda.backend.exceptions.RefreshTokenExpiredException;
+import com.mudda.backend.exceptions.RefreshTokenInvalidException;
+import com.mudda.backend.exceptions.RefreshTokenReuseDetectedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,15 +46,15 @@ public class RefreshTokenService {
 
         RefreshToken refreshToken = refreshTokenRepository.
                 findByToken(hashedToken)
-                .orElseThrow(InvalidRefreshTokenException::new);
+                .orElseThrow(RefreshTokenInvalidException::new);
 
         if (refreshToken.isRevoked()) {
             revokeAllByUserId(refreshToken.getUserId());
-            throw new InvalidRefreshTokenException();
+            throw new RefreshTokenReuseDetectedException();
         }
 
         if (refreshToken.getExpiresAt().isBefore(now))
-            throw new InvalidRefreshTokenException();
+            throw new RefreshTokenExpiredException();
 
         refreshToken.revoke();
         refreshTokenRepository.save(refreshToken);
