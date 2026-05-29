@@ -8,25 +8,25 @@
  */
 package com.mudda.backend.notification;
 
-import com.google.api.client.util.Value;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
 
 @Configuration
+@Profile({"prod", "stage"})
 public class FirebaseConfig {
-    @Value("${firebase.credentials}")
-    private String firebaseCredentials;
 
     @PostConstruct
     public void init() throws IOException {
-        String base64Config = firebaseCredentials;
+        String base64Config = System.getenv("FIREBASE_CREDENTIALS");
+
         if (base64Config == null || base64Config.isEmpty())
             throw new RuntimeException("Missing FIREBASE_CREDENTIALS");
 
@@ -37,7 +37,6 @@ public class FirebaseConfig {
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
 
-        if (FirebaseApp.getApps().isEmpty())
-            FirebaseApp.initializeApp(options);
+        if (FirebaseApp.getApps().isEmpty()) FirebaseApp.initializeApp(options);
     }
 }

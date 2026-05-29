@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" debug="false">
     <!-- Import Spring Boot defaults -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <property name="LOGS" value="./logs"/>
 
@@ -23,13 +24,22 @@
             <!-- rollover daily and when the file reaches 50 MegaBytes -->
             <fileNamePattern>${LOGS}/archived/mudda-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>50MB</maxFileSize>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
         </rollingPolicy>
     </appender>
 
     <!--  DEV  -->
     <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFile"/>
+        </root>
+        <logger name="com.mudda.backend" level="TRACE"/>
+    </springProfile>
+
+    <!--  STAGE  -->
+    <springProfile name="stage">
         <root level="INFO">
             <appender-ref ref="Console"/>
         </root>
@@ -38,8 +48,7 @@
 
     <!--  PROD  -->
     <springProfile name="prod">
-        <root level="INFO">
-            <appender-ref ref="RollingFile"/>
+        <root level="WARN">
             <appender-ref ref="Console"/>
         </root>
         <logger name="com.mudda.backend" level="INFO"/>
