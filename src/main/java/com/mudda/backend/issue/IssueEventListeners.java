@@ -13,12 +13,14 @@ import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Slf4j
 @Component
+@Profile("dev")
 public class IssueEventListeners {
 
     private final IssueRepository issueRepository;
