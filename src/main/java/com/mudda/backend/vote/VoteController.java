@@ -1,10 +1,11 @@
 package com.mudda.backend.vote;
 
-import com.mudda.backend.security.SecurityUtil;
+import com.mudda.backend.user.MuddaUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,37 +30,24 @@ public class VoteController {
         return ResponseEntity.ok(voteService.findAllVotes(pageable));
     }
 
-    //    NOTE: DEVELOPER ONLY
-    @GetMapping("/votes/{voteId}")
-    public ResponseEntity<Vote> getVotesById(@PathVariable long voteId) {
-        return voteService.findVoteById(voteId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     // endregion
 
     // region Commands (Write Operations)
 
     @PostMapping("/issues/{issueId}/votes")
-    public ResponseEntity<VoteResponse> create(@PathVariable long issueId) {
-        Long userId = SecurityUtil.getUserIdOrNull();
-
-        return ResponseEntity.ok(voteService.create(issueId, userId));
-    }
-
-    //    NOTE: DEVELOPER ONLY
-    @DeleteMapping("/votes/{voteId}")
-    public ResponseEntity<Void> delete(@PathVariable long voteId) {
-        voteService.deleteVote(voteId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<VoteResponse> create(
+            @PathVariable long issueId,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        return ResponseEntity.ok(voteService.create(issueId, principal.getUserId()));
     }
 
     @DeleteMapping("/issues/{issueId}/votes")
-    public ResponseEntity<VoteResponse> deleteVoteOnIssueIdByUserId(@PathVariable long issueId) {
-        Long userId = SecurityUtil.getUserIdOrNull();
-
-        return ResponseEntity.ok(voteService.deleteVoteByIssueIdAndUserId(issueId, userId));
+    public ResponseEntity<VoteResponse> deleteVoteOnIssueIdByUserId(
+            @PathVariable long issueId,
+            @AuthenticationPrincipal MuddaUser principal
+    ) {
+        return ResponseEntity.ok(voteService.deleteVoteByIssueIdAndUserId(issueId, principal.getUserId()));
     }
 
     // endregion

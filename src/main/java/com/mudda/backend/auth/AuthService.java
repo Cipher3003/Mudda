@@ -8,7 +8,9 @@
  */
 package com.mudda.backend.auth;
 
-import com.mudda.backend.exceptions.InvalidRefreshTokenException;
+import com.mudda.backend.auth.dto.AuthRequest;
+import com.mudda.backend.auth.dto.AuthResult;
+import com.mudda.backend.exceptions.RefreshTokenInvalidException;
 import com.mudda.backend.jwt.JwtService;
 import com.mudda.backend.token.refresh.RefreshToken;
 import com.mudda.backend.token.refresh.RefreshTokenService;
@@ -35,10 +37,12 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthService(UserService userService,
-                       JwtService jwtService,
-                       RefreshTokenService refreshTokenService,
-                       AuthenticationManager authenticationManager) {
+    public AuthService(
+            UserService userService,
+            JwtService jwtService,
+            RefreshTokenService refreshTokenService,
+            AuthenticationManager authenticationManager
+    ) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
@@ -52,7 +56,8 @@ public class AuthService {
         log.info("Trying to login as user: {}", authRequest.username());
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
+                    new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password())
+            );
 
             MuddaUser muddaUser = (MuddaUser) authentication.getPrincipal();
             // success side-effects
@@ -68,15 +73,12 @@ public class AuthService {
         }
     }
 
-    //    TODO: do occasional cleanup of refresh tokens
     @Transactional
     public AuthResult refresh(String rawRefreshToken) {
         log.info("Refreshing user login");
 
-        if (!jwtService.validateRefreshToken(rawRefreshToken)) {
-            log.warn("Invalid refresh token");
-            throw new InvalidRefreshTokenException();
-        }
+        if (!jwtService.validateRefreshToken(rawRefreshToken))
+            throw new RefreshTokenInvalidException();
 
         RefreshToken refreshToken = refreshTokenService.rotate(rawRefreshToken);
 
@@ -101,7 +103,8 @@ public class AuthService {
         refreshTokenService.create(
                 muddaUser.getUserId(),
                 refreshToken,
-                expiresAt);
+                expiresAt
+        );
 
         return new AuthResult(
                 accessToken, refreshToken,

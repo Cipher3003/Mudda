@@ -8,7 +8,6 @@
  */
 package com.mudda.backend.token.verification;
 
-import com.mudda.backend.token.TokenType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,13 +20,6 @@ import java.util.Optional;
 public interface VerificationTokenRepository extends JpaRepository<VerificationToken, Long> {
 
     Optional<VerificationToken> findByToken(String token);
-
-    @Modifying(clearAutomatically = true)
-    @Query(value = """
-             DELETE from VerificationToken t
-             WHERE t.userId = :userId AND t.type = :type
-            """)
-    void deleteByUserIdAndType(long userId, TokenType type);
 
     void deleteAllByUserId(long userId);
 
@@ -49,4 +41,8 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
     void invalidateUnusedTokens(long userId, TokenType type);
 
     boolean existsByUserIdAndTypeAndCreatedAtAfter(long userId, TokenType tokenType, Instant minus);
+
+    @Modifying
+    @Query(value = "DELETE FROM VerificationToken v WHERE v.expiresAt < :threshold")
+    int deleteAllExpiredToken(Instant threshold);
 }

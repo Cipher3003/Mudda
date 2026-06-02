@@ -28,7 +28,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 import java.util.Map;
 
-import static com.mudda.backend.security.SecurityEndpoints.*;
+import static com.mudda.backend.security.SecurityUrlPatterns.*;
 
 @Configuration
 @EnableWebSecurity
@@ -37,7 +37,6 @@ public class WebSecurityConfig {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthFilter jwtAuthFilter;
-    private final RateLimitFilter rateLimitFilter;
     private final AppProperties appProperties;
     private final PersistentTokenRepository persistentTokenRepository;
     private final ObjectMapper objectMapper;
@@ -45,14 +44,12 @@ public class WebSecurityConfig {
     public WebSecurityConfig(UserDetailsService userDetailsService,
                              PasswordEncoder passwordEncoder,
                              JwtAuthFilter jwtAuthFilter,
-                             RateLimitFilter rateLimitFilter,
                              AppProperties appProperties,
                              PersistentTokenRepository persistentTokenRepository,
                              ObjectMapper objectMapper) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.jwtAuthFilter = jwtAuthFilter;
-        this.rateLimitFilter = rateLimitFilter;
         this.appProperties = appProperties;
         this.persistentTokenRepository = persistentTokenRepository;
         this.objectMapper = objectMapper;
@@ -69,7 +66,6 @@ public class WebSecurityConfig {
         configureRememberMe(http);   // Add remember me cookie
         configureForms(http);   // Add login and logout forms
         configureAuthentication(http);  // Set userDetails, authenticationProvider, JwtFilter, httpBasic
-        configureRateLimit(http);   // Set rateLimitFilter before authentication
 
         return http.build();
     }
@@ -106,11 +102,11 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(auth -> auth
 
                 // ===== PUBLIC ENDPOINTS =====
-                .requestMatchers(SEED_ENDPOINTS).permitAll()
-                .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
-                .requestMatchers(PUBLIC_STATIC_PAGES).permitAll()
-                .requestMatchers(AUTH_PUBLIC_ENDPOINTS).permitAll()
-                .requestMatchers(HttpMethod.GET, PUBLIC_READONLY_ENDPOINTS).permitAll()
+                .requestMatchers(SEED).permitAll()
+                .requestMatchers(SWAGGER).permitAll()
+                .requestMatchers(PUBLIC_PAGES).permitAll()
+                .requestMatchers(AUTH_PUBLIC).permitAll()
+                .requestMatchers(HttpMethod.GET, PUBLIC_READONLY_API).permitAll()
 
                 // ===== PROTECTED ENDPOINTS =====
                 .anyRequest().authenticated());
@@ -163,7 +159,7 @@ public class WebSecurityConfig {
         );
     }
 
-//    TODO: handle spring success and failure event to record login attempts
+    //    TODO: handle spring success and failure event to record login attempts
     private void configureForms(HttpSecurity http) throws Exception {
         http.formLogin(formLogin -> formLogin
                 .loginProcessingUrl("/login")
@@ -220,10 +216,6 @@ public class WebSecurityConfig {
         daoAuthenticationProvider.setUserDetailsService(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         return daoAuthenticationProvider;
-    }
-
-    private void configureRateLimit(HttpSecurity http) {
-        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     //    Get the spring authentication manager (Should never create our own)

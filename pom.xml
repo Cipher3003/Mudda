@@ -11,7 +11,7 @@
     </parent>
     <groupId>com.mudda</groupId>
     <artifactId>backend</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <name>backend</name>
     <description>Project Mudda</description>
     <url/>
@@ -235,6 +235,16 @@
             <scope>compile</scope>
         </dependency>
 
+        <!--    Java Code Coverage    -->
+        <!-- Source: https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.14</version>
+            <scope>compile</scope>
+
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -243,6 +253,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <parameters>true</parameters>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

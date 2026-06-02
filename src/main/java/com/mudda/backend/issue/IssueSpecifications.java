@@ -1,9 +1,9 @@
 package com.mudda.backend.issue;
 
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
-import java.util.List;
 
 public class IssueSpecifications {
 
@@ -28,32 +28,24 @@ public class IssueSpecifications {
                 userId == null ? null : criteriaBuilder.equal(root.get("userId"), userId);
     }
 
-    public static Specification<Issue> hasCategoryId(Long categoryId) {
+    public static Specification<Issue> hasCategory(IssueCategory category) {
         return (root, query, criteriaBuilder) ->
-                categoryId == null ? null : criteriaBuilder.equal(root.get("categoryId"), categoryId);
+                category == null ? null : criteriaBuilder.equal(root.get("category"), category);
     }
 
-    public static Specification<Issue> hasLocationIds(List<Long> locationIds) {
-        return (root, query, criteriaBuilder) -> {
-            if (locationIds == null || locationIds.isEmpty()) return null;
-            return root.get("locationId").in(locationIds);
-        };
+    public static Specification<Issue> hasCity(String city) {
+        return (root, query, criteriaBuilder) ->
+                city == null ? null : criteriaBuilder.equal(root.get("city"), city);
     }
 
-    public static Specification<Issue> isUrgent(Boolean urgency) {
-        return (root, query, criteriaBuilder) -> {
-            if (urgency == null) return null;
-            return urgency ? criteriaBuilder.isTrue(root.get("urgencyFlag"))
-                    : criteriaBuilder.isFalse(root.get("urgencyFlag"));
-        };
+    public static Specification<Issue> hasState(String state) {
+        return (root, query, criteriaBuilder) ->
+                state == null ? null : criteriaBuilder.equal(root.get("state"), state);
     }
 
-    public static Specification<Issue> isDeleted(Boolean deleted) {
-        return (root, query, criteriaBuilder) -> {
-            if (deleted == null) return null;
-            return deleted ? criteriaBuilder.isTrue(root.get("deleteFlag"))
-                    : criteriaBuilder.isFalse(root.get("deleteFlag"));
-        };
+    public static Specification<Issue> isNotDeleted() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.isNull(root.get("deletedAt"));
     }
 
     public static Specification<Issue> createdAfter(Instant date) {
@@ -72,6 +64,13 @@ public class IssueSpecifications {
             if (min != null && max != null) criteriaBuilder.between(root.get("severityScore"), min, max);
             if (min != null) return criteriaBuilder.greaterThanOrEqualTo(root.get("severityScore"), min);
             return criteriaBuilder.lessThanOrEqualTo(root.get("severityScore"), max);
+        };
+    }
+
+    public static Specification<Issue> fetchAuthor() {
+        return (root, query, criteriaBuilder) -> {
+            root.fetch("author", JoinType.LEFT);
+            return null;
         };
     }
 }

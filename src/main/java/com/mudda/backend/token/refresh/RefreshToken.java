@@ -8,6 +8,7 @@
  */
 package com.mudda.backend.token.refresh;
 
+import com.mudda.backend.user.MuddaUser;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,10 +32,7 @@ public class RefreshToken {
     @SequenceGenerator(name = "refresh_token_seq", sequenceName = "refresh_token_id_seq", allocationSize = 1)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "token", nullable = false, length = 64)
+    @Column(name = "token", nullable = false, unique = true, length = 64)
     private String token;
 
     @Column(name = "revoked", nullable = false)
@@ -45,6 +43,13 @@ public class RefreshToken {
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", updatable = false, insertable = false)
+    private MuddaUser user;
 
     @PrePersist
     protected void onCreate() {

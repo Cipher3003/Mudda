@@ -61,10 +61,9 @@
                 </svg>
                 <span>Generate Test Data</span>
             </button>
-            <button id="seed-json-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition
-                    duration-300 flex items-center justify-center gap-2">
-                <span>Seed Json Data</span>
+            <button id="seed-json-btn" disabled class="w-full bg-gray-600 text-gray-400 cursor-not-allowed font-bold py-3 px-4 rounded-lg
+                    flex items-center justify-center gap-2" title="Seed JSON functionality is disabled">
+                <span>Seed Json Data (Disabled)</span>
             </button>
             <button id="clear-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg
                     focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition
@@ -91,16 +90,17 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const entities = ['Category', 'Location', 'User', 'Issue', 'Comment', 'Reply'];
+        const entities = ['User', 'Issue', 'Comment', 'Media'];
         const formContainer = document.getElementById('entity-form');
 
         // Dynamically create input fields for each entity
         entities.forEach(entity => {
             const inputGroup = document.createElement('div');
             inputGroup.className = 'flex flex-col';
+            const isMedia = entity === 'Media';
             inputGroup.innerHTML = `
-            <label for="${entity.toLowerCase()}" class="mb-2 font-semibold text-gray-300">${entity}</label>
-            <input type="number" id="${entity.toLowerCase()}" name="${entity}" min="0" value="0"
+            <label for="${entity.toLowerCase()}" class="mb-2 font-semibold text-gray-300">${entity}${isMedia ? ' (Coverage %)' : ''}</label>
+            <input type="number" id="${entity.toLowerCase()}" name="${entity}" min="0" ${isMedia ? 'max="100"' : ''} value="0"
                    class="bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-blue-500
                    focus:border-blue-500 block w-full p-2.5 transition">
         `;
@@ -111,6 +111,12 @@
         const clearBtn = document.getElementById('clear-btn');
         const seedJsonBtn = document.getElementById('seed-json-btn');
         const feedbackConsole = document.getElementById('feedback-console');
+
+        const getXSRFToken = () =>
+            document.cookie.split('; ')
+                .find((row) => row.startsWith("XSRF-TOKEN="))
+                ?.split("=")[1]
+
 
         // --- Function to handle API requests and update UI ---
         const handleApiRequest = async (url, options, button) => {
@@ -163,18 +169,13 @@
 
             handleApiRequest('/api/v1/seed', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {'Content-Type': 'application/json', 'X-XSRF-TOKEN': getXSRFToken()},
                 body: JSON.stringify(payload),
             }, generateBtn);
         });
 
-        // --- Event Listener for Generate Button ---
-        seedJsonBtn.addEventListener('click', () => {
-            handleApiRequest('/api/v1/seed/json', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-            }, seedJsonBtn);
-        });
+        // --- Event Listener for Seed JSON Button (Disabled) ---
+        // seedJsonBtn.addEventListener('click', () => { ... });
 
         // --- Event Listener for Clear Button ---
         clearBtn.addEventListener('click', () => {
@@ -182,6 +183,7 @@
             if (confirm('Are you sure you want to clear the entire database? This action cannot be undone.')) {
                 handleApiRequest('/api/v1/seed/clear', {
                     method: 'DELETE',
+                    headers: {'X-XSRF-TOKEN': getXSRFToken()}
                 }, clearBtn);
             }
         });

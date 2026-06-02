@@ -8,7 +8,8 @@
  */
 package com.mudda.backend.issue;
 
-import com.mudda.backend.notification.NotificationService;
+import com.mudda.backend.issue.dto.IssueFlagResponse;
+import com.mudda.backend.notification.PushNotificationService;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -16,56 +17,49 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Slf4j
 @Component
 @Profile("dev")
 public class IssueEventListeners {
 
-    private final IssueRepository issueRepository;
+    private final IssueService issueService;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
+    private final PushNotificationService pushNotificationService;
 
     private final String RESPONSE_QUEUE_NAME = "mudda-hate-speech-response-queue";
 
-    public IssueEventListeners(IssueRepository issueRepository,
-                               UserRepository userRepository,
-                               NotificationService notificationService) {
-        this.issueRepository = issueRepository;
+    public IssueEventListeners(
+            IssueService issueService,
+            UserRepository userRepository,
+            PushNotificationService pushNotificationService
+    ) {
+        this.issueService = issueService;
         this.userRepository = userRepository;
-        this.notificationService = notificationService;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @SqsListener(value = RESPONSE_QUEUE_NAME, pollTimeoutSeconds = "20")
     public void onIssueFlagResponse(IssueFlagResponse response) {
         log.info("Received response from SQS: {}", response);
+
         if (response.hate()) {
-            issueRepository.findById(response.id()).ifPresent(issue -> {
-                issue.setDeleteFlag(true);
-                issueRepository.save(issue);
-                log.info("Sending notification for Issue: {} marked for hate", response.id());
-                Optional<String> token = userRepository.findById(response.userId())
-                        .map(MuddaUser::getFcmToken);
+            issueService.softDelete(response.id());
+            log.info("Sending notification for Issue: {} marked for hate", response.id());
 
-                token.ifPresent(s -> notificationService.sendNotification(
-                        s, Long.toString(response.id()), "Issue removed",
-                        "Your issue has been removed for foul language."
-                ));
-            });
+            userRepository.findById(response.userId())
+                    .ifPresent(user -> pushNotificationService.sendNotification(
+                            user.getUserId(), Long.toString(response.id()), "Issue removed",
+                            "Your issue has been removed for foul language."
+                    ));
         } else if (response.isOld()) {
-            issueRepository.findById(response.id()).ifPresent(issue -> {
-                issue.setDeleteFlag(false);
-                issueRepository.save(issue);
-                log.info("Sending notification for Old Issue: {} good to go", response.id());
-                Optional<String> token = userRepository.findById(response.userId())
-                        .map(MuddaUser::getFcmToken);
+            issueService.restoreIssue(response.id());
+            log.info("Sending notification for Old Issue: {} good to go", response.id());
 
-                token.ifPresent(s -> notificationService.sendNotification(
-                        s, Long.toString(response.id()), "Issue removed again",
-                        "Your issue has been removed again for foul language."
-                ));
-            });
+            userRepository.findById(response.userId())
+                    .ifPresent(user -> pushNotificationService.sendNotification(
+                            user.getUserId(), Long.toString(response.id()), "Issue removed again",
+                            "Your issue has been removed again for foul language."
+                    ));
         }
     }
 }

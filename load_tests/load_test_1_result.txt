@@ -1,0 +1,49 @@
+█ THRESHOLDS
+
+    http_req_duration
+    ✗ 'p(95)<500' p(95)=867.45ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS
+
+    checks_total.......: 20119   63.617812/s
+    checks_succeeded...: 100.00% 20119 out of 20119
+    checks_failed......: 0.00%   0 out of 20119
+
+    ✓ login successful
+    ✓ has access token
+    ✓ get account info is 200
+    ✓ username matches
+    ✓ create issue status is 201
+    ✓ post comment status is 201
+    ✓ like comment status is 200
+    ✓ post reply status is 201
+    ✓ get user issues is 200
+    ✓ refresh successful
+    ✓ delete issue status is 204
+
+    HTTP
+    http_req_duration..............: avg=151.47ms min=1.11ms med=12ms max=5.18s p(90)=279.58ms p(95)=867.45ms
+      { expected_response:true }...: avg=151.47ms min=1.11ms med=12ms max=5.18s p(90)=279.58ms p(95)=867.45ms
+    http_req_failed................: 0.00%  0 out of 18290
+    http_reqs......................: 18290  57.834374/s
+
+    EXECUTION
+    iteration_duration.............: avg=4.47s    min=3.1s   med=3.8s max=7.68s p(90)=6.85s    p(95)=7.07s
+    iterations.....................: 1829   5.783437/s
+    vus............................: 1      min=1          max=50
+    vus_max........................: 50     min=50         max=50
+
+    NETWORK
+    data_received..................: 15 MB  47 kB/s
+    data_sent......................: 8.2 MB 26 kB/s
+
+
+
+
+running (5m16.2s), 00/50 VUs, 1829 complete and 0 interrupted iterations
+default ✓ [======================================] 00/50 VUs  5m0s
+ERRO[0302] thresholds on metrics 'http_req_duration' have been crossed

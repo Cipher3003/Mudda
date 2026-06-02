@@ -9,7 +9,8 @@
 package com.mudda.backend.auth;
 
 import com.mudda.backend.account.AccountService;
-import com.mudda.backend.user.CreateUserRequest;
+import com.mudda.backend.auth.dto.*;
+import com.mudda.backend.user.dto.CreateUserRequest;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
 import jakarta.validation.Valid;
@@ -28,9 +29,11 @@ public class AuthController {
     private final AccountService accountService;
     private final MessageUtil messageUtil;
 
-    public AuthController(AuthService authService,
-                          AccountService accountService,
-                          MessageUtil messageUtil) {
+    public AuthController(
+            AuthService authService,
+            AccountService accountService,
+            MessageUtil messageUtil
+    ) {
         this.authService = authService;
         this.accountService = accountService;
         this.messageUtil = messageUtil;
@@ -65,8 +68,6 @@ public class AuthController {
     // endregion
 
     // region Mobile ONLY
-
-    //    TODO: add email verification endpoint with POST
 
     //    Only login when both token expires
     @PostMapping("/login")

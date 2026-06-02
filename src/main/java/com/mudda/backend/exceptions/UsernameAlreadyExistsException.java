@@ -9,9 +9,10 @@
 package com.mudda.backend.exceptions;
 
 import com.mudda.backend.utils.MessageCodes;
+import org.springframework.http.HttpStatus;
 
-public class UsernameAlreadyExistsException extends LocalizedException {
+public class UsernameAlreadyExistsException extends ApiException {
     public UsernameAlreadyExistsException() {
-        super(MessageCodes.USERNAME_ALREADY_EXISTS);
+        super(HttpStatus.CONFLICT, MessageCodes.USERNAME_ALREADY_EXISTS);
     }
 }

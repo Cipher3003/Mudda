@@ -1,26 +1,27 @@
 package com.mudda.backend.issue;
 
+import com.mudda.backend.user.MuddaUser;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.locationtech.jts.geom.Point;
 
 import java.time.Instant;
-import java.util.List;
+
+// TODO: implement reporting system
 
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "Issue")
-@Table(name = "issues")
+@Table(name = "issues", indexes = {@Index(name = "idx_issues_deleted_at", columnList = "deleted_at")})
 public class Issue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "issues_seq")
-    @SequenceGenerator(name = "issues_seq", sequenceName = "issues_id_seq", allocationSize = 50)
+    @SequenceGenerator(name = "issues_seq", sequenceName = "issues_id_seq")
     @Column(name = "issue_id", updatable = false, nullable = false)
     private Long id;
 
@@ -30,48 +31,50 @@ public class Issue {
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "pin_code", nullable = false)
+    private String pinCode;
+
+    @Column(name = "city", nullable = false)
+    private String city;
+
+    @Column(name = "state", nullable = false)
+    private String state;
+
+    @Column(name = "coordinate", columnDefinition = "geometry(Point, 4326)", nullable = false)
+    private Point coordinate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "issue_status", nullable = false)
     private IssueStatus status = IssueStatus.OPEN;
 
-    // Reference to User in PostgresSQL
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "issue_category", length = 4, nullable = false)
+    private IssueCategory category;
 
-    // location of the issue raised
-    @Column(name = "location_id", nullable = false)
-    private Long locationId;
-
-    // Reference to Category in PostgresSQL
-    @Column(name = "issue_category_id", nullable = false)
-    private Long categoryId;
-
-    // Media URLs stored as a Postgres text[] array
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "media_urls")
-    private List<String> mediaUrls;
-//    TODO: store image in table with metadata instead of array
-
-    // Flags
-    @Column(name = "delete_flag", nullable = false)
-    private boolean deleteFlag = false;
-
-    // TODO: uncomment when implement reporting
-    // @Column(nullable = false)
-    // private boolean reportFlag = false;
-
-    @Column(name = "urgency_flag", nullable = false)
-    private boolean urgencyFlag = false;
-
-    // Severity score
     @Column(name = "severity_score", nullable = false)
     private double severityScore = 0.0;
+
+    @Column(name = "vote_count", nullable = false)
+    private long voteCount = 0;
+
+    @Column(name = "comment_count", nullable = false)
+    private long commentCount = 0;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", updatable = false, insertable = false)
+    private MuddaUser author;
 
     @PrePersist
     protected void onCreate() {
@@ -86,32 +89,39 @@ public class Issue {
 
     // ----- Domain Constructor -----
 
-    public Issue(String title,
-                 String description,
-                 Long userId,
-                 Long locationId,
-                 Long categoryId,
-                 List<String> mediaUrls) {
-
+    public Issue(
+            String title,
+            String description,
+            Long userId,
+            IssueCategory category,
+            String pinCode,
+            String city,
+            String state,
+            Point coordinate
+    ) {
         if (title == null || title.isBlank())
             throw new IllegalArgumentException("Issue title cannot be empty");
         if (description == null || description.isBlank())
             throw new IllegalArgumentException("Issue description cannot be empty");
-        if (userId == null || locationId == null || categoryId == null)
-            throw new IllegalArgumentException("User, category and locations ids must be provided");
+        if (userId == null || category == null)
+            throw new IllegalArgumentException("User id and must be provided");
+        if (pinCode == null || pinCode.isBlank())
+            throw new IllegalArgumentException("PinCode cannot be empty");
+        if (city == null || city.isBlank())
+            throw new IllegalArgumentException("City cannot be empty");
+        if (state == null || state.isBlank())
+            throw new IllegalArgumentException("State cannot be empty");
+        if (coordinate == null || coordinate.isEmpty())
+            throw new IllegalArgumentException("Coordinate cannot be empty");
 
         this.title = title.trim();
         this.description = description.trim();
         this.userId = userId;
-        this.locationId = locationId;
-        this.categoryId = categoryId;
-        if (mediaUrls == null || mediaUrls.isEmpty()) {
-            this.mediaUrls = List.of();
-        } else {
-            this.mediaUrls = (mediaUrls.size() > 5)
-                    ? mediaUrls.subList(0, 5).stream().toList()
-                    : List.copyOf(mediaUrls);
-        }
+        this.category = category;
+        this.pinCode = pinCode;
+        this.city = city;
+        this.state = state;
+        this.coordinate = coordinate;
     }
 
     // ----- Domain Behaviour -------

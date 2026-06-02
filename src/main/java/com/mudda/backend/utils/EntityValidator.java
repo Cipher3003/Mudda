@@ -13,6 +13,7 @@ import org.springframework.data.repository.CrudRepository;
 
 public class EntityValidator {
 
+    // TODO: remove this class and make better validation logic
     public static <T, ID> void validateExists(CrudRepository<T, ID> repo, ID id, String entityName) {
         if (!repo.existsById(id))
             throw new EntityNotFoundException("%s not found with id: %s".formatted(entityName, id));

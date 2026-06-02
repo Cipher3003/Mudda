@@ -1,28 +1,24 @@
 package com.mudda.backend.seed;
 
 import com.google.gson.Gson;
-import com.mudda.backend.category.CategorySeed;
-import com.mudda.backend.category.CategoryService;
-import com.mudda.backend.category.CreateCategoryRequest;
-import com.mudda.backend.comment.*;
-import com.mudda.backend.issue.CreateIssueRequest;
-import com.mudda.backend.issue.IssueSeed;
+import com.mudda.backend.comment.CommentLike;
+import com.mudda.backend.comment.CommentLikeService;
+import com.mudda.backend.comment.CommentService;
+import com.mudda.backend.comment.dto.CreateCommentRequest;
+import com.mudda.backend.issue.IssueCategory;
 import com.mudda.backend.issue.IssueService;
-import com.mudda.backend.location.CoordinateDTO;
-import com.mudda.backend.location.CreateLocationRequest;
-import com.mudda.backend.location.LocationSeed;
-import com.mudda.backend.location.LocationService;
-import com.mudda.backend.user.CreateUserRequest;
+import com.mudda.backend.issue.dto.CreateIssueRequest;
+import com.mudda.backend.issue.dto.CoordinateDTO;
 import com.mudda.backend.user.MuddaUserRole;
-import com.mudda.backend.user.UserSeed;
 import com.mudda.backend.user.UserService;
+import com.mudda.backend.user.dto.CreateUserRequest;
 import com.mudda.backend.vote.Vote;
-import com.mudda.backend.vote.VoteSeed;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
+import net.datafaker.providers.base.Address;
 import net.datafaker.providers.base.Text;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +30,14 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import static net.datafaker.providers.base.Text.DIGITS;
 import static net.datafaker.providers.base.Text.EN_UPPERCASE;
 
 @Slf4j
 @Service
+@Deprecated
 public class SeedService {
 
     // In a real application, these services would be injected.
@@ -49,23 +47,19 @@ public class SeedService {
     private final Random random = new Random();
     private final Faker faker = new Faker(random);
 
-    private final CategoryService categoryService;
-    private final LocationService locationService;
     private final UserService userService;
     private final IssueService issueService;
     private final VoteService voteService;
     private final CommentService commentService;
     private final CommentLikeService commentLikeService;
 
-    public SeedService(CategoryService categoryService,
-                       LocationService locationService,
-                       UserService userService,
-                       VoteService voteService,
-                       IssueService issueService,
-                       CommentService commentService,
-                       CommentLikeService commentLikeService) {
-        this.categoryService = categoryService;
-        this.locationService = locationService;
+    public SeedService(
+            UserService userService,
+            VoteService voteService,
+            IssueService issueService,
+            CommentService commentService,
+            CommentLikeService commentLikeService
+    ) {
         this.userService = userService;
         this.voteService = voteService;
         this.issueService = issueService;
@@ -86,15 +80,15 @@ public class SeedService {
         feedback.add("Starting database cleanup using manual deletion...");
 
         // The order of deletion is crucial to avoid foreign key constraint violations.
-        // We delete from entities that have dependencies first, moving towards root entities.
-        // For example, Comments depend on Issues and Users, so comment must be deleted first.
+        // We delete from entities that have dependencies first, moving towards root
+        // entities.
+        // For example, Comments depend on Issues and Users, so comment must be deleted
+        // first.
         List<String> entityNamesInDeletionOrder = List.of(
                 "CommentLike",
                 "Comment",
                 "Vote",
                 "Issue",
-                "Location",
-                "Category",
                 "VerificationToken",
                 "RefreshToken",
                 "MuddaUser"
@@ -110,14 +104,13 @@ public class SeedService {
 
             // --- Next Step: Reset all primary key sequences ---
             feedback.add("Resetting all table sequences...");
-            // Note: Use custom sequence names that are based on Hibernate/JPA naming conventions.
+            // Note: Use custom sequence names that are based on Hibernate/JPA naming
+            // conventions.
             List<String> sequenceNames = List.of(
                     "comment_likes_id_seq",
                     "comments_id_seq",
                     "votes_id_seq",
                     "issues_id_seq",
-                    "locations_id_seq",
-                    "categories_id_seq",
                     "action_tokens_id_seq",
                     "refresh_token_id_seq",
                     "users_id_seq"
@@ -129,7 +122,8 @@ public class SeedService {
                             .executeUpdate();
                     feedback.add("Sequence '" + sequenceName + "' reset to 1.");
                 } catch (Exception e) {
-                    // This might fail if a sequence doesn't exist or name is different, which is okay.
+                    // This might fail if a sequence doesn't exist or name is different, which is
+                    // okay.
                     // We log it as a warning instead of a fatal error.
                     feedback.add("WARN: Could not reset sequence '" + sequenceName
                             + "'. It might not exist or name is incorrect. Skipping.");
@@ -148,11 +142,10 @@ public class SeedService {
     @Transactional
     public List<String> seedDatabase(CreateSeedRequest request) {
         log.info("Seeding database with request");
+
         // --- Data stores to simulate database primary keys for relationships ---
         List<String> feedback = new ArrayList<>();
         List<Long> userIds = new ArrayList<>();
-        List<Long> locationIds = new ArrayList<>();
-        List<Long> categoryIds = new ArrayList<>();
         List<Long> issueIds = new ArrayList<>();
         List<Long> topLevelCommentIds = new ArrayList<>(); // For flat (YouTube-style) replies
 
@@ -163,23 +156,23 @@ public class SeedService {
                 .forEach(dto -> generationMap.put(dto.entity(), dto.count()));
 
         // --- Process entities in a fixed order that respects dependencies ---
+        // TODO: better seeding for relationship
+        // if (generationMap.containsKey(Entity.User))
+        // generateUsers(generationMap.get(Entity.User), userIds, feedback);
         if (generationMap.containsKey(Entity.User))
-            generateUsers(generationMap.get(Entity.User), userIds, feedback);
-
-        if (generationMap.containsKey(Entity.Location))
-            generateLocations(generationMap.get(Entity.Location), locationIds, feedback);
-
-        if (generationMap.containsKey(Entity.Category))
-            generateCategories(generationMap.get(Entity.Category), categoryIds, feedback);
+            userIds.addAll(LongStream.rangeClosed(0, generationMap.get(Entity.User)).boxed().toList());
 
         if (generationMap.containsKey(Entity.Issue))
-            generateIssues(generationMap.get(Entity.Issue), issueIds, userIds, locationIds, categoryIds, feedback);
+            generateIssues(generationMap.get(Entity.Issue), issueIds, userIds, feedback);
 
         if (generationMap.containsKey(Entity.Comment))
             generateComments(generationMap.get(Entity.Comment), topLevelCommentIds, issueIds, userIds, feedback);
 
-        if (generationMap.containsKey(Entity.Reply))
-            generateReplies(generationMap.get(Entity.Reply), topLevelCommentIds, issueIds, userIds, feedback);
+//        if (generationMap.containsKey(Entity.Reply))
+//            generateReplies(generationMap.get(Entity.Reply), topLevelCommentIds, issueIds, userIds, feedback);
+//
+//        if (generationMap.containsKey(Entity.Vote))
+//            generateVotes(generationMap.get(Entity.Vote), issueIds, userIds, feedback);
 
         if (feedback.isEmpty())
             feedback.add("No entities requested for generation.");
@@ -207,12 +200,6 @@ public class SeedService {
                 userService.saveUsers(seedData.users().stream().map(UserSeed::toUser).toList());
                 feedback.add("Users seeded: " + seedData.users().size());
 
-                locationService.saveLocations(seedData.locations().stream().map(LocationSeed::toLocation).toList());
-                feedback.add("Locations seeded: " + seedData.locations().size());
-
-                categoryService.saveCategories(seedData.categories().stream().map(CategorySeed::toCategory).toList());
-                feedback.add("Categories seeded: " + seedData.categories().size());
-
                 issueService.saveIssues(seedData.issues().stream().map(IssueSeed::toIssue).toList());
                 feedback.add("Issues seeded: " + seedData.issues().size());
 
@@ -229,8 +216,7 @@ public class SeedService {
                     for (int voteId = 0; voteId < voteCount; voteId++) {
                         votesList.add(VoteSeed.toVote(new VoteSeed(
                                 issueId,
-                                random.nextInt(1, userCount + 1)
-                        )));
+                                random.nextInt(1, userCount + 1))));
                     }
                 }
 
@@ -246,8 +232,7 @@ public class SeedService {
                         commentLikes.add(CommentLikeSeed
                                 .toCommentLike(new CommentLikeSeed(
                                         commentId,
-                                        random.nextInt(1, userCount + 1)
-                                )));
+                                        random.nextInt(1, userCount + 1))));
                     }
                 }
 
@@ -295,50 +280,15 @@ public class SeedService {
                     uniquePhoneNumber,
                     password,
                     getRandomMuddaUserRole(), // Get a random existing role
-                    faker.avatar().image(),
-                    null));
+                    faker.avatar().image()
+            ));
         }
         userIds.addAll(userService.createUsers(userRequests));
     }
 
-    private void generateLocations(int count, List<Long> locationIds, List<String> feedback) {
-        feedback.add("Generating " + count + " locations...");
-        List<CreateLocationRequest> locationRequests = new ArrayList<>();
-
-        for (int i = 0; i < count; i++) {
-            CoordinateDTO coordinate = new CoordinateDTO(
-                    Double.parseDouble(faker.address().latitude().replace(',', '.')),
-                    Double.parseDouble(faker.address().longitude().replace(',', '.')));
-
-            CreateLocationRequest request = new CreateLocationRequest(
-                    faker.address().streetAddress(),
-                    faker.address().zipCode(),
-                    faker.address().city(),
-                    faker.address().state(),
-                    coordinate);
-
-            locationRequests.add(request);
-        }
-        locationIds.addAll(locationService.createLocations(locationRequests));
-    }
-
-    private void generateCategories(int count, List<Long> categoryIds, List<String> feedback) {
-        feedback.add("Generating " + count + " categories...");
-        List<CreateCategoryRequest> categoryRequests = new ArrayList<>();
-
-        for (int i = 0; i < count; i++) {
-            // Appending a random number to ensure the category name is unique
-            String uniqueCategoryName = faker.commerce().department() + " " + random.nextInt(100000);
-            categoryRequests.add(new CreateCategoryRequest(uniqueCategoryName));
-        }
-
-        categoryIds.addAll(categoryService.createCategories(categoryRequests));
-    }
-
-    private void generateIssues(int count, List<Long> issueIds, List<Long> userIds,
-                                List<Long> locationIds, List<Long> categoryIds, List<String> feedback) {
-        if (userIds.isEmpty() || locationIds.isEmpty() || categoryIds.isEmpty()) {
-            feedback.add("Cannot generate issues: Missing Users, Locations, or Categories. " +
+    private void generateIssues(int count, List<Long> issueIds, List<Long> userIds, List<String> feedback) {
+        if (userIds.isEmpty()) {
+            feedback.add("Cannot generate issues: Missing Users, Locations. " +
                     "Add users, locations, categories in request.");
             return;
         }
@@ -353,16 +303,21 @@ public class SeedService {
                     .mapToObj(n -> faker.internet().url())
                     .toList();
 
-            String title = faker.lorem().sentence(random.nextInt(5, 20)).trim();
-            if (title.length() > 150)
-                title = title.substring(0, 140);
+            String title = faker.lorem().fixedString(random.nextInt(50, 140)).trim();
+            Address address = faker.address();
+            Double x = Double.parseDouble(faker.address().latitude().replace(',', '.'));
+            Double y = Double.parseDouble(faker.address().longitude().replace(',', '.'));
 
             issueRequests.add(new CreateIssueRequest(
                     title,
                     faker.lorem().paragraph(random.nextInt(5, 15)),
-                    getRandomId(locationIds),
-                    getRandomId(categoryIds),
-                    media));
+                    getRandomIssueCategory().getCode(),
+                    media,
+                    address.zipCode(),
+                    address.city(),
+                    address.state(),
+                    new CoordinateDTO(x, y)
+            ));
 
             users.add(getRandomId(userIds));
         }
@@ -378,18 +333,19 @@ public class SeedService {
         feedback.add("Generating " + count + " top-level comments...");
 
         List<CreateCommentRequest> commentRequests = new ArrayList<>();
-        List<Long> issues = new ArrayList<>();
         List<Long> users = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
+            Long issueId = getRandomId(issueIds);
             commentRequests.add(new CreateCommentRequest(
-                    faker.lorem().paragraph(random.nextInt(5, 15))));
-
-            issues.add(getRandomId(issueIds));
+                    faker.lorem().paragraph(random.nextInt(5, 15)),
+                    issueId,
+                    null
+            ));
             users.add(getRandomId(userIds));
         }
 
-        parentCommentIds.addAll(commentService.createComments(issues, users, commentRequests));
+        parentCommentIds.addAll(commentService.createComments(users, commentRequests));
     }
 
     private void generateReplies(int count, List<Long> parentCommentIds, List<Long> issueIds,
@@ -408,13 +364,47 @@ public class SeedService {
 
         for (int i = 0; i < count; i++) {
             replyRequests.add(new CreateCommentRequest(
-                    faker.lorem().paragraph(random.nextInt(5, 15))));
+                    faker.lorem().paragraph(random.nextInt(5, 15)),
+                    null,
+                    null
+            ));
             parents.add(getRandomId(parentCommentIds));
             issues.add(getRandomId(issueIds));
             users.add(getRandomId(userIds));
         }
 
         commentService.createReplies(parents, users, issues, replyRequests);
+    }
+
+    private void generateVotes(int count, List<Long> issueIds, List<Long> userIds, List<String> feedback) {
+        if (issueIds.isEmpty() || userIds.isEmpty()) {
+            feedback.add("Cannot generate votes: Missing Issues or Users. Add issues, users in request");
+            return;
+        }
+        feedback.add("Generating " + count + " votes...");
+
+        List<Vote> votes = new ArrayList<>();
+        Set<String> uniqueVotes = new HashSet<>();
+
+        // Ensure we don't loop forever if count is larger than possible combinations
+        long maxPossible = (long) issueIds.size() * userIds.size();
+        int toGenerate = (int) Math.min(count, maxPossible);
+
+        int attempts = 0;
+        int maxAttempts = toGenerate * 3; // To avoid infinite loop if distribution is bad
+
+        while (votes.size() < toGenerate && attempts < maxAttempts) {
+            Long issueId = getRandomId(issueIds);
+            Long userId = getRandomId(userIds);
+            String key = issueId + "-" + userId;
+
+            if (uniqueVotes.add(key)) {
+                votes.add(Vote.castVote(issueId, userId));
+            }
+            attempts++;
+        }
+
+        voteService.saveVotes(votes);
     }
 
     /**
@@ -430,5 +420,10 @@ public class SeedService {
     private MuddaUserRole getRandomMuddaUserRole() {
         MuddaUserRole[] muddaUserRoles = MuddaUserRole.values();
         return muddaUserRoles[random.nextInt(muddaUserRoles.length)];
+    }
+
+    private IssueCategory getRandomIssueCategory() {
+        IssueCategory[] issueCategories = IssueCategory.values();
+        return issueCategories[random.nextInt(issueCategories.length)];
     }
 }

@@ -69,4 +69,5 @@ terraform.rc
 *.sh
 
 # Files
-/src/main/resources/mudda-dev-firebase-key.json
+/src/main/resources/code.txt
+*.csv

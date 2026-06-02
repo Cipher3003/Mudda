@@ -17,12 +17,12 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "app")
+// TODO: segregate different type config to their files and rename to match usage
 public class AppProperties {
 
     private String frontendBaseUrl;
     private Token token;
     private Security security;
-    private RateLimit rateLimit;
     private Cors cors;
     private Session session;
 
@@ -45,14 +45,6 @@ public class AppProperties {
             private int maxAttempts;
             private int lockDurationMinutes;
         }
-    }
-
-    @Getter
-    @Setter
-    public static class RateLimit {
-        private int authCapacity;
-        private int authRefillTokens;
-        private int authRefillMinutes;
     }
 
     @Getter

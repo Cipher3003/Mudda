@@ -8,7 +8,7 @@
  */
 package com.mudda.backend.token.verification;
 
-import com.mudda.backend.token.TokenType;
+import com.mudda.backend.user.MuddaUser;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,9 +33,6 @@ public class VerificationToken {
     private Long id;
 
     @Column(nullable = false)
-    private Long userId;
-
-    @Column(nullable = false)
     private String token;
 
     @Enumerated(EnumType.STRING)
@@ -50,6 +47,13 @@ public class VerificationToken {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", updatable = false, insertable = false)
+    private MuddaUser user;
 
     @PrePersist
     protected void onCreate() {

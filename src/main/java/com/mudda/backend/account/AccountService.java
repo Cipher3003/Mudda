@@ -10,15 +10,16 @@ package com.mudda.backend.account;
 
 import com.mudda.backend.AppProperties;
 import com.mudda.backend.exceptions.UserAlreadyExistsException;
+import com.mudda.backend.token.device.DeviceTokenService;
 import com.mudda.backend.token.refresh.RefreshTokenService;
-import com.mudda.backend.token.TokenType;
+import com.mudda.backend.token.verification.TokenType;
 import com.mudda.backend.token.verification.VerificationToken;
 import com.mudda.backend.token.verification.VerificationTokenService;
 import com.mudda.backend.email.EmailService;
-import com.mudda.backend.user.CreateUserRequest;
-import com.mudda.backend.user.MuddaUser;
-import com.mudda.backend.user.UserDetailResponse;
 import com.mudda.backend.user.UserService;
+import com.mudda.backend.user.dto.CreateUserRequest;
+import com.mudda.backend.user.MuddaUser;
+import com.mudda.backend.user.dto.UserDetailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,17 +36,21 @@ public class AccountService {
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
     private final AppProperties appProperties;
+    private final DeviceTokenService deviceTokenService;
 
-    public AccountService(UserService userService,
-                          VerificationTokenService tokenService,
-                          EmailService emailService,
-                          RefreshTokenService refreshTokenService,
-                          AppProperties appProperties) {
+    public AccountService(
+            UserService userService,
+            VerificationTokenService tokenService,
+            EmailService emailService,
+            RefreshTokenService refreshTokenService,
+            AppProperties appProperties,
+            DeviceTokenService deviceTokenService) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.emailService = emailService;
         this.refreshTokenService = refreshTokenService;
         this.appProperties = appProperties;
+        this.deviceTokenService = deviceTokenService;
     }
 
     //region Commands (Write Operations)
@@ -140,11 +145,13 @@ public class AccountService {
     public void deleteAccount(Long userId) {
         log.info("Deleting account with id {}", userId);
 
+        deviceTokenService.deleteUserTokens(userId);
+
         refreshTokenService.revokeAllByUserId(userId);
 
         tokenService.deleteAllTokensByUserId(userId);
 
-        userService.deleteUser(userId);
+        userService.softDeleteUser(userId);
         log.trace("Deleted account with id {}", userId);
     }
 

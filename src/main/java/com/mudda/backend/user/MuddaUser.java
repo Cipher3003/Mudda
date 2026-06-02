@@ -16,38 +16,29 @@ import java.util.Collections;
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {@Index(name = "idx_users_email", columnList = "email")})
 public class MuddaUser implements UserDetails {
 
     @Id
-    @SequenceGenerator(name = "users_seq", sequenceName = "users_id_seq", allocationSize = 50)
+    @SequenceGenerator(name = "users_seq", sequenceName = "users_id_seq")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
+    @Setter
     private Long userId;
 
-    //    TODO: Add limits to string fields
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(nullable = false, unique = true, length = 20)
     private String username;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(nullable = false, unique = true, length = 254)
+    private String email;
 
     @Column(nullable = false, unique = true)
     private String phoneNumber;
 
-    @Column(nullable = false)
-    private LocalDate dateOfBirth;
-
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String hashedPassword;
-
-    @Column
-    private String profileImageUrl;
-
-    @Column(columnDefinition = "TEXT")
-    private String fcmToken;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -55,11 +46,14 @@ public class MuddaUser implements UserDetails {
 
     @Setter
     @Column(nullable = false)
-    private boolean enabled = false;
+    private int failedLoginAttempts = 0;
 
     @Setter
     @Column(nullable = false)
-    private int failedLoginAttempts = 0;
+    private boolean enabled = false;
+
+    @Column(nullable = false)
+    private LocalDate dateOfBirth;
 
     @Column
     private Instant lockUntil;
@@ -69,6 +63,14 @@ public class MuddaUser implements UserDetails {
 
     @Column
     private Instant updatedAt;
+
+    @Setter
+    @Column
+    private Instant deletedAt;
+
+    @Setter
+    @Column
+    private String profileImageUrl;
 
     @PrePersist
     protected void onCreate() {
@@ -83,9 +85,11 @@ public class MuddaUser implements UserDetails {
 
     // ----- Domain Constructor -----
 
-    public MuddaUser(String username, String name, String phoneNumber,
-                     LocalDate dateOfBirth, String email,
-                     String hashedPassword, String profileImageUrl, MuddaUserRole role) {
+    public MuddaUser(
+            String username, String name, String phoneNumber,
+            LocalDate dateOfBirth, String email,
+            String hashedPassword, String profileImageUrl, MuddaUserRole role
+    ) {
         this.username = username;
         this.name = name;
         this.phoneNumber = phoneNumber;
@@ -98,6 +102,7 @@ public class MuddaUser implements UserDetails {
 
     // ----- Domain Behaviour -------
 
+    // TODO: remove this update method use setter
     public void updateDetails(String phoneNumber, String profileImageUrl) {
         if (phoneNumber == null || phoneNumber.isBlank())
             throw new IllegalArgumentException("Phone number cannot be empty");
@@ -141,10 +146,6 @@ public class MuddaUser implements UserDetails {
 
     public void changeProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
-    }
-
-    public void changeFcmToken(String fcmToken) {
-        this.fcmToken = fcmToken;
     }
 
     public void verify() {

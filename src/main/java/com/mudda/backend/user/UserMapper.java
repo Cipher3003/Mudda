@@ -1,16 +1,20 @@
 package com.mudda.backend.user;
 
+import com.mudda.backend.user.dto.CreateUserRequest;
+import com.mudda.backend.user.dto.UserDetailResponse;
+import com.mudda.backend.user.dto.UserSummaryResponse;
+
 public class UserMapper {
 
-    public static MuddaUser toUser(CreateUserRequest userRequest) {
+    public static MuddaUser toMuddaUser(CreateUserRequest userRequest) {
         return new MuddaUser(
                 userRequest.username(),
                 userRequest.name(),
                 userRequest.phoneNumber(),
                 userRequest.dateOfBirth(),
-                userRequest.email(),
+                userRequest.email().toLowerCase(),
                 userRequest.password(),
-                userRequest.profileImageUrl(),
+                userRequest.profileImageKey(),
                 userRequest.role()
         );
     }
