@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile("dev")
+@Profile("!dev")
 public class IssueEventListeners {
 
     private final IssueService issueService;

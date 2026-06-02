@@ -1,6 +1,5 @@
 package com.mudda.backend.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mudda.backend.AppProperties;
 import com.mudda.backend.exceptions.ApiError;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +23,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -56,7 +56,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
 
         enableCors(http);   // enable CORS for web
         configureCsrf(http);  // CSRF not needed in jwt
@@ -70,12 +70,12 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    private void enableCors(HttpSecurity http) throws Exception {
+    private void enableCors(HttpSecurity http) {
         http.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer
                 .configurationSource(corsConfigurationSource()));
     }
 
-    private void configureCsrf(HttpSecurity http) throws Exception {
+    private void configureCsrf(HttpSecurity http) {
         CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName(null);  // forces spring to generate csrf for all request
 
@@ -98,7 +98,7 @@ public class WebSecurityConfig {
                 }));
     }
 
-    private void configureAuthorization(HttpSecurity http) throws Exception {
+    private void configureAuthorization(HttpSecurity http) {
         http.authorizeHttpRequests(auth -> auth
 
                 // ===== PUBLIC ENDPOINTS =====
@@ -113,7 +113,7 @@ public class WebSecurityConfig {
     }
 
     // TODO: handle auth error for mobile only endpoints and redirect to login for web
-    private void configureExceptionHandling(HttpSecurity http) throws Exception {
+    private void configureExceptionHandling(HttpSecurity http) {
         http.exceptionHandling(exception -> exception
 
 //                Not logged in
@@ -144,12 +144,12 @@ public class WebSecurityConfig {
     }
 
     //    TODO: configure session side effects for resetting login failure and count
-    private void configureSession(HttpSecurity http) throws Exception {
+    private void configureSession(HttpSecurity http) {
         http.sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
     }
 
-    private void configureRememberMe(HttpSecurity http) throws Exception {
+    private void configureRememberMe(HttpSecurity http) {
         http.rememberMe(rememberMe -> rememberMe
                         .key(appProperties.getSession().getKey())
                         .tokenRepository(persistentTokenRepository)
@@ -160,7 +160,7 @@ public class WebSecurityConfig {
     }
 
     //    TODO: handle spring success and failure event to record login attempts
-    private void configureForms(HttpSecurity http) throws Exception {
+    private void configureForms(HttpSecurity http) {
         http.formLogin(formLogin -> formLogin
                 .loginProcessingUrl("/login")
                 .successHandler((request, response, authentication) -> {
@@ -204,7 +204,7 @@ public class WebSecurityConfig {
         );
     }
 
-    private void configureAuthentication(HttpSecurity http) throws Exception {
+    private void configureAuthentication(HttpSecurity http) {
         http
                 .userDetailsService(userDetailsService)
                 .authenticationProvider(getAuthenticationProvider())
@@ -212,15 +212,14 @@ public class WebSecurityConfig {
     }
 
     private AuthenticationProvider getAuthenticationProvider() {
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         return daoAuthenticationProvider;
     }
 
     //    Get the spring authentication manager (Should never create our own)
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
         return configuration.getAuthenticationManager();
     }
 

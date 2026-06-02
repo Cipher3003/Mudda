@@ -5,14 +5,20 @@ import com.mudda.backend.comment.event.CommentCreatedEvent;
 import com.mudda.backend.comment.event.CommentRemovedEvent;
 import com.mudda.backend.comment.event.TopLevelCommentRemovedEvent;
 import com.mudda.backend.issue.dto.*;
-import com.mudda.backend.media.*;
+import com.mudda.backend.media.MediaOwner;
+import com.mudda.backend.media.MediaProjection;
+import com.mudda.backend.media.MediaRepository;
+import com.mudda.backend.media.MediaService;
+import com.mudda.backend.notification.QueuePublisher;
 import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserRepository;
-import com.mudda.backend.vote.*;
-import io.awspring.cloud.sqs.operations.SendResult;
-import io.awspring.cloud.sqs.operations.SqsTemplate;
+import com.mudda.backend.vote.VoteCreatedEvent;
+import com.mudda.backend.vote.VoteRemovedEvent;
+import com.mudda.backend.vote.VoteRepository;
+import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,25 +42,27 @@ public class IssueService {
     private final VoteService voteService;
     private final MediaService mediaService;
     private final MediaRepository mediaRepository;
-    private final SqsTemplate sqsTemplate;
+    private final QueuePublisher queuePublisher;
 
     private static final String QUEUE_NAME = "mudda-hate-speech-queue";
-    public static final String CDN_URL = "cdn"; // TODO: inject CDN url
+
+    @Value("${app.cdn.origin}")
+    public String cdnOrigin;
 
     public IssueService(
             IssueRepository issueRepository, CommentService commentService,
             VoteRepository voteRepository, VoteService voteService,
-            UserRepository userRepository, SqsTemplate sqsTemplate,
-            MediaService mediaService, MediaRepository mediaRepository
+            UserRepository userRepository, MediaService mediaService,
+            MediaRepository mediaRepository, QueuePublisher queuePublisher
     ) {
         this.issueRepository = issueRepository;
         this.commentService = commentService;
         this.voteRepository = voteRepository;
         this.voteService = voteService;
         this.userRepository = userRepository;
-        this.sqsTemplate = sqsTemplate;
         this.mediaService = mediaService;
         this.mediaRepository = mediaRepository;
+        this.queuePublisher = queuePublisher;
     }
 
     // region Queries (Read Operations)
@@ -136,7 +144,7 @@ public class IssueService {
 
         List<String> mediaUrls = mediaRepository
                 .findMediaKeysByOwnerIdAndOwnerType(projection.getId(), MediaOwner.ISSUE).stream()
-                .map(IssueService::toPublicUrl)
+                .map(this::toPublicUrl)
                 .toList();
 
         boolean isAuthor = isAuthenticated && userId.equals(projection.getUserId());
@@ -231,16 +239,14 @@ public class IssueService {
         }
 
         List<String> mediaUrls = issueRequest.mediaUrls().stream()
-                .map(IssueService::toPublicUrl)
+                .map(this::toPublicUrl)
                 .toList();
 
         IssueCreatedEvent issueCreatedEvent = new IssueCreatedEvent(
                 saved.getId(), userId, false, saved.getTitle() + saved.getDescription()
         );
 
-        SendResult<IssueCreatedEvent> result = sqsTemplate.send(QUEUE_NAME, issueCreatedEvent);
-        log.trace("Event: {} push result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
-
+        queuePublisher.publish(QUEUE_NAME, issueCreatedEvent);
         log.info("Sent event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
 
         return IssueMapper.toResponse(
@@ -290,8 +296,8 @@ public class IssueService {
         IssueCreatedEvent issueCreatedEvent = new IssueCreatedEvent(
                 updated.getId(), userId, true, updated.getTitle() + updated.getDescription()
         );
-        SendResult<IssueCreatedEvent> result = sqsTemplate.send(QUEUE_NAME, issueCreatedEvent);
-        log.trace("Update Event: {} result: {} ", IssueCreatedEvent.class.getSimpleName(), result);
+
+        queuePublisher.publish(QUEUE_NAME, issueCreatedEvent);
         log.info("Sent update event: {} to queue: {}", IssueCreatedEvent.class.getSimpleName(), QUEUE_NAME);
 
         return IssueMapper.toUpdateResponse(updated);
@@ -388,8 +394,8 @@ public class IssueService {
                 ));
     }
 
-    private static String toPublicUrl(String media) {
-        return "%s/%s".formatted(CDN_URL, media);
+    private String toPublicUrl(String media) {
+        return "%s/%s".formatted(cdnOrigin, media);
     }
 
     private EntityNotFoundException notFound(long id) {

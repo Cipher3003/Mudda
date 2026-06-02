@@ -6,8 +6,8 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.13</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <version>4.0.6</version>
+        <relativePath/>
     </parent>
     <groupId>com.mudda</groupId>
     <artifactId>backend</artifactId>
@@ -28,7 +28,7 @@
         <url/>
     </scm>
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -80,22 +80,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
-            <version>4.0.1</version>
             <scope>compile</scope>
         </dependency>
 
         <!-- Hibernate Spatial support for PostGIS -->
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-spatial</artifactId>
-            <version>6.3.1.Final</version> <!-- or match your Hibernate version -->
-        </dependency>
-
-        <!-- Hibernate types to map complex type to database -->
-        <dependency>
-            <groupId>io.hypersistence</groupId>
-            <artifactId>hypersistence-utils-hibernate-63</artifactId>
-            <version>3.10.1</version>
         </dependency>
 
         <!-- JTS Topology Suite -->
@@ -128,16 +119,8 @@
         <dependency>
             <groupId>io.awspring.cloud</groupId>
             <artifactId>spring-cloud-aws-starter-sqs</artifactId>
-            <version>3.1.1</version>
+            <version>4.0.0</version>
         </dependency>
-
-        <!--    AWS S3    -->
-        <!-- Source: https://mvnrepository.com/artifact/io.awspring.cloud/spring-cloud-aws-starter-sqs -->
-        <!--        <dependency>-->
-        <!--            <groupId>io.awspring.cloud</groupId>-->
-        <!--            <artifactId>spring-cloud-aws-starter-s3</artifactId>-->
-        <!--            <version>4.0.0</version>-->
-        <!--        </dependency>-->
 
         <!--    Firebase Admin    -->
         <!-- Source: https://mvnrepository.com/artifact/com.google.firebase/firebase-admin -->
@@ -145,7 +128,6 @@
             <groupId>com.google.firebase</groupId>
             <artifactId>firebase-admin</artifactId>
             <version>9.8.0</version>
-            <!--            <scope>compile</scope>-->
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -165,7 +147,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.3.0</version> <!-- stable release available in Maven Central -->
+            <version>2.8.11</version>
         </dependency>
 
         <!-- Faker -->
@@ -209,15 +191,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!--    Rate Limiter    -->
-        <!-- Source: https://mvnrepository.com/artifact/com.bucket4j/bucket4j_jdk17-core -->
-        <dependency>
-            <groupId>com.bucket4j</groupId>
-            <artifactId>bucket4j_jdk17-core</artifactId>
-            <version>8.16.0</version>
-            <scope>compile</scope>
-        </dependency>
-
         <!--    Retryable    -->
         <!-- Source: https://mvnrepository.com/artifact/org.springframework.retry/spring-retry -->
         <dependency>
@@ -230,21 +203,10 @@
         <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aspectj -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aspectj</artifactId>
-            <version>4.0.1</version>
+            <artifactId>spring-boot-starter-aop</artifactId>
+            <version>4.0.0-M2</version>
             <scope>compile</scope>
         </dependency>
-
-        <!--    Java Code Coverage    -->
-        <!-- Source: https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
-        <dependency>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.14</version>
-            <scope>compile</scope>
-
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -273,6 +235,12 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <!--    Java Code Coverage    -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.14</version>
             </plugin>
         </plugins>
     </build>
