@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 
 @Service
 @Slf4j
-@Profile({"prod", "dev"})
+@Profile({"prod", "stage"})
 public class CleanupService {
 
     private final S3Client s3Client;
