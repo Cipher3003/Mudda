@@ -21,10 +21,14 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "VerificationToken")
-@Table(name = "action_tokens", indexes = {
-        @Index(name = "idx_action_tokens_token", columnList = "token"),
-        @Index(name = "idx_action_tokens_user_type", columnList = "userId,type")
-})
+@Table(
+        name = "action_tokens",
+        schema = "civic",
+        indexes = {
+                @Index(name = "idx_action_tokens_token", columnList = "token"),
+                @Index(name = "idx_action_tokens_user_id_and_type", columnList = "userId,type")
+        }
+)
 public class VerificationToken {
 
     @Id

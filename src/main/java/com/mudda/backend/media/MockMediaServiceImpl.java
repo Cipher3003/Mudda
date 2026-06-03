@@ -62,9 +62,7 @@ public class MockMediaServiceImpl implements MediaService {
     }
 
     @Override
-    public void completeUpload(String id) {
-
-    }
+    public void completeUpload(String id) {}
 
     @Override
     public int linkToIssue(long issueId, List<String> mediaKeys) {

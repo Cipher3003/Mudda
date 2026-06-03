@@ -16,7 +16,11 @@ import java.util.Collections;
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "users", indexes = {@Index(name = "idx_users_email", columnList = "email")})
+@Table(
+        name = "users",
+        schema = "civic",
+        indexes = @Index(name = "idx_users_email", columnList = "email")
+)
 public class MuddaUser implements UserDetails {
 
     @Id

@@ -20,9 +20,10 @@ import java.time.Instant;
 @Entity(name = "DeviceToken")
 @Table(
         name = "device_tokens",
+        schema = "civic",
         indexes = {
-                @Index(name = "idx_device_token_user_id", columnList = "user_id"),
-                @Index(name = "idx_device_token_device_id", columnList = "device_id")
+                @Index(name = "idx_device_tokens_user_id", columnList = "user_id"),
+                @Index(name = "idx_device_tokens_device_id", columnList = "device_id")
         }
 )
 public class DeviceToken {

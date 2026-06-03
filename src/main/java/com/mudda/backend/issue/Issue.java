@@ -16,7 +16,11 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "Issue")
-@Table(name = "issues", indexes = {@Index(name = "idx_issues_deleted_at", columnList = "deleted_at")})
+@Table(
+        name = "issues",
+        schema = "civic",
+        indexes = @Index(name = "idx_issues_deleted_at", columnList = "deleted_at")
+)
 public class Issue {
 
     @Id

@@ -16,15 +16,15 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 @Entity(name = "PersistentLogins")
-@Table(name = "persistent_logins")
+@Table(name = "persistent_logins", schema = "civic")
 public class PersistentLogins {
-
-    @Column(nullable = false)
-    private String username;
 
     @Id
     @Column(nullable = false)
     private String series;
+
+    @Column(nullable = false)
+    private String username;
 
     @Column(nullable = false)
     private String token;

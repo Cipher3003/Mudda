@@ -13,7 +13,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity(name = "CommentLike")
-@Table(name = "comment_likes")
+@Table(name = "comment_likes", schema = "civic")
 public class CommentLike {
 
     @EmbeddedId

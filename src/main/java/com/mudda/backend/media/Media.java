@@ -22,6 +22,7 @@ import java.time.Instant;
 @Entity(name = "Media")
 @Table(
         name = "media",
+        schema = "civic",
         indexes = {
                 @Index(name = "idx_media_owner_type_and_owner_id", columnList = "owner_type, owner_id"),
                 @Index(name = "idx_media_public_id", columnList = "public_id")

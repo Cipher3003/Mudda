@@ -14,7 +14,7 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "Vote")
-@Table(name = "votes")
+@Table(name = "votes", schema = "civic")
 public class Vote {
 
     @EmbeddedId
