@@ -13,6 +13,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -27,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
+@Profile({"prod", "stage"})
 public class SmtpEmailService implements EmailService {
 
     private final JavaMailSender mailSender;
@@ -39,7 +41,7 @@ public class SmtpEmailService implements EmailService {
     @Value("${app.email.retry.backoff-ms}")
     private long backOffMs;
 
-    public SmtpEmailService(JavaMailSender mailSender,
+    public SmtpEmailService(JavaMailSender mailSender,  // TODO: fix this shows error
                             EmailConfig emailConfig,
                             AppProperties appProperties) {
         this.mailSender = mailSender;

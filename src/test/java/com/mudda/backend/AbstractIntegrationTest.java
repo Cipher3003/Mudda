@@ -1,19 +1,19 @@
 package com.mudda.backend;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mudda.backend.media.MediaService;
 import com.mudda.backend.email.EmailService;
+import com.mudda.backend.media.MediaService;
 import com.mudda.backend.notification.FirebaseConfig;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Base class for all integration tests.
  * <p>
- * External services (Email, S3) are replaced with @MockBean so tests run
+ * External services (Email, S3) are replaced with @MockitoBean so tests run
  * completely offline and deterministically.
  * </p>
  */
@@ -43,22 +43,22 @@ public abstract class AbstractIntegrationTest {
     /**
      * Prevents real email sends during tests.
      */
-    @MockBean
+    @MockitoBean
     protected EmailService emailService;
 
     /**
      * Prevents real AWS S3 calls during tests.
      */
-    @MockBean
+    @MockitoBean
     protected MediaService mediaService;
 
-    @MockBean
+    @MockitoBean
     protected FirebaseConfig firebaseConfig;
 
-    @MockBean
+    @MockitoBean
     protected SqsAsyncClient sqsAsyncClient;
 
-    @MockBean
+    @MockitoBean
     protected SqsTemplate sqsTemplate;
 
     // ─── Auth helpers ────────────────────────────────────────────────────────
@@ -109,6 +109,6 @@ public abstract class AbstractIntegrationTest {
                 .andReturn();
 
         String responseBody = result.getResponse().getContentAsString();
-        return objectMapper.readTree(responseBody).get("accessToken").asText();
+        return objectMapper.readTree(responseBody).get("accessToken").asString();
     }
 }

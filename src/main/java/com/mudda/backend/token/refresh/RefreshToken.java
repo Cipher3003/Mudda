@@ -33,7 +33,8 @@ public class RefreshToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "refresh_token_seq")
-    @SequenceGenerator(name = "refresh_token_seq", sequenceName = "refresh_token_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "refresh_token_seq", sequenceName = "refresh_token_id_seq",
+            allocationSize = 1, schema = "civic")
     private Long id;
 
     @Column(name = "token", nullable = false, unique = true, length = 64)

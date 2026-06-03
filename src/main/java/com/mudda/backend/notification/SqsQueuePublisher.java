@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-@Profile("!dev")
+@Profile({"prod", "stage"})
 public class SqsQueuePublisher implements QueuePublisher {
 
     private final SqsTemplate sqsTemplate;

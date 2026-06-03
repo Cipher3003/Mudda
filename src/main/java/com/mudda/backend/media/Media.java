@@ -32,7 +32,7 @@ public class Media {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_seq")
-    @SequenceGenerator(name = "media_seq", sequenceName = "media_id_seq")
+    @SequenceGenerator(name = "media_seq", sequenceName = "media_id_seq", schema = "civic")
     @Column(name = "id", nullable = false, updatable = false)
     private long id;
 

@@ -58,6 +58,7 @@
     <springProfile name="test">
         <root level="WARN">
             <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFile"/>
         </root>
         <logger name="com.mudda.backend" level="DEBUG"/>
         <logger name="org.springframework" level="WARN"/>

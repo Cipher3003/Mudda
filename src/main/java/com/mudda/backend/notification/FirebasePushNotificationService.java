@@ -20,7 +20,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Profile("prod")
+@Profile({"prod", "stage"})
 public class FirebasePushNotificationService implements PushNotificationService {
 
     private final DeviceTokenService deviceTokenService;

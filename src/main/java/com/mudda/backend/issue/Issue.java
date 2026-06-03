@@ -25,7 +25,7 @@ public class Issue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "issues_seq")
-    @SequenceGenerator(name = "issues_seq", sequenceName = "issues_id_seq")
+    @SequenceGenerator(name = "issues_seq", sequenceName = "issues_id_seq", schema = "civic")
     @Column(name = "issue_id", updatable = false, nullable = false)
     private Long id;
 

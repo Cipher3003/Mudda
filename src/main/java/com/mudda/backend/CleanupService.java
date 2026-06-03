@@ -14,6 +14,7 @@ import com.mudda.backend.token.refresh.RefreshTokenRepository;
 import com.mudda.backend.token.verification.VerificationTokenRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import java.util.stream.Stream;
 
 @Service
 @Slf4j
+@Profile({"prod", "dev"})
 public class CleanupService {
 
     private final S3Client s3Client;

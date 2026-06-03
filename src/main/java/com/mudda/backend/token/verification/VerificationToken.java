@@ -33,7 +33,8 @@ public class VerificationToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "action_tokens_seq")
-    @SequenceGenerator(name = "action_tokens_seq", sequenceName = "action_tokens_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "action_tokens_seq", sequenceName = "action_tokens_id_seq",
+            allocationSize = 1, schema = "civic")
     private Long id;
 
     @Column(nullable = false)

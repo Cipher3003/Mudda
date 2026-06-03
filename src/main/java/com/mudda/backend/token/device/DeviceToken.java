@@ -30,7 +30,7 @@ public class DeviceToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "device_tokens_seq")
-    @SequenceGenerator(name = "device_tokens_seq", sequenceName = "device_tokens_id_seq")
+    @SequenceGenerator(name = "device_tokens_seq", sequenceName = "device_tokens_id_seq", schema = "civic")
     private Long id;
 
     @Column(name = "user_id", nullable = false)

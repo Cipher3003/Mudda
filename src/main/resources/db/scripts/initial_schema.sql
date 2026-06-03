@@ -24,6 +24,15 @@ create sequence public.users_id_seq increment by 50;
 
 create sequence public.votes_id_seq increment by 50;
 
+CREATE TABLE persistent_logins
+(
+    series    VARCHAR(64) PRIMARY KEY,
+    username  VARCHAR(64) NOT NULL,
+    token     VARCHAR(64) NOT NULL,
+    last_used TIMESTAMP   NOT NULL
+);
+
+
 create table public.action_tokens
 (
     id         bigint                      not null

@@ -26,7 +26,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Profile("prod")
+@Profile({"prod", "stage"})
 public class AmazonMediaService implements MediaService {
 
 //    TODO: detect images categories using s3

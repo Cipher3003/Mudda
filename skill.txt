@@ -1,0 +1,67 @@
+Listed directory Mudda
+Viewed pom.xml:1-281
+Viewed README.md:1-43
+Viewed docker-compose.yml:1-107
+
+Here is a summary of the "Mudda" project and the technical skills you can add to your resume based on an analysis of the repository.
+
+### Project Resume Summary
+
+**Project Name:** Mudda
+**Description:** A communication and issue-tracking platform designed to facilitate seamless interaction between the government and citizens. The system allows users to report municipal or civic issues and track their resolution status across different administrative levels and geographical areas. 
+
+**Key Highlights:**
+* Developed a scalable RESTful backend architecture using **Java** and **Spring Boot 3**.
+* Implemented complex geographical queries and location-based issue tracking using **PostgreSQL**, **PostGIS**, and **Hibernate Spatial**.
+* Integrated asynchronous message queuing for robust processing using **AWS SQS**.
+* Secured the platform using **Spring Security** combined with **JWT** token-based authentication and rate limiting via **Bucket4j**.
+* Orchestrated local development and testing environments using **Docker Compose** with services like **LocalStack** (AWS simulation), **MailHog** (email testing), and a full observability stack (**Grafana**, **InfluxDB**, **Telegraf**).
+* Integrated file validation using **Apache Tika** and utilized **AWS S3** for media storage.
+
+---
+
+### Technical Skills List (Categorized for Resume)
+
+You can list these heavily utilized skills in your "Skills" section or directly under the project bullet points:
+
+**Languages:** 
+* Java (17)
+
+**Frameworks & Libraries:** 
+* Spring Boot (3.x)
+* Spring Web, Spring Data JPA, Spring Security
+* Hibernate (with Hibernate Spatial)
+* JTS Topology Suite (LocationTech) for processing structural geometry
+* JWT (JSON Web Tokens)
+* Bucket4j (API Rate Limiting)
+* Spring Retry
+* Lombok
+* SpringDoc OpenAPI (Swagger for API Documentation)
+* Apache Tika (File validation/analysis)
+
+**Databases & GIS:** 
+* PostgreSQL (v17)
+* PostGIS (Spatial Database Extender)
+
+**Cloud & Message Queues:** 
+* AWS S3 (Cloud Storage)
+* AWS SQS (Simple Queue Service)
+* Spring Cloud AWS
+* Firebase Admin (Mobile push notifications/integrations)
+
+**DevOps, Containerization & Tools:** 
+* Docker & Docker Compose
+* LocalStack (Local AWS Cloud Simulator)
+* MailHog (Local Email Testing)
+* Maven (Build tool)
+
+**Monitoring & Performance Testing:**
+* Grafana
+* InfluxDB
+* Telegraf
+* k6 (Load Testing metrics collection)
+* JaCoCo (Code Coverage reporting)
+
+**Testing:** 
+* JUnit & Spring Boot Test
+* Datafaker (Mock Data Generation)

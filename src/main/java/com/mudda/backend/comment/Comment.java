@@ -19,7 +19,7 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comments_seq")
-    @SequenceGenerator(name = "comments_seq", sequenceName = "comments_id_seq")
+    @SequenceGenerator(name = "comments_seq", sequenceName = "comments_id_seq", schema = "civic")
     private Long id;
 
     @Column(nullable = false, columnDefinition = "TEXT")

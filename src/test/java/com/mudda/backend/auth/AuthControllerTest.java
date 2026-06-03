@@ -1,15 +1,14 @@
 package com.mudda.backend.auth;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mudda.backend.AbstractIntegrationTest;
 import com.mudda.backend.TestDataFactory;
 import com.mudda.backend.auth.dto.ForgotPasswordRequest;
 import com.mudda.backend.auth.dto.RefreshRequest;
 import com.mudda.backend.auth.dto.ResetPasswordRequest;
 import com.mudda.backend.auth.dto.VerifyRequest;
-import com.mudda.backend.token.verification.TokenType;
 import com.mudda.backend.token.refresh.RefreshToken;
 import com.mudda.backend.token.refresh.RefreshTokenRepository;
+import com.mudda.backend.token.verification.TokenType;
 import com.mudda.backend.token.verification.VerificationToken;
 import com.mudda.backend.token.verification.VerificationTokenRepository;
 import com.mudda.backend.user.MuddaUser;
@@ -25,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -271,7 +271,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
 
         // TODO: Avoid DB fetch and use argument captor with mock email service
 
-        VerificationToken token = verificationTokenRepository.findAll().get(0);
+        VerificationToken token = verificationTokenRepository.findAll().getFirst();
 
         mockMvc.perform(get("/auth/verify-email/confirm")
                         .param("verifyToken", token.getToken()))
@@ -322,7 +322,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                         .content(payload))
                 .andExpect(status().isCreated());
 
-        VerificationToken token = verificationTokenRepository.findAll().get(0);
+        VerificationToken token = verificationTokenRepository.findAll().getFirst();
 
         mockMvc.perform(get("/auth/verify-email/confirm")
                         .param("verifyToken", token.getToken()))
@@ -472,7 +472,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @DisplayName("POST /auth/logout → 200 OK and invalidates refresh token (mobile)")
     void logoutUser_mobile_shouldInvalidateRefreshToken_whenTokenIsValid() throws Exception {
         seedUserAndEnableUser();
-        String refreshToken = loginMobileAndGetBody().get("refreshToken").asText();
+        String refreshToken = loginMobileAndGetBody().get("refreshToken").asString();
 
         String logoutBody = objectMapper.writeValueAsString(new RefreshRequest(refreshToken));
 
@@ -507,7 +507,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @DisplayName("POST /auth/logout → 200 Ok when refresh token is revoked/expired (mobile)")
     void logoutUser_mobile_shouldIgnore_whenRefreshTokenIsExpired() throws Exception {
         seedUserAndEnableUser();
-        String refreshToken = loginMobileAndGetBody().get("refreshToken").asText();
+        String refreshToken = loginMobileAndGetBody().get("refreshToken").asString();
         String logoutBody = objectMapper.writeValueAsString(new RefreshRequest(refreshToken));
 
         mockMvc.perform(post("/auth/logout")
@@ -568,7 +568,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @DisplayName("POST /auth/refresh → 200 OK with new access and refresh tokens when refresh token is valid (mobile)")
     void refreshToken_shouldReturnNewAccessToken_whenRefreshTokenIsValid() throws Exception {
         seedUserAndEnableUser();
-        String refreshToken = loginMobileAndGetBody().get("refreshToken").asText();
+        String refreshToken = loginMobileAndGetBody().get("refreshToken").asString();
 
         String refreshBody = objectMapper.writeValueAsString(new RefreshRequest(refreshToken));
 
@@ -619,7 +619,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @DisplayName("POST /auth/refresh → 401 Unauthorized when refresh token is rotated")
     void refreshToken_shouldFail_whenRefreshTokenIsRotated() throws Exception {
         seedUserAndEnableUser();
-        String refreshToken = loginMobileAndGetBody().get("refreshToken").asText();
+        String refreshToken = loginMobileAndGetBody().get("refreshToken").asString();
         String payload = objectMapper.writeValueAsString(new RefreshRequest(refreshToken));
 
         mockMvc.perform(post("/auth/refresh")
@@ -642,7 +642,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @DisplayName("POST /auth/refresh → 401 Unauthorized when refresh token has been revoked (logged out)")
     void refreshToken_shouldFail_whenRefreshTokenWasLoggedOut() throws Exception {
         seedUserAndEnableUser();
-        String refreshToken = loginMobileAndGetBody().get("refreshToken").asText();
+        String refreshToken = loginMobileAndGetBody().get("refreshToken").asString();
         String payload = objectMapper.writeValueAsString(new RefreshRequest(refreshToken));
 
         mockMvc.perform(post("/auth/logout")
