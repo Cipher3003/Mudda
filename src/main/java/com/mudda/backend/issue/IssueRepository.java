@@ -17,26 +17,31 @@ import java.util.Optional;
 @Repository
 public interface IssueRepository extends JpaRepository<Issue, Long>, JpaSpecificationExecutor<Issue> {
 
+    @Query("""
+            SELECT i.id AS id, i.title AS title, i.description AS description, i.status AS status,
+                   i.category AS category, i.city AS city, i.state AS state, i.coordinate AS coordinate,
+                   i.voteCount AS voteCount, i.commentCount AS commentCount, i.severityScore AS severityScore,
+                   i.createdAt AS createdAt, i.updatedAt AS updatedAt, i.deletedAt AS issueDeletedAt,
+                   u.userId AS userId, u.username AS username, u.profileImageUrl AS profileImageUrl,
+                   u.deletedAt AS userDeletedAt,
+                   FALSE AS hasLiked
+            FROM Issue i JOIN MuddaUser u ON i.userId = u.userId
+            WHERE i.id = :id AND i.deletedAt IS NULL
+            """)
+    Optional<IssueDetailProjection> findIssueDetailProjectionById(long id);
 
     @Query("""
-            SELECT i.id, i.title, i.description, i.status, i.category, i.city, i.state, i.coordinate, i.voteCount,
-            i.commentCount, i.severityScore, i.createdAt, i.updatedAt, i.deletedAt AS issueDeletedAt, u.userId,
-            u.username, u.profileImageUrl, u.deletedAt AS userDeletedAt,
-            FALSE AS hasLiked
+            SELECT i.id AS id, i.title AS title, i.description AS description, i.status AS status,
+                   i.category AS category, i.city AS city, i.state AS state, i.coordinate AS coordinate,
+                   i.voteCount AS voteCount, i.commentCount AS commentCount, i.severityScore AS severityScore,
+                   i.createdAt AS createdAt, i.updatedAt AS updatedAt, i.deletedAt AS issueDeletedAt,
+                   u.userId AS userId, u.username AS username, u.profileImageUrl AS profileImageUrl,
+                   u.deletedAt AS userDeletedAt,
+                   EXISTS (SELECT 1 FROM Vote v WHERE v.id.issueId = i.id AND v.id.userId = u.userId) AS hasLiked
             FROM Issue i JOIN MuddaUser u ON i.userId = :currentUserId
-            WHERE i.id = :id
+            WHERE i.id = :id AND i.deletedAt IS NULL
             """)
-    Optional<IssueDetailProjection> findIssueDetailProjectionById(Long id);
-
-    @Query("""
-            SELECT i.id, i.title, i.description, i.status, i.category, i.city, i.state, i.coordinate, i.voteCount,
-            i.commentCount, i.severityScore, i.createdAt, i.updatedAt, i.deletedAt AS issueDeletedAt, u.userId,
-            u.username, u.profileImageUrl, u.deletedAt AS userDeletedAt,
-            EXISTS (SELECT 1 FROM Vote v WHERE v.id.issueId = i.id AND v.id.userId = u.userId) AS hasLiked
-            FROM Issue i JOIN MuddaUser u ON i.userId = :currentUserId
-            WHERE i.id = :id
-            """)
-    Optional<IssueDetailProjection> findIssueDetailProjectionById(Long id, long currentUserId);
+    Optional<IssueDetailProjection> findIssueDetailProjectionById(long id, long currentUserId);
 
     List<Issue> findByUserId(long userId);
 
@@ -50,8 +55,8 @@ public interface IssueRepository extends JpaRepository<Issue, Long>, JpaSpecific
                 COUNT(*) AS count,
                 ST_Y(ST_Centroid(ST_Collect(I.coordinate))) AS centerLatitude,
                 ST_X(ST_Centroid(ST_Collect(I.coordinate))) AS centerLongitude
-            FROM issues I
-            WHERE I.coordinate && ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat, 4326)
+            FROM civic.issues I
+            WHERE I.deleted_at IS NULL AND I.coordinate && ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat, 4326)
             GROUP BY cellX, cellY, category
             """, nativeQuery = true)
     List<IssueClusterQueryResult> getIssueClusters(
@@ -63,8 +68,8 @@ public interface IssueRepository extends JpaRepository<Issue, Long>, JpaSpecific
     );
 
     @Modifying
-    @Query("UPDATE Issue i SET i.deletedAt = :now, i.status = 'DELETED' WHERE i.id = :id")
-    void softDeleteById(Long id, Instant now);
+    @Query("UPDATE Issue i SET i.deletedAt = :now WHERE i.id = :id")
+    void softDeleteById(long id, Instant now);
 
     @Modifying
     @Query("UPDATE Issue i SET i.voteCount = i.voteCount + 1 WHERE i.id = :issueId")

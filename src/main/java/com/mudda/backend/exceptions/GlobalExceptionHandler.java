@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.mudda.backend.utils.MessageCodes;
 import com.mudda.backend.utils.MessageUtil;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.UnexpectedTypeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -40,6 +41,12 @@ public class GlobalExceptionHandler {
 
     public GlobalExceptionHandler(MessageUtil messageUtil) {
         this.messageUtil = messageUtil;
+    }
+
+    // TODO: organize these exceptions
+    @ExceptionHandler(UnexpectedTypeException.class)
+    public ResponseEntity<?> handleUnexpectedTypeException(UnexpectedTypeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     //region Specialized Handlers

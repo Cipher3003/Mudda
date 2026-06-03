@@ -60,6 +60,10 @@ public class AuthService {
             );
 
             MuddaUser muddaUser = (MuddaUser) authentication.getPrincipal();
+            if (muddaUser == null)
+                throw new BadCredentialsException("Invalid username or password");
+            // TODO: correct exception cause user may have logged in
+
             // success side-effects
             userService.resetLoginFailures(muddaUser.getUserId());
 

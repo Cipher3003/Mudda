@@ -30,7 +30,11 @@ public class ImageValidator {
     private final Tika tika;
 
     public ImageValidator() {
-        tika = new Tika();
+        this(new Tika());
+    }
+
+    public ImageValidator(Tika tika) {
+        this.tika = tika;
     }
 
     public void validateImage(MultipartFile multipartFile) {

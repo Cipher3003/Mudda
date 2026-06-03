@@ -13,53 +13,72 @@ import java.util.Optional;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query("""
-             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-             c.userId ,u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
-             FALSE AS hasLiked
-             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.issueId = :issueId
-            \s""")
-    Page<CommentProjection> findCommentFeed(long issueId, Pageable pageable);
+    //    TODO: add alias to queries with projection
+    //    TODO: add count query to queries that return Page
+    @Query(
+            value = """
+                     SELECT c.id AS id, c.text AS text, c.issueId AS issueId, c.parentId AS parentId,
+                            c.likeCount AS likeCount, c.replyCount AS replyCount, c.createdAt AS createdAt,
+                            c.userId AS userId, u.username AS username, u.profileImageUrl AS profileImageUrl,
+                            u.deletedAt AS authorDeletedAt, FALSE AS hasLiked
+                     FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.issueId = :issueId
+                    """,
+            countQuery = "SELECT count(c.id) FROM Comment c WHERE c.issueId = :issueId"
+    )
+    Page<CommentProjection> findCommentFeedPublic(long issueId, Pageable pageable);
+
+    @Query(
+            value = """
+                     SELECT c.id AS id, c.text AS text, c.issueId AS issueId, c.parentId AS parentId,
+                            c.likeCount AS likeCount, c.replyCount AS replyCount, c.createdAt AS createdAt,
+                            c.userId AS userId, u.username AS username, u.profileImageUrl AS profileImageUrl,
+                            u.deletedAt AS authorDeletedAt,
+                            EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
+                     FROM Comment c JOIN MuddaUser u ON c.userId = u.userId  WHERE c.issueId = :issueId
+                    """,
+            countQuery = "SELECT count(c.id) FROM Comment c WHERE c.issueId = :issueId"
+    )
+    Page<CommentProjection> findCommentFeedWithUser(long userId, long issueId, Pageable pageable);
 
     @Query("""
-             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
-             EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
-             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId  WHERE c.issueId = :issueId
-            \s""")
-    Page<CommentProjection> findCommentFeed(long userId, long issueId, Pageable pageable);
-
-    @Query("""
-             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
-             FALSE AS hasLiked
+             SELECT c.id AS id, c.text AS text, c.issueId AS issueId,c.parentId AS parentId, c.likeCount AS likeCount,
+                    c.replyCount AS replyCount, c.createdAt AS createdAt, c.userId AS userId, u.username AS username,
+                    u.profileImageUrl AS profileImageUrl, u.deletedAt AS authorDeletedAt, FALSE AS hasLiked
              FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.id = :commentId
-            \s""")
+            """)
     Optional<CommentProjection> findCommentById(long commentId);
 
     @Query("""
-             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
-             EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
+             SELECT c.id AS id, c.text AS text, c.issueId AS issueId,c.parentId AS parentId, c.likeCount AS likeCount,
+                    c.replyCount AS replyCount, c.createdAt AS createdAt, c.userId AS userId, u.username AS username,
+                    u.profileImageUrl AS profileImageUrl, u.deletedAt AS authorDeletedAt,
+                    EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
              FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.id = :commentId
-            \s""")
+            """)
     Optional<CommentProjection> findCommentById(long userId, long commentId);
 
-    @Query("""
-             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
-             FALSE AS hasLiked
-             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.parentId = :parentId
-            \s""")
-    Page<CommentProjection> findReplyFeed(long parentId, Pageable pageable);
+    @Query(
+            value = """
+                     SELECT c.id AS id, c.text AS text, c.issueId AS issueId, c.parentId AS parentId, c.likeCount AS likeCount,
+                            c.replyCount AS replyCount, c.createdAt AS createdAt, c.userId AS userId, u.username AS username,
+                            u.profileImageUrl AS profileImageUrl, u.deletedAt AS authorDeletedAt, FALSE AS hasLiked
+                     FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.parentId = :parentId
+                    """,
+            countQuery = "SELECT count(c.id) FROM Comment c WHERE c.parentId = :parentId"
+    )
+    Page<CommentProjection> findReplyFeedPublic(long parentId, Pageable pageable);
 
-    @Query("""
-             SELECT c.id, c.text, c.issueId, c.parentId, c.likeCount, c.replyCount, c.createdAt,
-             c.userId, u.username, u.profileImageUrl, u.deletedAt AS authorDeletedAt,
-             EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
-             FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.parentId = :parentId
-            \s""")
-    Page<CommentProjection> findReplyFeed(long userId, long parentId, Pageable pageable);
+    @Query(
+            value = """
+                     SELECT c.id AS id, c.text AS text, c.issueId AS issueId, c.parentId AS parentId, c.likeCount AS likeCount,
+                            c.replyCount AS replyCount, c.createdAt AS createdAt, c.userId AS userId, u.username AS username,
+                            u.profileImageUrl AS profileImageUrl, u.deletedAt AS authorDeletedAt,
+                            EXISTS (SELECT 1 FROM CommentLike cl WHERE cl.id.commentId = c.id AND cl.id.userId = :userId) AS hasLiked
+                     FROM Comment c JOIN MuddaUser u ON c.userId = u.userId WHERE c.parentId = :parentId
+                    """,
+            countQuery = "SELECT count(c.id) FROM Comment c WHERE c.parentId = :parentId"
+    )
+    Page<CommentProjection> findReplyFeedWithUser(long userId, long parentId, Pageable pageable);
 
     //    TODO: directly return ID where entity is not used
     List<Comment> findByUserId(long userId);
@@ -73,9 +92,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     long countByParentId(long parentId);
 
     @Modifying
-    @Query("""
-            DELETE FROM Comment WHERE id = :topCommentId OR parentId = :topCommentId
-            """)
+    @Query("DELETE FROM Comment WHERE id = :topCommentId OR parentId = :topCommentId")
     void deleteAllFromTopLevelComment(long topCommentId);
 
     @Modifying

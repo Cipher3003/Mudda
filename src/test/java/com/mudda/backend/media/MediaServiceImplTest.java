@@ -8,7 +8,6 @@ import com.mudda.backend.utils.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,14 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -39,10 +36,12 @@ public class MediaServiceImplTest {
     @Mock
     private ImageValidator imageValidator;
 
+    @Mock
     private MediaRepository mediaRepository;
 
     private AmazonMediaService amazonMediaService;
 
+    @Mock
     private MediaHelperService mediaHelperService;
 
     final String bucketName = "media-url-devbucket-2026";
@@ -62,22 +61,27 @@ public class MediaServiceImplTest {
     }
 
     // #region Success Case
+
     @Test
     void shouldUploadImageSuccessfully() throws IOException {
+        String publicId = "abc123";
+        String mediaKey = "images/abc123.jpg";
+        MockMultipartFile mockFile = createMockFileFromResource();
 
-        try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
+        when(mediaHelperService.generatePublicId()).thenReturn(publicId);
+        when(mediaHelperService.getMediaKey(publicId, "jpg")).thenReturn(mediaKey);
 
-            mockedStatic.when(() -> FileUtils.generateFileName(any())).thenReturn(testImageName);
-            MockMultipartFile mockMultipartFile = createMockFileFromResource();
+        ImageUploadResponse response = amazonMediaService.uploadImage(mockFile);
 
-            ImageUploadResponse response = amazonMediaService.uploadImage(mockMultipartFile);
+        verify(imageValidator).validateImage(mockFile);
+        verify(amazonS3).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+        verify(mediaHelperService).saveMedia(any(Media.class));
 
-            verify(imageValidator).validateImage(mockMultipartFile);
-
-            verify(amazonS3).putObject(any(PutObjectRequest.class), any(RequestBody.class));
-
-            assertEquals(testImageName, response.fileKey());
-        }
+        assertEquals(testImageName, response.originalFileName());
+        assertEquals(mediaKey, response.fileKey());
+        assertEquals("https://cdn.example.com/".concat(mediaKey), response.url());
+        assertEquals(UploadStatus.SUCCESS, response.status());
+        assertNull(response.errorMessage());
     }
 
     // #endregion
@@ -134,35 +138,15 @@ public class MediaServiceImplTest {
     }
 
     @Test
-    void shouldDeleteImageSuccessfully() {
-
-        ArgumentCaptor<DeleteObjectRequest> captor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
-
-        amazonMediaService.deleteImage(testImageName);
-
-        verify(amazonS3).deleteObject(captor.capture());
-
-        DeleteObjectRequest result = captor.getValue();
-        assertEquals(bucketName, result.bucket());
-        assertEquals(testImageName, result.key());
+    void shouldThrowWhenMediaNotFound() {
+        when(mediaRepository.markFailed(testImageName)).thenReturn(0);
+        assertThrows(UploadFailedException.class, () -> amazonMediaService.deleteImage(testImageName));
     }
 
     @Test
-    void shouldThrowWhenUnableToConnectToAmazonOnDelete() {
-
-        doThrow(S3Exception.builder().message("Unable to connect to S3").statusCode(500).build())
-                .when(amazonS3).deleteObject(any(DeleteObjectRequest.class));
-
-        assertThrows(S3ServiceException.class, () -> amazonMediaService.deleteImage(testImageName));
-    }
-
-    @Test
-    void shouldThrowWhenBadDeleteRequest() {
-
-        doThrow(SdkClientException.builder().message("Bad Request").build())
-                .when(amazonS3).deleteObject(any(DeleteObjectRequest.class));
-
-        assertThrows(S3ClientException.class, () -> amazonMediaService.deleteImage(testImageName));
+    void shouldDeleteSuccessfully() {
+        when(mediaRepository.markFailed(testImageName)).thenReturn(1);
+        assertDoesNotThrow(() -> amazonMediaService.deleteImage(testImageName));
     }
 
 }

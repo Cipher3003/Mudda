@@ -104,13 +104,23 @@ public final class TestDataFactory {
     /**
      * Returns a JSON string for a valid {@code CreateCommentRequest}.
      */
-    public static String validCommentJson(long issueId, long userId) throws JsonProcessingException {
-        CreateCommentRequest request = new CreateCommentRequest("This is a test comment.", issueId, userId);
+    public static String validCommentJson(long issueId) throws JsonProcessingException {
+        CreateCommentRequest request = new CreateCommentRequest("This is a test comment.", issueId, null);
         return MAPPER.writeValueAsString(request);
     }
 
-    public static String commentJson(String title, long issueId, long userId) throws JsonProcessingException {
-        CreateCommentRequest request = new CreateCommentRequest(title, issueId, userId);
+    public static String commentJson(String title, long issueId) throws JsonProcessingException {
+        CreateCommentRequest request = new CreateCommentRequest(title, issueId, null);
+        return MAPPER.writeValueAsString(request);
+    }
+
+    public static String validReplyJson(long issueId, Long parentId) throws JsonProcessingException {
+        CreateCommentRequest request = new CreateCommentRequest("This is a test comment.", issueId, parentId);
+        return MAPPER.writeValueAsString(request);
+    }
+
+    public static String replyJson(String title, long issueId, Long parentId) throws JsonProcessingException {
+        CreateCommentRequest request = new CreateCommentRequest(title, issueId, parentId);
         return MAPPER.writeValueAsString(request);
     }
 

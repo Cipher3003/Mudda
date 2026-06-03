@@ -45,9 +45,9 @@ public class CommentService {
 
     public Page<CommentResponse> findCommentsWithLikes(long issueId, Pageable pageable, Long userId) {
         if (userId == null)
-            return commentRepository.findCommentFeed(issueId, pageable).map(CommentMapper::toCommentResponseFromProj);
+            return commentRepository.findCommentFeedPublic(issueId, pageable).map(CommentMapper::toCommentResponseFromProj);
         else
-            return commentRepository.findCommentFeed(userId, issueId, pageable)
+            return commentRepository.findCommentFeedWithUser(userId, issueId, pageable)
                     .map(p -> CommentMapper.toCommentResponseFromProj(p, userId));
     }
 
@@ -61,9 +61,9 @@ public class CommentService {
 
     public Page<CommentResponse> findAllReplies(long parentId, Pageable pageable, Long userId) {
         if (userId == null)
-            return commentRepository.findReplyFeed(parentId, pageable).map(CommentMapper::toCommentResponseFromProj);
+            return commentRepository.findReplyFeedPublic(parentId, pageable).map(CommentMapper::toCommentResponseFromProj);
         else
-            return commentRepository.findReplyFeed(userId, parentId, pageable)
+            return commentRepository.findReplyFeedWithUser(userId, parentId, pageable)
                     .map(p -> CommentMapper.toCommentResponseFromProj(p, userId));
     }
 

@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -57,15 +59,15 @@ class CommentControllerTest extends AbstractIntegrationTest {
                 TestDataFactory.validRegisterRequest(USERNAME, EMAIL, passwordEncoder.encode(PASSWORD))
         );
         user.setEnabled(true);
-        return userRepository.save(user);
+        return userRepository.saveAndFlush(user);
     }
 
     private Issue seedIssue(long userId) {
-        return issueRepository.save(IssueMapper.toIssue(userId, TestDataFactory.validIssueRequest()));
+        return issueRepository.saveAndFlush(IssueMapper.toIssue(userId, TestDataFactory.validIssueRequest()));
     }
 
-    private Comment seedComment(long userId, long issueId) {
-        return commentRepository.save(new Comment("Comment", issueId, userId));
+    private Comment seedComment(long issueId, long userId) {
+        return commentRepository.saveAndFlush(new Comment("Comment", issueId, userId));
     }
 
     // region GET
@@ -75,10 +77,34 @@ class CommentControllerTest extends AbstractIntegrationTest {
     void getCommentsByIssue_public_shouldReturn200WithPaginatedContent() throws Exception {
         MuddaUser user = seedUser();
         Long issueId = seedIssue(user.getUserId()).getId();
+
+        Comment testComment = seedComment(issueId, user.getUserId());
+
         mockMvc.perform(get("/api/v1/issues/%d/comments".formatted(issueId))
+                        .param("page", "0")
+                        .param("size", "20")
                         .header("X-Client-Type", "mobile"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray());
+
+                // Assert Spring Page Metadata Properties
+                .andExpect(jsonPath("$.page.size").value(20))
+                .andExpect(jsonPath("$.page.number").value(0))
+                .andExpect(jsonPath("$.page.totalElements").value(1))
+
+                // Assert Array Elements and Properties inside Content Block
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(1))
+
+                // Assert the Specific Values of the First Comment Object inside the Array
+                .andExpect(jsonPath("$.content[0].id").value(testComment.getId()))
+                .andExpect(jsonPath("$.content[0].text").value(testComment.getText()))
+                .andExpect(jsonPath("$.content[0].issueId").value(issueId))
+                .andExpect(jsonPath("$.content[0].userId").value(user.getUserId()))
+                .andExpect(jsonPath("$.content[0].username").value(user.getUsername()))
+
+                // Assert Default Behavior Flags
+                .andExpect(jsonPath("$.content[0].hasLiked").value(false))
+                .andExpect(jsonPath("$.content[0].canLike").value(false));
     }
 
     @Test
@@ -130,45 +156,51 @@ class CommentControllerTest extends AbstractIntegrationTest {
     // region POST
 
     @Test
-    @DisplayName("POST /api/v1/issues/{id}/comments → 201 Created, returns comment body (authenticated)")
+    @DisplayName("POST /api/v1/comments → 201 Created, returns comment body (authenticated)")
     void createComment_authenticated_shouldReturn201WithCommentBody() throws Exception {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
 
-        mockMvc.perform(post("/api/v1/issues/%d/comments".formatted(issue.getId()))
+        String validPayload = TestDataFactory.validCommentJson(issue.getId());
+
+        mockMvc.perform(post("/api/v1/comments")
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestDataFactory.validCommentJson(issue.getId(), user.getUserId())))
+                        .content(validPayload))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.text").value("This is a test comment."));
+                .andExpect(jsonPath("$.createdAt").value(notNullValue()))
+                .andExpect(jsonPath("$.createdAt").
+                        value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z$")));
     }
 
     @Test
-    @DisplayName("POST /api/v1/issues/{id}/comments → 401 Unauthorized when no token provided")
+    @DisplayName("POST /api/v1/comments → 401 Unauthorized when no token provided")
     void createComment_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
 
-        mockMvc.perform(post("/api/v1/issues/%d/comments".formatted(issue.getId()))
+        String validPayload = TestDataFactory.validCommentJson(issue.getId());
+
+        mockMvc.perform(post("/api/v1/comments")
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestDataFactory.validCommentJson(issue.getId(), user.getUserId())))
+                        .content(validPayload))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("POST /api/v1/issues/{id}/comments → 400 Bad Request when text is blank")
+    @DisplayName("POST /api/v1/comments → 400 Bad Request when text is blank")
     void createComment_withBlankText_shouldReturn400WithErrors() throws Exception {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
 
-        String invalidPayload = TestDataFactory.commentJson(null, issue.getId(), user.getUserId());
+        String invalidPayload = TestDataFactory.commentJson("", issue.getId());
 
-        mockMvc.perform(post("/api/v1/issues/%d/comments".formatted(issue.getId()))
+        mockMvc.perform(post("/api/v1/comments")
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -178,50 +210,54 @@ class CommentControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /api/v1/issues/{id}/comments → 400 Bad Request when text field is missing")
+    @DisplayName("POST /api/v1/comments → 400 Bad Request when text field is missing")
     void createComment_withMissingTextField_shouldReturn400() throws Exception {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
 
-        mockMvc.perform(post("/api/v1/issues/%d/comments".formatted(issue.getId()))
+        String invalidPayload = TestDataFactory.commentJson(null, issue.getId());
+
+        mockMvc.perform(post("/api/v1/comments")
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(invalidPayload))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("POST /api/v1/comments/{id}/replies → 201 Created (authenticated)")
+    @DisplayName("POST /api/v1/comments → 201 Created (authenticated)")
     void createReply_authenticated_shouldReturn201WithReplyBody() throws Exception {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
         Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
-        String payload = TestDataFactory.commentJson("This is a test reply.",issue.getId(), user.getUserId());
+        String payload = TestDataFactory.replyJson("This is a test reply.", issue.getId(), id);
 
-        mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
+        mockMvc.perform(post("/api/v1/comments")
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.text").value("This is a test reply."));
+                .andExpect(jsonPath("$.createdAt").value(notNullValue()))
+                .andExpect(jsonPath("$.createdAt").
+                        value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z$")));
     }
 
     @Test
-    @DisplayName("POST /api/v1/comments/{id}/replies → 401 Unauthorized when no token provided")
+    @DisplayName("POST /api/v1/comments → 401 Unauthorized when no token provided")
     void createReply_unauthenticated_shouldReturn401() throws Exception {
         MuddaUser user = seedUser();
         Issue issue = seedIssue(user.getUserId());
         Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
-        String payload = TestDataFactory.validCommentJson(issue.getId(), user.getUserId());
+        String payload = TestDataFactory.validReplyJson(issue.getId(), id);
 
-        mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
+        mockMvc.perform(post("/api/v1/comments")
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
@@ -229,16 +265,17 @@ class CommentControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /api/v1/comments/{id}/replies → 400 Bad Request when text is blank")
+    @DisplayName("POST /api/v1/comments → 400 Bad Request when text is blank")
     void createReply_withBlankText_shouldReturn400() throws Exception {
         MuddaUser user = seedUser();
         String token = loginAndGetToken(USERNAME, PASSWORD);
         Issue issue = seedIssue(user.getUserId());
         Long id = seedComment(user.getUserId(), issue.getId()).getId();
 
-        String invalidPayload = TestDataFactory.commentJson(null,issue.getId(), user.getUserId());
+        String invalidPayload = TestDataFactory
+                .replyJson(null, issue.getId(), id);
 
-        mockMvc.perform(post("/api/v1/comments/%d/replies".formatted(id))
+        mockMvc.perform(post("/api/v1/comments")
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)

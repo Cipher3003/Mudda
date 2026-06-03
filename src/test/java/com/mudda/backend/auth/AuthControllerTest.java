@@ -77,6 +77,13 @@ class AuthControllerTest extends AbstractIntegrationTest {
         return userRepository.save(user);
     }
 
+    private void seedUserAndEnableUser(String username) {
+        MuddaUser user = UserMapper.toMuddaUser(TestDataFactory.
+                validRegisterRequest(username, EMAIL, passwordEncoder.encode(PASSWORD)));
+        user.setEnabled(true);
+        userRepository.save(user);
+    }
+
     /**
      * Logs in via the mobile endpoint and returns the full response body parsed
      * as a Jackson JsonNode, giving access to both {@code accessToken} and
@@ -162,12 +169,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("POST /auth/register → 409 Fails when duplicate email")
     void registerUser_shouldFail_whenEmailAlreadyExists() throws Exception {
-        userRepository.save(UserMapper.toMuddaUser(
-                TestDataFactory.validRegisterRequest("UniqueName", EMAIL, PASSWORD)));
-
-        MuddaUser existing = userRepository.findByEmail(EMAIL).orElseThrow();
-        existing.setEnabled(true);
-        userRepository.save(existing);
+        seedUserAndEnableUser("UniqueName");
 
         String payload = objectMapper.writeValueAsString(
                 TestDataFactory.validRegisterRequest(USERNAME, EMAIL, PASSWORD));
@@ -474,19 +476,18 @@ class AuthControllerTest extends AbstractIntegrationTest {
         seedUserAndEnableUser();
         String refreshToken = loginMobileAndGetBody().get("refreshToken").asString();
 
-        String logoutBody = objectMapper.writeValueAsString(new RefreshRequest(refreshToken));
+        String payload = objectMapper.writeValueAsString(new RefreshRequest(refreshToken));
 
         mockMvc.perform(post("/auth/logout")
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(logoutBody))
+                        .content(payload))
                 .andExpect(status().isOk());
 
-        String refreshBody = objectMapper.writeValueAsString(new RefreshRequest(refreshToken));
         mockMvc.perform(post("/auth/refresh")
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(refreshBody))
+                        .content(payload))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -815,7 +816,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isGone())
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
@@ -886,7 +887,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                         .header("X-Client-Type", "mobile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isGone())
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
 

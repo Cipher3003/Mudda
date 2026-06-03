@@ -142,6 +142,11 @@ public class IssueService {
                 ? issueRepository.findIssueDetailProjectionById(id, userId).orElseThrow(() -> notFound(id))
                 : issueRepository.findIssueDetailProjectionById(id).orElseThrow(() -> notFound(id));
 
+        boolean isActive = projection.getIssueDeletedAt() == null;
+        // block non-owner from deleted issue access
+        if (!isActive && !projection.getUserId().equals(userId))
+            throw notFound(id);
+
         List<String> mediaUrls = mediaRepository
                 .findMediaKeysByOwnerIdAndOwnerType(projection.getId(), MediaOwner.ISSUE).stream()
                 .map(this::toPublicUrl)
@@ -151,8 +156,8 @@ public class IssueService {
 
         return IssueMapper.toResponse(
                 projection, mediaUrls,
-                isAuthenticated, // canVote
-                isAuthenticated, // canComment
+                isAuthenticated && isActive, // canVote
+                isAuthenticated && isActive, // canComment
                 isAuthor, // canEdit
                 isAuthor // canDelete
         );
@@ -188,7 +193,7 @@ public class IssueService {
             String topCategory = categoryCounts.entrySet().stream().max(Map.Entry.comparingByValue())
                     .map(Map.Entry::getKey).orElse("unknown");
 
-            IssueClusterQueryResult firstCluster = group.get(0);
+            IssueClusterQueryResult firstCluster = group.getFirst();
             clusters.add(new IssueClusterDTO(
                     firstCluster.centerLatitude(), firstCluster.centerLongitude(), topCategory,
                     categoryCounts

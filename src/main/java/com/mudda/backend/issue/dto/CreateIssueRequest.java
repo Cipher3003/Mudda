@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public record CreateIssueRequest(
@@ -18,10 +19,13 @@ public record CreateIssueRequest(
                 message = "Invalid category value. Valid category values: [INF, SAN, ELE]"
         )
         String category,
-        @NotNull @Size(max = 5) List<String> mediaUrls,
+        @Size(max = 5) List<String> mediaUrls,
         @NotNull @NotBlank String pinCode,
         @NotNull @NotBlank String city,
         @NotNull @NotBlank String state,
         @NotNull CoordinateDTO coordinate
 ) {
+    public CreateIssueRequest {
+        if (mediaUrls == null) mediaUrls = List.of();
+    }
 }

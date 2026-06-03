@@ -237,6 +237,7 @@ public class AmazonMediaService implements MediaService {
     @Override
     @Transactional
     public int linkToIssue(long issueId, List<String> mediaKeys) {
+//        TODO: add early guard clause
         int rows = mediaRepository.updateOwner(MediaOwner.ISSUE, issueId, mediaKeys);
         log.debug("Updated owner to issue id {}, rows {}", issueId, rows);
         return rows;

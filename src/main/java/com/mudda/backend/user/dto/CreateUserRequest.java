@@ -25,7 +25,7 @@ public record CreateUserRequest(
 
         @NotBlank @Size(min = 8, max = 64) String password,
 
-        @NotBlank MuddaUserRole role,
+        @NotNull MuddaUserRole role,
 
         @Size(max = 512) String profileImageKey
 ) {

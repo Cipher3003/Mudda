@@ -13,11 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,8 +74,8 @@ class VoteControllerTest extends AbstractIntegrationTest {
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.has_user_voted").value(true))
-                .andExpect(jsonPath("$.vote_count").isNumber());
+                .andExpect(jsonPath("$.hasVoted").value(true))
+                .andExpect(jsonPath("$.voteCount").isNumber());
     }
 
     @Test
@@ -99,16 +96,12 @@ class VoteControllerTest extends AbstractIntegrationTest {
         Issue issue = seedIssue(user.getUserId());
         String token = loginAndGetToken(USERNAME, PASSWORD);
 
-        MvcResult result = mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
+        mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andReturn();
-
-        long voteCount = objectMapper.readTree(result.getResponse().getContentAsString())
-                .get("vote_count").asLong();
-
-        assertTrue(voteCount >= 1, "Vote count must be at least 1 after casting a vote");
+                .andExpect(jsonPath("$.voteCount").isNumber())
+                .andExpect(jsonPath("$.voteCount").value(1));
     }
 
     @Test
@@ -138,14 +131,14 @@ class VoteControllerTest extends AbstractIntegrationTest {
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.has_user_voted").value(true));
+                .andExpect(jsonPath("$.hasVoted").value(true));
 
         mockMvc.perform(delete("/api/v1/issues/%d/votes".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.has_user_voted").value(false))
-                .andExpect(jsonPath("$.vote_count").isNumber());
+                .andExpect(jsonPath("$.hasVoted").value(false))
+                .andExpect(jsonPath("$.voteCount").isNumber());
     }
 
     @Test
@@ -195,25 +188,18 @@ class VoteControllerTest extends AbstractIntegrationTest {
         Issue issue = seedIssue(user.getUserId());
         String token = loginAndGetToken(USERNAME, PASSWORD);
 
-        MvcResult castResult = mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
+        mockMvc.perform(post("/api/v1/issues/%d/votes".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(jsonPath("$.voteCount").isNumber())
+                .andExpect(jsonPath("$.voteCount").value(1));
 
-        long countAfterVote = objectMapper.readTree(castResult.getResponse().getContentAsString())
-                .get("vote_count").asLong();
-        assertEquals(1L, countAfterVote);
-
-        MvcResult removeResult = mockMvc.perform(delete("/api/v1/issues/%d/votes".formatted(issue.getId()))
+        mockMvc.perform(delete("/api/v1/issues/%d/votes".formatted(issue.getId()))
                         .header("X-Client-Type", "mobile")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andReturn();
-
-        long countAfterRemove = objectMapper.readTree(removeResult.getResponse().getContentAsString())
-                .get("vote_count").asLong();
-
-        assertEquals(0L, countAfterRemove);
+                .andExpect(jsonPath("$.voteCount").isNumber())
+                .andExpect(jsonPath("$.voteCount").value(0));
     }
 }

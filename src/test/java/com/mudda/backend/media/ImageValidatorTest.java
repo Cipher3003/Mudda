@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
@@ -82,7 +83,11 @@ class ImageValidatorTest {
 
     @Test
     void shouldPassForValidImage() throws IOException {
-        MockMultipartFile file = createMockFile("real.jpg", ContentType.IMAGE_JPG, "real_image_data".getBytes());
+        ClassPathResource resource = new ClassPathResource("testImage.jpg");
+        byte[] imageBytes = resource.getInputStream().readAllBytes();
+
+        MockMultipartFile file = createMockFile("real.jpg", ContentType.IMAGE_JPG, imageBytes);
+
         when(tika.detect(any(InputStream.class))).thenReturn("image/jpg");
 
         assertDoesNotThrow(() -> imageValidator.validateImage(file));

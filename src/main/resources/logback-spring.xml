@@ -62,8 +62,10 @@
         </root>
         <logger name="com.mudda.backend" level="DEBUG"/>
         <logger name="org.springframework" level="WARN"/>
-        <logger name="org.hibernate" level="ERROR"/>
         <logger name="software.amazon.awssdk" level="ERROR"/>
+<!--        <logger name="org.hibernate" level="ERROR"/>-->
+<!--        <logger name="org.hibernate.orm.results" level="TRACE"/>-->
+        <logger name="org.hibernate.stat" level="DEBUG"/>
     </springProfile>
 
 </configuration>
