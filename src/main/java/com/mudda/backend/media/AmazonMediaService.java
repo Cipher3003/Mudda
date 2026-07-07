@@ -5,6 +5,7 @@ import com.mudda.backend.media.dto.BatchImageUploadResponse;
 import com.mudda.backend.media.dto.ImageUploadResponse;
 import com.mudda.backend.media.dto.MediaUploadRequest;
 import com.mudda.backend.media.dto.MediaUploadResponse;
+import com.mudda.backend.utils.MessageUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -21,15 +22,12 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
 @Service
 @Profile({"prod", "stage"})
 public class AmazonMediaService implements MediaService {
-
-//    TODO: detect images categories using s3
 
     private static final long MAX_SIZE_BYTES = 1024 * 1024;
     private static final int MAX_SIZE_MB = 1;
@@ -40,6 +38,7 @@ public class AmazonMediaService implements MediaService {
     private final ImageValidator imageValidator;
     private final MediaRepository mediaRepository;
     private final MediaHelperService mediaHelperService;
+    private final MessageUtil messageUtil;
 
     @Value("${app.cdn.origin}")
     private String cdnOrigin;
@@ -49,13 +48,15 @@ public class AmazonMediaService implements MediaService {
             S3Client s3Client,
             ImageValidator imageValidator,
             MediaRepository mediaRepository,
-            MediaHelperService mediaHelperService
+            MediaHelperService mediaHelperService,
+            MessageUtil messageUtil
     ) {
         this.bucketName = bucketName;
         this.s3Client = s3Client;
         this.imageValidator = imageValidator;
         this.mediaRepository = mediaRepository;
         this.mediaHelperService = mediaHelperService;
+        this.messageUtil = messageUtil;
     }
 
     // region Queries (Read Operations)
@@ -88,7 +89,8 @@ public class AmazonMediaService implements MediaService {
     // region Commands (Write Operations)
 
     @Override
-    public ImageUploadResponse uploadImage(MultipartFile multipartFile) {
+    public ImageUploadResponse uploadImage(MediaFileUploadRequest request) {
+        MultipartFile multipartFile = request.multipartFile();
 
         imageValidator.validateImage(multipartFile);
 
@@ -96,7 +98,7 @@ public class AmazonMediaService implements MediaService {
             String publicId = mediaHelperService.generatePublicId();
             String filename = multipartFile.getOriginalFilename();
             String fileExtension = FilenameUtils.getExtension(filename);
-            String mediaKey = mediaHelperService.getMediaKey(publicId, fileExtension);
+            String mediaKey = mediaHelperService.getMediaKey(request.owner(), publicId, fileExtension);
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
@@ -136,36 +138,37 @@ public class AmazonMediaService implements MediaService {
     }
 
     @Override
-    public BatchImageUploadResponse uploadImages(List<MultipartFile> files) {
-        log.trace("Starting batch upload for {} images", files != null ? files.size() : 0);
-        if (files == null || files.isEmpty())
-            return new BatchImageUploadResponse(0, 0, Collections.emptyList());
+    public BatchImageUploadResponse uploadImages(List<MediaFileUploadRequest> requests) {
+        log.trace("Starting batch upload for {} images", requests.size());
 
-        List<ImageUploadResponse> responses = files.stream()
-                .map(file -> {
+        List<ImageUploadResponse> responses = requests.stream()
+                .map(request -> {
+                    String originalFilename = request.multipartFile().getOriginalFilename();
                     try {
-                        return this.uploadImage(file);
+                        return this.uploadImage(request);
                     } catch (Exception e) {
-                        log.error("Failed to upload image to AWS: {}", file.getOriginalFilename(), e);
+                        log.error("Failed to upload image to AWS: {}", originalFilename, e);
 
-                        String errorMessage = e.getMessage();
-//                        TODO: give better error messages
-                        if (errorMessage == null || errorMessage.isEmpty())
-                            errorMessage = "Unknown error occurred (%s)".formatted(e.getClass().getSimpleName());
+                        String friendlyError = switch (e) {
+                            case ApiException apiEx -> messageUtil.getMessage(apiEx.getMessageCode(), apiEx.getArgs());
+                            case IllegalArgumentException ex -> "Invalid request parameters: " + ex.getMessage();
+                            default -> "Unknown error occurred (%s)".formatted(e.getClass().getSimpleName());
+                        };
 
                         return new ImageUploadResponse(
-                                file.getOriginalFilename(),
+                                originalFilename,
                                 null,
                                 null,
                                 UploadStatus.FAILED,
-                                errorMessage
+                                friendlyError
                         );
                     }
                 })
                 .toList();
 
         int successCount = (int) responses.stream()
-                .filter(response -> response.status().equals(UploadStatus.SUCCESS)).count();
+                .filter(response -> response.status().equals(UploadStatus.SUCCESS))
+                .count();
         int failureCount = responses.size() - successCount;
 
         return new BatchImageUploadResponse(successCount, failureCount, responses);
@@ -178,7 +181,7 @@ public class AmazonMediaService implements MediaService {
 
         String publicId = mediaHelperService.generatePublicId();
         String fileExtension = FilenameUtils.getExtension(request.fileName());
-        String mediaKey = mediaHelperService.getMediaKey(publicId, fileExtension);
+        String mediaKey = mediaHelperService.getMediaKey(request.owner(), publicId, fileExtension);
 
         mediaRepository.save(new Media(
                 publicId, mediaKey, UploadStatus.UPLOADING, request.position()
@@ -188,7 +191,6 @@ public class AmazonMediaService implements MediaService {
                 publicId,
                 mediaHelperService.generatePresignedUrl(bucketName, mediaKey, request.contentType())
         );
-        // TODO: add content-type header in frontend upload request
     }
 
     @Override
@@ -202,7 +204,7 @@ public class AmazonMediaService implements MediaService {
         for (MediaUploadRequest request : requests) {
             String publicId = mediaHelperService.generatePublicId();
             String fileExtension = FilenameUtils.getExtension(request.fileName());
-            String mediaKey = mediaHelperService.getMediaKey(publicId, fileExtension);
+            String mediaKey = mediaHelperService.getMediaKey(request.owner(), publicId, fileExtension);
             String presignedUrl = mediaHelperService.generatePresignedUrl(bucketName, mediaKey, request.contentType());
 
             mediaList.add(new Media(publicId, mediaKey, UploadStatus.UPLOADING, request.position()));
@@ -237,7 +239,7 @@ public class AmazonMediaService implements MediaService {
     @Override
     @Transactional
     public int linkToIssue(long issueId, List<String> mediaKeys) {
-//        TODO: add early guard clause
+        if (mediaKeys == null || mediaKeys.isEmpty()) return 0;
         int rows = mediaRepository.updateOwner(MediaOwner.ISSUE, issueId, mediaKeys);
         log.debug("Updated owner to issue id {}, rows {}", issueId, rows);
         return rows;

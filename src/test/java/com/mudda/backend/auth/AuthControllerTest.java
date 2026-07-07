@@ -271,8 +271,6 @@ class AuthControllerTest extends AbstractIntegrationTest {
                         .content(registerBody))
                 .andExpect(status().isCreated());
 
-        // TODO: Avoid DB fetch and use argument captor with mock email service
-
         VerificationToken token = verificationTokenRepository.findAll().getFirst();
 
         mockMvc.perform(get("/auth/verify-email/confirm")

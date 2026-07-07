@@ -16,8 +16,6 @@ public class AmazonS3Config {
     @Value("${amazon.s3.region}")
     private String region;
 
-//    TODO: Use IAM role instead of static keys
-
     @Bean
     S3Client s3Client() {
         return S3Client.builder()

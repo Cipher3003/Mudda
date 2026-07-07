@@ -39,16 +39,15 @@ public class CommentLikeService {
 
     @Transactional
     public CommentLikeResponse likeOnComment(long commentId, long userId) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(
-                () -> new EntityNotFoundException("Like on Comment: %d not found".formatted(commentId))
-        );
+        Long currentLikeCount = commentRepository.findCommentMetricsById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("Like on Comment: %d not found".formatted(commentId)));
 
         CommentLike commentLike = new CommentLike(commentId, userId);
         likeRepository.save(commentLike);
 
-        applicationEventPublisher.publishEvent(new CommentLikeCreatedEvent(comment.getId()));
+        applicationEventPublisher.publishEvent(new CommentLikeCreatedEvent(commentId));
 
-        return new CommentLikeResponse(true, comment.getLikeCount() + 1);
+        return new CommentLikeResponse(true, currentLikeCount + 1);
     }
 
     public void saveCommentLikes(List<CommentLike> commentLikes) {
@@ -57,16 +56,14 @@ public class CommentLikeService {
 
     @Transactional
     public CommentLikeResponse deleteLikeFromComment(long commentId, long userId) {
-        // TODO: optimize select to only take metrics
-        Comment comment = commentRepository.findById(commentId).orElseThrow(
-                () -> new EntityNotFoundException("Like on Comment: %d not found".formatted(commentId))
-        );
+        Long currentLikeCount = commentRepository.findCommentMetricsById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("Like on Comment: %d not found".formatted(commentId)));
 
         likeRepository.deleteByCommentIdAndUserId(commentId, userId);
 
-        applicationEventPublisher.publishEvent(new CommentLikeRemovedEvent(comment.getId()));
+        applicationEventPublisher.publishEvent(new CommentLikeRemovedEvent(commentId));
 
-        return new CommentLikeResponse(false, comment.getLikeCount() - 1);
+        return new CommentLikeResponse(false, currentLikeCount - 1);
     }
 
     @Transactional

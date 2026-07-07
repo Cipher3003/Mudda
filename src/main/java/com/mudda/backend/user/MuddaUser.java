@@ -106,7 +106,6 @@ public class MuddaUser implements UserDetails {
 
     // ----- Domain Behaviour -------
 
-    // TODO: remove this update method use setter
     public void updateDetails(String phoneNumber, String profileImageUrl) {
         if (phoneNumber == null || phoneNumber.isBlank())
             throw new IllegalArgumentException("Phone number cannot be empty");
@@ -159,7 +158,7 @@ public class MuddaUser implements UserDetails {
     //    Getter
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role.name());
         return Collections.singleton(authority);
     }
@@ -170,25 +169,13 @@ public class MuddaUser implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
+    public @NonNull String getUsername() {
         return username;
-    }
-
-    //    TODO: dont know what to do with this
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
         return !isLocked();
-    }
-
-    //    TODO: dont know what to do with this
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
     }
 
     @Override

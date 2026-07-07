@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -25,6 +26,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -35,52 +37,37 @@ public class GlobalExceptionHandler {
 
     private final MessageUtil messageUtil;
 
-//    TODO: LocalizedException is currently treated as always 400
-//    depends on where it’s thrown, not what it represents.
-//    TODO: throw cause to custom exceptions
-
     public GlobalExceptionHandler(MessageUtil messageUtil) {
         this.messageUtil = messageUtil;
-    }
-
-    // TODO: organize these exceptions
-    @ExceptionHandler(UnexpectedTypeException.class)
-    public ResponseEntity<?> handleUnexpectedTypeException(UnexpectedTypeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     //region Specialized Handlers
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException e) {
-
         Map<String, String> errors = new LinkedHashMap<>();
         e.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        return ResponseEntity.badRequest()
-                .body(ApiError.validation(errors));
+        return ResponseEntity.badRequest().body(ApiError.validation(errors));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
-        // TODO: localized message for these responses
-        String message = String.format("The parameter '%s' has an invalid value: '%s'", e.getName(), e.getValue());
+        String parameterName = e.getName();
+        String message = messageUtil.getMessage(MessageCodes.VALIDATION_TYPE_MISMATCH, parameterName);
         return badRequestResponse(message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleReadableException(HttpMessageNotReadableException e) {
-        // TODO: localize and flexible logic for other errors, hardcoded for enum only
-        if (e.getCause() instanceof InvalidFormatException ife) {
-            if (ife.getTargetType().isEnum()) {
-                String message = String.format("Invalid value '%s' for type %s.",
-                        ife.getValue(), ife.getTargetType().getSimpleName());
-                return badRequestResponse(message);
-            }
+        if (e.getCause() instanceof InvalidFormatException ife && ife.getTargetType().isEnum()) {
+            String message = messageUtil.getMessage(MessageCodes.VALIDATION_INVALID_ENUM,
+                    ife.getValue(), ife.getTargetType().getSimpleName());
+            return badRequestResponse(message);
         }
 
-        String message = "Invalid JSON format or field value.";
+        String message = messageUtil.getMessage(MessageCodes.VALIDATION_INVALID_JSON);
         return badRequestResponse(message);
     }
 
@@ -96,34 +83,33 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<ApiError> handleAccountDisabled() {
-//            TODO: maybe allow user to login without verification with limited activity as guest
         return apiErrorResponse(HttpStatus.UNAUTHORIZED, MessageCodes.ACCOUNT_NOT_VERIFIED);
     }
 
     @ExceptionHandler(value = {
+            UnexpectedTypeException.class,
             MissingServletRequestParameterException.class,
             MissingServletRequestPartException.class,
             HttpMediaTypeNotSupportedException.class,
             MultipartException.class
     })
     public ResponseEntity<ApiError> handleFrameworkBadRequest(Exception e) {
-//        TODO: maybe add custom message
         return badRequestResponse(e.getMessage());
     }
 
-    //    TODO: handle what to do when aborted mid request
-    //     (stop sending whole trace when fallback to default error handler)
-    @ExceptionHandler(value = {
-            AsyncRequestNotUsableException.class,
-            ClientAbortException.class
-    })
+    @ExceptionHandler(value = {AsyncRequestNotUsableException.class, ClientAbortException.class})
     public void handleClientAbort(Exception e) {
-        log.debug("Client aborted request: {}", e.getClass().getSimpleName());
+        log.debug("Client disconnected or aborted request: {}", e.getClass().getSimpleName());
     }
 
     @ExceptionHandler(value = ApiException.class)
     public ResponseEntity<ApiError> handleApiException(ApiException e) {
         return apiErrorResponse(e.getHttpStatus(), e.getMessageCode(), e.getArgs());
+    }
+
+    @ExceptionHandler(InternalAuthenticationServiceException.class)
+    public ResponseEntity<ApiError> handleInternalAuthError() {
+        return apiErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, MessageCodes.AUTH_PRINCIPAL_ERROR);
     }
 
     //endregion
@@ -143,8 +129,7 @@ public class GlobalExceptionHandler {
     }
 
     //    404 - not found
-    @ExceptionHandler(EntityNotFoundException.class)
-//    TODO: add no resource found exception in this handler
+    @ExceptionHandler(value = {EntityNotFoundException.class, NoResourceFoundException.class})
     public ResponseEntity<ApiError> handleNotFound() {
         return apiErrorResponse(HttpStatus.NOT_FOUND, MessageCodes.NOT_FOUND);
     }
@@ -158,14 +143,12 @@ public class GlobalExceptionHandler {
     //    413 - payload too large
     @ExceptionHandler(value = MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiError> handlePayloadTooLarge() {
-        return apiErrorResponse(HttpStatus.PAYLOAD_TOO_LARGE, MessageCodes.PAYLOAD_TOO_LARGE);
+        return apiErrorResponse(HttpStatus.CONTENT_TOO_LARGE, MessageCodes.PAYLOAD_TOO_LARGE);
     }
 
     //endregion
 
     //region 500 Series Handlers
-
-    //    TODO: add more external services exception
 
     //    500 - unexpected error
     @ExceptionHandler(Exception.class)
@@ -183,8 +166,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ApiError> apiErrorResponse(HttpStatus status, String messageCode, Object... args) {
         String message = messageUtil.getMessage(messageCode, args);
-        return ResponseEntity.status(status)
-                .body(ApiError.of(status, message));
+        return ResponseEntity.status(status).body(ApiError.of(status, message));
     }
 
 }

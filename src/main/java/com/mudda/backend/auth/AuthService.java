@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -56,13 +57,12 @@ public class AuthService {
         log.info("Trying to login as user: {}", authRequest.username());
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password())
-            );
+                    new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
 
-            MuddaUser muddaUser = (MuddaUser) authentication.getPrincipal();
-            if (muddaUser == null)
-                throw new BadCredentialsException("Invalid username or password");
-            // TODO: correct exception cause user may have logged in
+            if (!(authentication.getPrincipal() instanceof MuddaUser muddaUser)) {
+                log.error("Authentication succeeded but principal is missing or not an instance of MuddaUser.");
+                throw new InternalAuthenticationServiceException("User principal could not be retrieved post-authentication");
+            }
 
             // success side-effects
             userService.resetLoginFailures(muddaUser.getUserId());

@@ -14,6 +14,8 @@ import com.mudda.backend.user.dto.*;
 import com.mudda.backend.vote.VoteService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,6 +47,9 @@ public class UserService implements UserDetailsService {
     private final MediaService mediaService;
     private final AppProperties appProperties;
 
+    @Value("${app.cdn.origin}")
+    private String cdnOrigin;
+
     public UserService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -75,7 +80,8 @@ public class UserService implements UserDetailsService {
                 .and(UserSpecifications.createdAfter(filterRequest.createdAfter()))
                 .and(UserSpecifications.createdBefore(filterRequest.createdBefore()));
 
-        return userRepository.findAll(specification, pageable).map(UserMapper::toSummary);
+        return userRepository.findAll(specification, pageable)
+                .map(user -> UserMapper.toSummary(user, this.cdnOrigin));
     }
 
     public Optional<MuddaUser> findById(long id) {
@@ -92,8 +98,8 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public UserDetailResponse createUser(CreateUserRequest userRequest) {
-
         log.trace("Validating user against database");
+
         if (userRepository.existsByUsername(userRequest.username()))
             throw new UsernameAlreadyExistsException();
         if (userRepository.existsByEmail(userRequest.email()))
@@ -103,7 +109,6 @@ public class UserService implements UserDetailsService {
 
         MuddaUser muddaUser = UserMapper.toMuddaUser(userRequest);
         muddaUser.changePasswordHash(passwordEncoder.encode(userRequest.password()));
-        // TODO: concat cdn origin to url
 
         MuddaUser saved = userRepository.save(muddaUser);
         log.info("Created user with email {}", saved.getEmail());
@@ -117,6 +122,7 @@ public class UserService implements UserDetailsService {
                         User with id: %d has mismatch in media links, requested media size: %d, linked media size: %d"""
                         .formatted(saved.getUserId(), 1, links));
             }
+            saved.setProfileImageUrl(toPublicUrl(saved.getProfileImageUrl()));
         }
 
         return UserMapper.toDetail(saved);
@@ -149,9 +155,7 @@ public class UserService implements UserDetailsService {
         MuddaUser user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        // TODO: update method to use SET for JPA dirty checking and update
         user.changeProfileImageUrl(imageKey);
-        userRepository.save(user);
         log.info("Updated profile image for user with id {}", id);
     }
 
@@ -211,17 +215,15 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void softDeleteUser(long id) {
-        log.info("Deleting user with id {}", id);
+        log.info("Soft Deleted user with id {}", id);
 
         userRepository.softDeleteById(id, Instant.now());
     }
 
-    // TODO: delete media rows
     @Transactional
     public void deleteUser(long id) {
         log.info("Deleting user with id {}", id);
-        if (!userRepository.existsById(id))
-            throw notFound(id);
+        if (!userRepository.existsById(id)) throw notFound(id);
 
         log.trace("Deleting all likes on comment by user with id {}", id);
         commentLikeService.deleteAllByUserId(id);
@@ -250,7 +252,7 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public @NonNull UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         MuddaUser user = userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException("User not found with username: %s".formatted(username)));
 
@@ -267,6 +269,10 @@ public class UserService implements UserDetailsService {
     }
 
     // endregion
+
+    private String toPublicUrl(String media) {
+        return "%s/%s".formatted(cdnOrigin, media);
+    }
 
     private EntityNotFoundException notFound(long id) {
         return new EntityNotFoundException("User not found with id: %d".formatted(id));

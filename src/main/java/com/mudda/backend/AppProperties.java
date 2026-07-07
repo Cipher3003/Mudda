@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "app")
-// TODO: segregate different type config to their files and rename to match usage
 public class AppProperties {
 
     private String frontendBaseUrl;
@@ -25,6 +24,7 @@ public class AppProperties {
     private Security security;
     private Cors cors;
     private Session session;
+    private Email email;
 
     @Getter
     @Setter
@@ -57,5 +57,19 @@ public class AppProperties {
     @Setter
     public static class Session {
         private String key;
+    }
+
+    @Getter
+    @Setter
+    public static class Email {
+        private String from;
+        private Retry retry;
+
+        @Getter
+        @Setter
+        public static class Retry {
+            private int maxAttempts;
+            private long backoffMs;
+        }
     }
 }

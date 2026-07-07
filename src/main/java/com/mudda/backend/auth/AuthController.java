@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
+    //            TODO: maybe disable account recovery
+
     private final AuthService authService;
     private final AccountService accountService;
     private final MessageUtil messageUtil;

@@ -23,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -54,6 +55,13 @@ public class AccountController {
     public ResponseEntity<AccountInfo> getCurrentUser(@AuthenticationPrincipal MuddaUser principal) {
         if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
+        if (principal.getDeletedAt() != null) {
+            SecurityContextHolder.clearContext();
+            return ResponseEntity.notFound().build();
+            // TODO: what happen when user create new account with same credentials.
+            // is this place okay to change CONTEXT
+        }
+
         return ResponseEntity.ok(new AccountInfo(
                 principal.getUserId(), principal.getUsername(), principal.getName(),
                 principal.getEmail(), principal.getPhoneNumber(), principal.getProfileImageUrl(),
@@ -61,8 +69,6 @@ public class AccountController {
         ));
 //        TODO: modify it store user quick info in authentication maybe to avoid database usage in JWT
 //        TODO: sync logged in user info with DB changes in session
-//        TODO: show not found on profile page for deleted user
-
     }
 
     @GetMapping("/issues")

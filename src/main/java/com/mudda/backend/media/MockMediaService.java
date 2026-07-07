@@ -15,13 +15,12 @@ import com.mudda.backend.media.dto.MediaUploadResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @Service
 @Slf4j
-public class MockMediaServiceImpl implements MediaService {
+public class MockMediaService implements MediaService {
 
     @PostConstruct
     public void init() {
@@ -42,13 +41,13 @@ public class MockMediaServiceImpl implements MediaService {
     }
 
     @Override
-    public ImageUploadResponse uploadImage(MultipartFile file) {
+    public ImageUploadResponse uploadImage(MediaFileUploadRequest request) {
         return mockResponse;
     }
 
     @Override
-    public BatchImageUploadResponse uploadImages(List<MultipartFile> files) {
-        return new BatchImageUploadResponse(files.size(), 0, List.of(mockResponse));
+    public BatchImageUploadResponse uploadImages(List<MediaFileUploadRequest> requests) {
+        return new BatchImageUploadResponse(requests.size(), 0, List.of(mockResponse));
     }
 
     @Override
@@ -62,7 +61,9 @@ public class MockMediaServiceImpl implements MediaService {
     }
 
     @Override
-    public void completeUpload(String id) {}
+    public void completeUpload(String id) {
+        log.info("MockImageServiceImpl completeUpload. Mock service is being used.");
+    }
 
     @Override
     public int linkToIssue(long issueId, List<String> mediaKeys) {

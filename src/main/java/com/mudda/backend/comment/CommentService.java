@@ -209,18 +209,12 @@ public class CommentService {
     public void deleteAllCommentsByUserId(long userId) {
 
 //        Parent Comments
-        List<Long> commentIds = commentRepository.findByUserId(userId)
-                .stream()
-                .map(Comment::getId)
-                .toList();
+        List<Long> commentIds = commentRepository.findIdsByUserId(userId);
 
         if (commentIds.isEmpty()) return;
 
         // Fetch all replies
-        List<Long> replyIds = commentRepository.findByParentIdIn(commentIds)
-                .stream()
-                .map(Comment::getId)
-                .toList();
+        List<Long> replyIds = commentRepository.findIdsByParentIdIn(commentIds);
 
         List<Long> allIds = new ArrayList<>(commentIds);
         allIds.addAll(replyIds);
@@ -234,10 +228,7 @@ public class CommentService {
     @Transactional
     public void deleteAllCommentsByIssueId(long issueId) {
 //        Fetches all comments and their replies since comment and reply both refer to issue individually
-        List<Long> commentIds = commentRepository.findByIssueId(issueId)
-                .stream()
-                .map(Comment::getId)
-                .toList();
+        List<Long> commentIds = commentRepository.findIdsByIssueId(issueId);
 
         if (commentIds.isEmpty()) return;
 
@@ -247,14 +238,10 @@ public class CommentService {
         log.info("Deleted all comments under the issue with id {}", issueId);
     }
 
-    //    TODO: maybe refactor and combine above method and below method common functionality ?
     @Transactional
     public void deleteAllCommentsByIssueIds(List<Long> issueIds) {
 //        Fetches all comments and their replies since comment and reply both refer to issue individually
-        List<Long> commentIds = commentRepository.findByIssueIdIn(issueIds)
-                .stream()
-                .map(Comment::getId)
-                .toList();
+        List<Long> commentIds = commentRepository.findIdsByIssueIdIn(issueIds);
 
         if (commentIds.isEmpty()) return;
 

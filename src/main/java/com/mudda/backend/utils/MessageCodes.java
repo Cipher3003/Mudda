@@ -27,6 +27,7 @@ public class MessageCodes {
     public static final String EMAIL_VERIFIED = "auth.email.verified";
     public static final String PASSWORD_RESET_LINK_SENT = "auth.password.reset.link.sent";
     public static final String PASSWORD_RESET_SUCCESS = "auth.password.reset.success";
+    public static final String AUTH_PRINCIPAL_ERROR = "error.auth.principal_corrupted";
 
     /* ---------- file upload ---------- */
     public static final String EMPTY_FILE = "file.empty";
@@ -38,4 +39,12 @@ public class MessageCodes {
     /* ---------- storage (S3) ---------- */
     public static final String STORAGE_UNAVAILABLE = "storage.unavailable";
     public static final String STORAGE_CLIENT_ERROR = "storage.client.error";
+
+    /* ---------- templates ---------- */
+    public static final String TEMPLATE_LOAD_FAILED = "template.load.failed";
+
+    /* ---------- templates ---------- */
+    public static final String VALIDATION_TYPE_MISMATCH = "error.validation.type_mismatch";
+    public static final String VALIDATION_INVALID_ENUM = "error.validation.invalid_enum";
+    public static final String VALIDATION_INVALID_JSON = "error.validation.invalid_json";
 }

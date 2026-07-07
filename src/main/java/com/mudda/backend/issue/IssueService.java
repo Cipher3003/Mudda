@@ -111,7 +111,6 @@ public class IssueService {
     }
 
     public Page<IssueSummaryResponse> findAllIssuesByAuthor(Pageable pageable, MuddaUser user) {
-
         Page<Issue> issuePage = issueRepository.findByUserId(user.getUserId(), pageable);
 
         List<Long> issueIds = issuePage.getContent().stream()
@@ -135,7 +134,6 @@ public class IssueService {
     }
 
     public IssueResponse findById(long id, Long userId) {
-
         boolean isAuthenticated = userId != null;
 
         IssueDetailProjection projection = isAuthenticated
@@ -225,9 +223,8 @@ public class IssueService {
 
     @Transactional
     public IssueResponse createIssue(Long userId, CreateIssueRequest issueRequest) {
-        MuddaUser muddaUser = userRepository.findById(userId).orElseThrow(
-                () -> new IllegalArgumentException("User not found for creating Issue")
-        );  // TODO: if JWT request comes can we rely on DB foreign key to validate user
+        MuddaUser muddaUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found for creating Issue"));
 
         Issue issue = IssueMapper.toIssue(userId, issueRequest);
 

@@ -76,10 +76,18 @@ public class MediaHelperService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(buffer.array());
     }
 
-    public String getMediaKey(String publicId, String extension) {
-        // NOTE: preferred but not implemented format - {prefix}/{ownerType}/{publicId}/{variant}.{ext}
-        // TODO: add owner type in key
-        return String.format("media/%s/original.%s", publicId, extension).replace(" ", "_");
+
+    /**
+     * Generate a media key in format: {@code {prefix}/{ownerType}/{publicId}/{variant}.{ext}}
+     *
+     * @param owner     the entity that owns the Media
+     * @param publicId  the unique public identifier to access Media
+     * @param extension the file extension of the media
+     * @return the generated cloud storage media key
+     */
+    public String getMediaKey(MediaOwner owner, String publicId, String extension) {
+        return String.format("media/%s/%s/original.%s", owner.getDirectory(), publicId, extension)
+                .replace(" ", "_");
     }
 
     public String generatePresignedUrl(String bucketName, String key, String contentType) {

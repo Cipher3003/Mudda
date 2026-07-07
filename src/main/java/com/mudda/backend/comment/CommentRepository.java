@@ -13,8 +13,6 @@ import java.util.Optional;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    //    TODO: add alias to queries with projection
-    //    TODO: add count query to queries that return Page
     @Query(
             value = """
                      SELECT c.id AS id, c.text AS text, c.issueId AS issueId, c.parentId AS parentId,
@@ -80,14 +78,20 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     )
     Page<CommentProjection> findReplyFeedWithUser(long userId, long parentId, Pageable pageable);
 
-    //    TODO: directly return ID where entity is not used
-    List<Comment> findByUserId(long userId);
+    @Query("SELECT c.likeCount FROM Comment c WHERE c.id = :id")
+    Optional<Long> findCommentMetricsById(long id);
 
-    List<Comment> findByIssueId(long issueId);
+    @Query("SELECT c.id FROM Comment c WHERE c.userId = :userId")
+    List<Long> findIdsByUserId(long userId);
 
-    List<Comment> findByIssueIdIn(List<Long> issueIds);
+    @Query("SELECT c.id FROM Comment c WHERE c.issueId = :issueId")
+    List<Long> findIdsByIssueId(long issueId);
 
-    List<Comment> findByParentIdIn(List<Long> parentId);
+    @Query("SELECT c.id FROM Comment c WHERE c.issueId IN :issueIds")
+    List<Long> findIdsByIssueIdIn(List<Long> issueIds);
+
+    @Query("SELECT c.id FROM Comment c WHERE c.parentId IN :parentIds")
+    List<Long> findIdsByParentIdIn(List<Long> parentIds);
 
     long countByParentId(long parentId);
 

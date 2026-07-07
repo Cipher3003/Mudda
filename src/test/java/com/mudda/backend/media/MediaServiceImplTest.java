@@ -4,12 +4,11 @@ import com.mudda.backend.exceptions.S3ClientException;
 import com.mudda.backend.exceptions.S3ServiceException;
 import com.mudda.backend.exceptions.UploadFailedException;
 import com.mudda.backend.media.dto.ImageUploadResponse;
-import com.mudda.backend.utils.FileUtils;
+import com.mudda.backend.utils.MessageUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
@@ -44,6 +43,9 @@ public class MediaServiceImplTest {
     @Mock
     private MediaHelperService mediaHelperService;
 
+    @Mock
+    private MessageUtil messageUtil;
+
     final String bucketName = "media-url-devbucket-2026";
     final String testImageName = "testImage.jpg";
 
@@ -54,9 +56,8 @@ public class MediaServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        amazonMediaService = new AmazonMediaService(
-                bucketName, amazonS3, imageValidator, mediaRepository, mediaHelperService
-        );
+        amazonMediaService = new AmazonMediaService(bucketName, amazonS3, imageValidator,
+                mediaRepository, mediaHelperService, messageUtil);
         ReflectionTestUtils.setField(amazonMediaService, "cdnOrigin", "https://cdn.example.com/");
     }
 
@@ -66,12 +67,13 @@ public class MediaServiceImplTest {
     void shouldUploadImageSuccessfully() throws IOException {
         String publicId = "abc123";
         String mediaKey = "images/abc123.jpg";
+        MediaOwner owner = MediaOwner.ISSUE;
         MockMultipartFile mockFile = createMockFileFromResource();
 
         when(mediaHelperService.generatePublicId()).thenReturn(publicId);
-        when(mediaHelperService.getMediaKey(publicId, "jpg")).thenReturn(mediaKey);
+        when(mediaHelperService.getMediaKey(owner, publicId, "jpg")).thenReturn(mediaKey);
 
-        ImageUploadResponse response = amazonMediaService.uploadImage(mockFile);
+        ImageUploadResponse response = amazonMediaService.uploadImage(new MediaFileUploadRequest(mockFile, owner));
 
         verify(imageValidator).validateImage(mockFile);
         verify(amazonS3).putObject(any(PutObjectRequest.class), any(RequestBody.class));
@@ -91,50 +93,36 @@ public class MediaServiceImplTest {
     void shouldThrowWhenSourceStreamFails() throws IOException {
 
         MultipartFile multipartFile = mock(MultipartFile.class);
+        MediaFileUploadRequest request = new MediaFileUploadRequest(multipartFile, MediaOwner.ISSUE);
 
         when(multipartFile.getOriginalFilename()).thenReturn(testImageName);
         when(multipartFile.getInputStream()).thenThrow(new IOException("Disk Error"));
 
-        assertThrows(UploadFailedException.class, () -> amazonMediaService.uploadImage(multipartFile));
+        assertThrows(UploadFailedException.class, () -> amazonMediaService.uploadImage(request));
     }
 
     // #endregion
 
     @Test
     void shouldThrowWhenUnableToConnectToAmazonS3OnUpload() throws IOException {
-
-        // Amazon S3 setup
         when(amazonS3.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenThrow(S3Exception.builder().message("Unable to connect to S3").statusCode(500).build());
 
-        try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
+        MultipartFile multipartFile = createMockFileFromResource();
+        MediaFileUploadRequest request = new MediaFileUploadRequest(multipartFile, MediaOwner.ISSUE);
 
-            mockedStatic.when(() -> FileUtils.generateFileName(any())).thenReturn(testImageName);
-
-            MockMultipartFile mockMultipartFile = createMockFileFromResource();
-
-            assertThrows(S3ServiceException.class, () ->
-                    amazonMediaService.uploadImage(mockMultipartFile));
-        }
+        assertThrows(S3ServiceException.class, () -> amazonMediaService.uploadImage(request));
     }
 
     @Test
     void shouldThrowWhenBadPutRequest() throws IOException {
-
-        // Amazon S3 setup
         when(amazonS3.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenThrow(SdkClientException.builder().message("Bad Request").build());
 
-        try (MockedStatic<FileUtils> mockedStatic = mockStatic(FileUtils.class)) {
+        MultipartFile multipartFile = createMockFileFromResource();
+        MediaFileUploadRequest request = new MediaFileUploadRequest(multipartFile, MediaOwner.ISSUE);
 
-            mockedStatic.when(() -> FileUtils.generateFileName(any()))
-                    .thenReturn(testImageName);
-
-            MockMultipartFile mockMultipartFile = createMockFileFromResource();
-
-            assertThrows(S3ClientException.class, () ->
-                    amazonMediaService.uploadImage(mockMultipartFile));
-        }
+        assertThrows(S3ClientException.class, () -> amazonMediaService.uploadImage(request));
     }
 
     @Test

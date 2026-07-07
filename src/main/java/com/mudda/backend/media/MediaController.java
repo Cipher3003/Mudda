@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -42,24 +41,26 @@ public class MediaController {
     // region Commands (Write Operations)
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ImageUploadResponse> uploadImageToAmazon(@RequestParam MultipartFile file) {
-        if (file == null || file.isEmpty()) return ResponseEntity.badRequest().build();
+    public ResponseEntity<ImageUploadResponse> uploadImageToAmazon(@ModelAttribute MediaFileUploadRequest request) {
+        if (request.multipartFile().isEmpty()) return ResponseEntity.badRequest().build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(mediaService.uploadImage(file));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mediaService.uploadImage(request));
     }
 
     @PostMapping(
             value = "/batch",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<BatchImageUploadResponse> uploadImagesToAmazon(@RequestParam List<MultipartFile> files) {
-        if (files == null || files.isEmpty()) {
+    public ResponseEntity<BatchImageUploadResponse> uploadImagesToAmazon(
+            @ModelAttribute @Size(min = 1, max = 5) List<MediaFileUploadRequest> requests
+    ) {
+        if (requests == null || requests.isEmpty()) {
             log.trace("No files to upload");
             return ResponseEntity.badRequest().build();
         }
 
         log.info("Uploading batch images to Amazon");
-        return ResponseEntity.status(HttpStatus.CREATED).body(mediaService.uploadImages(files));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mediaService.uploadImages(requests));
     }
 
     @PostMapping("/init")

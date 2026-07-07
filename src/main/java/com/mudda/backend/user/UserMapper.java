@@ -26,6 +26,17 @@ public class UserMapper {
                 muddaUser.getProfileImageUrl());
     }
 
+    public static UserSummaryResponse toSummary(MuddaUser muddaUser, String cdnOrigin) {
+        String url = muddaUser.getProfileImageUrl() != null
+                ? "%s/%s".formatted(cdnOrigin, muddaUser.getProfileImageUrl())
+                : null;
+
+        return new UserSummaryResponse(
+                muddaUser.getUserId(),
+                muddaUser.getUsername(),
+                url);
+    }
+
     public static UserDetailResponse toDetail(MuddaUser muddaUser) {
         return new UserDetailResponse(
                 muddaUser.getUserId(),

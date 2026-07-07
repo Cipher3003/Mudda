@@ -9,11 +9,13 @@
 package com.mudda.backend.email;
 
 import com.mudda.backend.AppProperties;
+import com.mudda.backend.exceptions.TemplateLoadException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -24,6 +26,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
@@ -35,15 +38,11 @@ public class SmtpEmailService implements EmailService {
     private final EmailConfig emailConfig;
     private final AppProperties appProperties;
 
-    @Value("${app.email.retry.max-attempts}")
-    private int maxAttempts;
-
-    @Value("${app.email.retry.backoff-ms}")
-    private long backOffMs;
-
-    public SmtpEmailService(JavaMailSender mailSender,  // TODO: fix this shows error
-                            EmailConfig emailConfig,
-                            AppProperties appProperties) {
+    public SmtpEmailService(
+            JavaMailSender mailSender,
+            EmailConfig emailConfig,
+            AppProperties appProperties
+    ) {
         this.mailSender = mailSender;
         this.emailConfig = emailConfig;
         this.appProperties = appProperties;
@@ -77,8 +76,8 @@ public class SmtpEmailService implements EmailService {
 
     @Retryable(
             retryFor = MailException.class,
-            maxAttemptsExpression = "#{@smtpEmailService.maxAttempts}",
-            backoff = @Backoff(delayExpression = "#{@smtpEmailService.backOffMs}")
+            maxAttemptsExpression = "#{@appProperties.email.retry.maxAttempts}",
+            backoff = @Backoff(delayExpression = "#{@appProperties.email.retry.backOffMs}")
     )
     public void sendHtmlEmail(String email, String subject, String html) {
         try {
@@ -86,7 +85,7 @@ public class SmtpEmailService implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(
                     mimeMessage, true, StandardCharsets.UTF_8.name());
 
-            helper.setFrom("no-reply@mudda.dev");
+            helper.setFrom(appProperties.getEmail().getFrom());
             helper.setTo(email);
             helper.setSubject(subject);
             helper.setText(html, true);
@@ -105,118 +104,24 @@ public class SmtpEmailService implements EmailService {
         log.error("Failed to send email to {} with subject '{}' after retries", email, subject, e);
     }
 
-    // TODO: read mail template from file instead of string in code
     private String buildVerifyEmailHtml(String link) {
-        return """
-                <!DOCTYPE html>
-                <html>
-                <body style="margin:0;padding:0;background:#f5f7fa;">
-                <table width="100%%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td align="center">
-                            <table width="600" cellpadding="0" cellspacing="0"
-                                   style="background:#ffffff;padding:30px;border-radius:8px;font-family:Arial,sans-serif;">
-                                <tr>
-                                    <td align="center">
-                                        <h2 style="color:#111827;">Verify your email</h2>
-                
-                                        <p style="color:#374151;font-size:14px;">
-                                            Thanks for creating an account.
-                                        </p>
-                
-                                        <table cellpadding="0" cellspacing="0" style="margin:30px auto;">
-                                            <tr>
-                                                <td bgcolor="#2563eb" style="border-radius:6px;">
-                                                    <a href="%s"
-                                                       style="
-                                                         display:inline-block;
-                                                         padding:12px 18px;
-                                                         font-family:Arial,sans-serif;
-                                                         font-size:14px;
-                                                         color:#ffffff;
-                                                         text-decoration:none;
-                                                         font-weight:bold;
-                                                       ">
-                                                        Verify Email
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                
-                                        <p style="color:#6b7280;font-size:12px;">
-                                            If you didn’t create this account, ignore this email.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-                </body>
-                </html>
-                """.formatted(link);
+        try {
+            Resource resource = new ClassPathResource("templaes/verify-email.html");
+            String template = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            return template.replace("${link}", link);
+        } catch (IOException e) {
+            throw new TemplateLoadException();
+        }
     }
 
     private String buildResetPasswordEmailHtml(String link) {
-        return """
-                <!DOCTYPE html>
-                <html>
-                <body style="margin:0;padding:0;background:#f5f7fa;">
-                <table width="100%%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td align="center">
-                            <table width="600" cellpadding="0" cellspacing="0"
-                                   style="background:#ffffff;padding:30px;border-radius:8px;font-family:Arial,sans-serif;">
-                                <tr>
-                                    <td align="center">
-                
-                                        <h2 style="color:#111827;">Reset your password</h2>
-                
-                                        <p style="color:#374151;font-size:14px;">
-                                            We received a request to reset your password.
-                                        </p>
-                
-                                        <p style="color:#374151;font-size:14px;">
-                                            Click the button below to choose a new password.
-                                        </p>
-                
-                                        <table cellpadding="0" cellspacing="0" style="margin:30px auto;">
-                                            <tr>
-                                                <td bgcolor="#dc2626" style="border-radius:6px;">
-                                                    <a href="%s"
-                                                       style="
-                                                         display:inline-block;
-                                                         padding:12px 18px;
-                                                         font-family:Arial,sans-serif;
-                                                         font-size:14px;
-                                                         color:#ffffff;
-                                                         text-decoration:none;
-                                                         font-weight:bold;
-                                                       ">
-                                                        Reset Password
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                
-                                        <p style="color:#6b7280;font-size:12px;">
-                                            If you didn’t request a password reset, you can safely ignore this email.
-                                            Your password will remain unchanged.
-                                        </p>
-                
-                                        <p style="color:#9ca3af;font-size:11px;margin-top:20px;">
-                                            This link will expire for security reasons.
-                                        </p>
-                
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-                </body>
-                </html>
-                """.formatted(link);
+        try {
+            Resource resource = new ClassPathResource("templates/reset-password-email.html");
+            String template = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            return template.replace("${link}", link);
+        } catch (IOException e) {
+            throw new TemplateLoadException();
+        }
     }
 
 }

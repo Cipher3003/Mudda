@@ -8,6 +8,17 @@
  */
 package com.mudda.backend.media;
 
+import lombok.Getter;
+
+@Getter
 public enum MediaOwner {
-    ISSUE, USER
+    ISSUE("issues"),
+    USER("users");
+
+    private final String directory;
+
+    MediaOwner(String directory) {
+        this.directory = directory;
+    }
+
 }

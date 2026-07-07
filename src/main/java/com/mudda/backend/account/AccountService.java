@@ -44,7 +44,8 @@ public class AccountService {
             EmailService emailService,
             RefreshTokenService refreshTokenService,
             AppProperties appProperties,
-            DeviceTokenService deviceTokenService) {
+            DeviceTokenService deviceTokenService
+    ) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.emailService = emailService;
