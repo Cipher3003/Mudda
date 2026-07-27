@@ -23,7 +23,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -38,6 +37,9 @@ public class SmtpEmailService implements EmailService {
     private final EmailConfig emailConfig;
     private final AppProperties appProperties;
 
+    public static final String VERIFICATION_EMAIL_HTML = "templaes/verify-email.html";
+    public static final String PASSWORD_RESET_EMAIL_HTML = "templates/reset-password-email.html";
+
     public SmtpEmailService(
             JavaMailSender mailSender,
             EmailConfig emailConfig,
@@ -48,7 +50,6 @@ public class SmtpEmailService implements EmailService {
         this.appProperties = appProperties;
     }
 
-    @Async
     @Override
     public void sendVerificationEmail(String email, String token) {
         String link = "%s%s?verifyToken=%s".formatted(
@@ -57,11 +58,10 @@ public class SmtpEmailService implements EmailService {
         sendHtmlEmail(
                 email,
                 "Verify your email",
-                buildVerifyEmailHtml(link)
+                buildEmailFromResource(VERIFICATION_EMAIL_HTML, link)
         );
     }
 
-    @Async
     @Override
     public void sendPasswordResetEmail(String email, String token) {
         String link = "%s%s?verifyToken=%s".formatted(
@@ -70,7 +70,7 @@ public class SmtpEmailService implements EmailService {
         sendHtmlEmail(
                 email,
                 "Reset your password",
-                buildResetPasswordEmailHtml(link)
+                buildEmailFromResource(PASSWORD_RESET_EMAIL_HTML, link)
         );
     }
 
@@ -104,19 +104,9 @@ public class SmtpEmailService implements EmailService {
         log.error("Failed to send email to {} with subject '{}' after retries", email, subject, e);
     }
 
-    private String buildVerifyEmailHtml(String link) {
+    private String buildEmailFromResource(String resourcePath, String link) {
         try {
-            Resource resource = new ClassPathResource("templaes/verify-email.html");
-            String template = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            return template.replace("${link}", link);
-        } catch (IOException e) {
-            throw new TemplateLoadException();
-        }
-    }
-
-    private String buildResetPasswordEmailHtml(String link) {
-        try {
-            Resource resource = new ClassPathResource("templates/reset-password-email.html");
+            Resource resource = new ClassPathResource(resourcePath);
             String template = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             return template.replace("${link}", link);
         } catch (IOException e) {

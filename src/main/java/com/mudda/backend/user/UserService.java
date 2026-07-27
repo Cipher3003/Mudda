@@ -97,7 +97,7 @@ public class UserService implements UserDetailsService {
     // region Commands (Write Operations)
 
     @Transactional
-    public UserDetailResponse createUser(CreateUserRequest userRequest) {
+    public MuddaUser createUser(CreateUserRequest userRequest) {
         log.trace("Validating user against database");
 
         if (userRepository.existsByUsername(userRequest.username()))
@@ -125,7 +125,7 @@ public class UserService implements UserDetailsService {
             saved.setProfileImageUrl(toPublicUrl(saved.getProfileImageUrl()));
         }
 
-        return UserMapper.toDetail(saved);
+        return saved;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

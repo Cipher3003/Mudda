@@ -57,7 +57,8 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDetailResponse> createUser(@Valid @RequestBody CreateUserRequest userRequest) {
         log.debug("Creating user with request {}", userRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequest));
+        UserDetailResponse response = UserMapper.toDetail(userService.createUser(userRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")

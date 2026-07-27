@@ -49,14 +49,14 @@ public class GlobalExceptionHandler {
         e.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        return ResponseEntity.badRequest().body(ApiError.validation(errors));
+        return ApiError.responseValidation(errors);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
         String parameterName = e.getName();
         String message = messageUtil.getMessage(MessageCodes.VALIDATION_TYPE_MISMATCH, parameterName);
-        return badRequestResponse(message);
+        return ApiError.responseBad(message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -64,11 +64,11 @@ public class GlobalExceptionHandler {
         if (e.getCause() instanceof InvalidFormatException ife && ife.getTargetType().isEnum()) {
             String message = messageUtil.getMessage(MessageCodes.VALIDATION_INVALID_ENUM,
                     ife.getValue(), ife.getTargetType().getSimpleName());
-            return badRequestResponse(message);
+            return ApiError.responseBad(message);
         }
 
         String message = messageUtil.getMessage(MessageCodes.VALIDATION_INVALID_JSON);
-        return badRequestResponse(message);
+        return ApiError.responseBad(message);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
             MultipartException.class
     })
     public ResponseEntity<ApiError> handleFrameworkBadRequest(Exception e) {
-        return badRequestResponse(e.getMessage());
+        return ApiError.responseBad(e.getMessage());
     }
 
     @ExceptionHandler(value = {AsyncRequestNotUsableException.class, ClientAbortException.class})
@@ -159,14 +159,13 @@ public class GlobalExceptionHandler {
 
     //endregion
 
-    private ResponseEntity<ApiError> badRequestResponse(String message) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiError.of(HttpStatus.BAD_REQUEST, message));
-    }
+    // region Helpers
 
     private ResponseEntity<ApiError> apiErrorResponse(HttpStatus status, String messageCode, Object... args) {
         String message = messageUtil.getMessage(messageCode, args);
-        return ResponseEntity.status(status).body(ApiError.of(status, message));
+        return ApiError.response(status, message);
     }
+
+    // endregion
 
 }

@@ -9,20 +9,23 @@
 package com.mudda.backend.account;
 
 import com.mudda.backend.AppProperties;
+import com.mudda.backend.email.EmailService;
 import com.mudda.backend.exceptions.UserAlreadyExistsException;
 import com.mudda.backend.token.device.DeviceTokenService;
 import com.mudda.backend.token.refresh.RefreshTokenService;
 import com.mudda.backend.token.verification.TokenType;
 import com.mudda.backend.token.verification.VerificationToken;
 import com.mudda.backend.token.verification.VerificationTokenService;
-import com.mudda.backend.email.EmailService;
+import com.mudda.backend.user.MuddaUser;
 import com.mudda.backend.user.UserService;
 import com.mudda.backend.user.dto.CreateUserRequest;
-import com.mudda.backend.user.MuddaUser;
-import com.mudda.backend.user.dto.UserDetailResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -37,6 +40,7 @@ public class AccountService {
     private final RefreshTokenService refreshTokenService;
     private final AppProperties appProperties;
     private final DeviceTokenService deviceTokenService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public AccountService(
             UserService userService,
@@ -44,7 +48,8 @@ public class AccountService {
             EmailService emailService,
             RefreshTokenService refreshTokenService,
             AppProperties appProperties,
-            DeviceTokenService deviceTokenService
+            DeviceTokenService deviceTokenService,
+            ApplicationEventPublisher applicationEventPublisher
     ) {
         this.userService = userService;
         this.tokenService = tokenService;
@@ -52,6 +57,7 @@ public class AccountService {
         this.refreshTokenService = refreshTokenService;
         this.appProperties = appProperties;
         this.deviceTokenService = deviceTokenService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     //region Commands (Write Operations)
@@ -61,48 +67,36 @@ public class AccountService {
         log.info("Registering new user account");
         Optional<MuddaUser> existingUser = userService.findByEmail(createUserRequest.email());
 
-        if (existingUser.isPresent()) {
-            log.trace("User with email {} already exists", createUserRequest.email());
-            MuddaUser muddaUser = existingUser.get();
+        if (existingUser.isPresent() && existingUser.get().isEnabled()) {
+            log.info("User with email {} already exists and verified", createUserRequest.email());
+            throw new UserAlreadyExistsException();
+        }
 
-            if (muddaUser.isEnabled()) {
-                log.warn("User with email {} already exists and verified", createUserRequest.email());
-                throw new UserAlreadyExistsException();
-            }
+        MuddaUser user = existingUser.orElseGet(() -> {
+            log.trace("Creating new user account");
+            return userService.createUser(createUserRequest);
+        });
 
-            tokenService.invalidateUnusedTokens(muddaUser.getUserId(), TokenType.EMAIL_VERIFY);
+        sendVerification(user);
+    }
 
-            log.trace("Sending verification token to user {}", muddaUser.getEmail());
-            VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, muddaUser.getUserId());
-            emailService.sendVerificationEmail(muddaUser.getEmail(), token.getToken());
+    @Transactional
+    public void resendEmailVerificationLink(String email) {
+        log.info("Resending email verification link to {}", email);
+        MuddaUser user = userService.findByEmail(email).orElse(null);
+        if (user == null) return;
+
+        if (user.isEnabled()) {
+            log.info("User with email {} already verified", email);
             return;
         }
 
-        log.trace("Creating new user account");
-        UserDetailResponse user = userService.createUser(createUserRequest);
+        if (tokenService.recentTokenExists(user.getUserId(), TokenType.EMAIL_VERIFY, resendCooldown())) {
+            log.trace("Skipping verification resend due to cooldown");
+            return;
+        }
 
-        log.trace("Sending verification token to user {}", user.email());
-        VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.userId());
-        emailService.sendVerificationEmail(user.email(), token.getToken());
-    }
-
-    public void resendEmailVerificationLink(String email) {
-        log.info("Resending email verification link to {}", email);
-        userService.findByEmail(email).ifPresent(user -> {
-            if (user.isEnabled()) {
-                log.warn("User with email {} already verified", email);
-                return;
-            }
-
-            if (tokenService.recentTokenExists(user.getUserId(), TokenType.EMAIL_VERIFY, resendCooldown()))
-                return;
-
-            tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.EMAIL_VERIFY);
-
-            log.trace("Sending verification token to user {}", email);
-            VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.getUserId());
-            emailService.sendVerificationEmail(email, token.getToken());
-        });
+        sendVerification(user);
     }
 
     @Transactional
@@ -116,17 +110,16 @@ public class AccountService {
     @Transactional
     public void requestPasswordReset(String email) {
         log.info("Generating password reset link for user {}", email);
-        userService.findByEmail(email).ifPresent(user -> {
+        MuddaUser user = userService.findByEmail(email).orElse(null);
+        if (user == null) return;
 
-            if (tokenService.recentTokenExists(user.getUserId(), TokenType.PASSWORD_RESET, resendCooldown()))
-                return;
+        if (tokenService.recentTokenExists(user.getUserId(), TokenType.PASSWORD_RESET, resendCooldown()))
+            return;
 
-            tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.PASSWORD_RESET);
-
-            log.trace("Sending password reset token to user {}", email);
-            VerificationToken token = tokenService.generateToken(TokenType.PASSWORD_RESET, user.getUserId());
-            emailService.sendPasswordResetEmail(email, token.getToken());
-        });
+        tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.PASSWORD_RESET);
+        VerificationToken token = tokenService.generateToken(TokenType.PASSWORD_RESET, user.getUserId());
+        applicationEventPublisher.publishEvent(new PasswordResetRequestedEvent(user.getEmail(), token.getToken()));
+        log.debug("Published PasswordResetRequestedEvent for user: {}", user.getUsername());
     }
 
     @Transactional
@@ -157,6 +150,31 @@ public class AccountService {
     }
 
     //endregion
+
+    //region Listeners
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendVerificationEmail(UserRegisteredEvent event) {
+        log.trace("Sending verification token to user {}", event.email());
+        emailService.sendVerificationEmail(event.email(), event.token());
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPasswordResetEmail(PasswordResetRequestedEvent event) {
+        log.trace("Sending password reset token to user {}", event.email());
+        emailService.sendPasswordResetEmail(event.email(), event.token());
+    }
+
+    //endregion
+
+    private void sendVerification(MuddaUser user) {
+        tokenService.invalidateUnusedTokens(user.getUserId(), TokenType.EMAIL_VERIFY);
+        VerificationToken token = tokenService.generateToken(TokenType.EMAIL_VERIFY, user.getUserId());
+        applicationEventPublisher.publishEvent(new UserRegisteredEvent(user.getEmail(), token.getToken()));
+        log.debug("Published UserRegisteredEvent for user: {}", user.getUsername());
+    }
 
     private Duration resendCooldown() {
         return Duration.ofMinutes(appProperties.getToken().getResendCooldownMinutes());

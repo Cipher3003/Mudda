@@ -41,12 +41,14 @@ public class WebSecurityConfig {
     private final PersistentTokenRepository persistentTokenRepository;
     private final ObjectMapper objectMapper;
 
-    public WebSecurityConfig(UserDetailsService userDetailsService,
-                             PasswordEncoder passwordEncoder,
-                             JwtAuthFilter jwtAuthFilter,
-                             AppProperties appProperties,
-                             PersistentTokenRepository persistentTokenRepository,
-                             ObjectMapper objectMapper) {
+    public WebSecurityConfig(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder,
+            JwtAuthFilter jwtAuthFilter,
+            AppProperties appProperties,
+            PersistentTokenRepository persistentTokenRepository,
+            ObjectMapper objectMapper
+    ) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.jwtAuthFilter = jwtAuthFilter;
